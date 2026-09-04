@@ -1,0 +1,16 @@
+# Cloudflare Pages のヘッダー設定。public/ の中身は out/ にそのままコピーされる。
+# 参考: https://developers.cloudflare.com/pages/configuration/headers/
+
+# ビルドごとにハッシュが変わる静的アセットは永久キャッシュしてよい
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML は Cloudflare のエッジに置きつつ、更新が即反映されるよう都度検証させる
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# 注: X-Frame-Options / frame-ancestors は設定しない。
+# 将来「埋め込みウィジェット（iframe + Powered by リンク）」で外部サイトに
+# 貼らせる計画（HANDOFF.md §6-C）があり、フレーム禁止はそれを潰すため。
