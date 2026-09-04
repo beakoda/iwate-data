@@ -1,0 +1,79 @@
+/* DADS(デジタル庁デザインシステム)準拠のトークン: Noto Sans JP / 16px / 行間1.7 / Blue-900 / Solid-gray */
+:root {
+  --blue-900: #0017C1; --blue-1000: #00118F; --blue-600: #3460FB; --blue-50: #E8F1FE;
+  --gray-900: #1A1A1C; --gray-536: #767676; --gray-420: #949494; --gray-200: #D8D8DB; --gray-100: #E6E6E6; --gray-50: #F2F2F2;
+  --white: #FFFFFF; --focus: #FFD43D;
+  --sp-1: 8px; --sp-2: 16px; --sp-3: 24px; --sp-4: 32px; --sp-5: 40px; --sp-6: 48px; --sp-8: 64px;
+}
+* { box-sizing: border-box; }
+html { color-scheme: light; }
+body { margin: 0; font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, system-ui, sans-serif; font-size: 16px; line-height: 1.7; color: var(--gray-900); background: var(--white); -webkit-font-smoothing: antialiased; }
+a { color: var(--blue-900); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { color: var(--blue-1000); }
+a:focus-visible, button:focus-visible { outline: 4px solid var(--focus); outline-offset: 2px; }
+.container { max-width: 1024px; margin: 0 auto; padding: 0 var(--sp-2); }
+h1 { font-size: 32px; line-height: 1.4; font-weight: 700; margin: var(--sp-3) 0 var(--sp-2); letter-spacing: 0; }
+h2 { font-size: 24px; line-height: 1.4; font-weight: 700; margin: var(--sp-6) 0 var(--sp-2); padding-left: 12px; border-left: 4px solid var(--blue-900); }
+h3 { font-size: 20px; line-height: 1.5; margin: var(--sp-4) 0 var(--sp-1); }
+p { margin: 0 0 var(--sp-2); }
+small { font-size: 14px; color: var(--gray-536); }
+code { font-family: 'Noto Sans Mono', ui-monospace, Menlo, monospace; font-size: 14px; background: var(--gray-50); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+
+.site-header { border-bottom: 1px solid var(--gray-100); background: var(--white); }
+.site-header .container { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-height: 64px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--gray-900); text-decoration: none; }
+.brand-mark { display: inline-grid; place-items: center; width: 36px; height: 36px; background: var(--blue-900); color: #fff; border-radius: 8px; font-size: 18px; }
+.brand-sub { font-size: 13px; font-weight: 400; color: var(--gray-536); margin-left: 4px; }
+.site-header nav { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.site-header nav a { text-decoration: none; font-weight: 700; padding: 8px 4px; border-bottom: 3px solid transparent; }
+.site-header nav a:hover { border-bottom-color: var(--blue-900); }
+.site-footer { border-top: 1px solid var(--gray-100); margin-top: var(--sp-8); padding: var(--sp-4) 0; color: var(--gray-536); font-size: 14px; }
+
+.breadcrumb ol { list-style: none; padding: 0; margin: var(--sp-2) 0 0; display: flex; flex-wrap: wrap; gap: 4px; font-size: 14px; }
+.breadcrumb li + li::before { content: '›'; margin: 0 6px; color: var(--gray-420); }
+.lead { font-size: 18px; color: var(--gray-900); }
+.key-fact { background: var(--blue-50); border-left: 4px solid var(--blue-900); padding: var(--sp-2) var(--sp-3); margin: var(--sp-3) 0; font-size: 18px; }
+.key-fact strong { font-size: 22px; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-2); margin: var(--sp-3) 0; }
+.stat { border: 1px solid var(--gray-100); border-radius: 8px; padding: var(--sp-2); }
+.stat-label { font-size: 14px; color: var(--gray-536); }
+.stat-value { font-size: 28px; font-weight: 700; line-height: 1.3; margin: 4px 0; }
+.stat-sub { font-size: 14px; color: var(--gray-536); }
+
+.chart { margin: var(--sp-3) 0; border: 1px solid var(--gray-100); border-radius: 8px; padding: var(--sp-2); }
+.chart figcaption { font-weight: 700; margin-bottom: var(--sp-1); }
+.chart svg { display: block; max-width: 100%; height: auto; }
+.legend { list-style: none; display: flex; gap: var(--sp-2); padding: 0; margin: var(--sp-1) 0 0; font-size: 14px; flex-wrap: wrap; }
+.legend span { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; }
+
+.table-wrap { overflow-x: auto; margin: var(--sp-2) 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { border-bottom: 1px solid var(--gray-100); padding: 10px 12px; text-align: right; white-space: nowrap; }
+th { background: var(--gray-50); font-weight: 700; text-align: right; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--white); }
+th:first-child { background: var(--gray-50); }
+tr.hl td { background: var(--blue-50); font-weight: 700; }
+td.neg { color: #B03A2E; }
+td.pos { color: #197A4B; }
+
+.sources, .cite { margin-top: var(--sp-6); padding: var(--sp-3); background: var(--gray-50); border-radius: 8px; }
+.sources h2, .cite h2 { margin-top: 0; font-size: 20px; }
+.sources ul { padding-left: 20px; }
+.cite dl { margin: 0; }
+.cite dt { font-weight: 700; margin-top: var(--sp-1); }
+.cite dd { margin: 4px 0 0; }
+.cite-sentence { font-size: 18px; font-weight: 700; }
+
+.grid-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--sp-1); list-style: none; padding: 0; margin: var(--sp-2) 0; }
+.grid-links a { display: block; padding: 12px 14px; border: 1px solid var(--gray-100); border-radius: 8px; text-decoration: none; font-weight: 700; }
+.grid-links a:hover { border-color: var(--blue-900); background: var(--blue-50); }
+.grid-links small { display: block; font-weight: 400; }
+.hero { padding: var(--sp-5) 0 var(--sp-2); }
+.hero h1 { font-size: 36px; margin-top: 0; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-2); margin: var(--sp-3) 0; }
+.card { border: 1px solid var(--gray-100); border-radius: 8px; padding: var(--sp-3); }
+.card h2 { border: 0; padding: 0; margin: 0 0 var(--sp-1); font-size: 20px; }
+.card a.more { font-weight: 700; }
+.note { color: var(--gray-536); font-size: 14px; }
+@media (max-width: 767px) { h1 { font-size: 26px; } .hero h1 { font-size: 28px; } .stat-value { font-size: 24px; } .brand-sub { display: none; } }
