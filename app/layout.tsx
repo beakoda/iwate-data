@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/aging/">高齢化率</Link>
               <Link href="/work/">就業・昼夜間</Link>
               <Link href="/industry/">産業・事業所</Link>
+              <Link href="/building/">住宅着工</Link>
               <Link href="/city/">市町村別</Link>
             </nav>
           </div>
