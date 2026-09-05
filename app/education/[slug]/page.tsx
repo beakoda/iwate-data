@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, eduAt, eduSeries, eduPrefAt, eduShare, fmt, fmtSigned, pct, rank, LATEST_EDU, FIRST_EDU } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -35,6 +35,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/education/${m.slug}/`}
         keywords={[m.name, '最終学歴', '大卒率', '大学卒業者', '短大', '高専', '学歴', '国勢調査', '岩手県']} temporal={`${FIRST_EDU}/${LATEST_EDU}`} sourceKeys={['education']} />
       <h1>{title}</h1>
+      <MuniStrip family="education" current={m.code} />
       <p className="key-fact">
         {m.name}の大学・大学院卒業者は{LATEST_EDU}年に<strong>{fmt(r.grad_univ)}人</strong>、卒業者に占める割合は<strong>{fmt(u)}%</strong>で岩手県内<strong>{rU.get(me) ?? '—'}位</strong>（県平均{fmt(prefU)}%）。
         {FIRST_EDU}年の{fmt(u0)}%から<strong>{fmtSigned(Math.round(((u ?? 0) - (u0 ?? 0)) * 10) / 10, 'ポイント')}</strong>。短大・高専卒{fmt(c)}%、高校・旧中卒{fmt(h)}%、小中学校卒{fmt(j)}%。
@@ -47,6 +48,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">小学校・中学校卒</div><div className="stat-value">{fmt(r.grad_jhs)}</div><div className="stat-sub">人・{fmt(j)}%・{FIRST_EDU}年比 {fmtSigned(pct(r.grad_jhs, r0.grad_jhs), '%')}</div></div>
         <div className="stat"><div className="stat-label">卒業者総数</div><div className="stat-value">{fmt(r.grad_total)}</div><div className="stat-sub">人・{FIRST_EDU}年比 {fmtSigned(pct(r.grad_total, r0.grad_total), '%')}</div></div>
       </div>
+      <Tools family="education" slug={m.slug} label={`${m.name}の全年データ`} />
       <BarChart title={`${m.name}の最終学歴別 構成比（${LATEST_EDU}年、%）`} unit="%"
         items={[
           { label: '小学校・中学校', value: j },
@@ -72,6 +74,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/work/${m.slug}/`}>{m.name}の産業別就業者</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="大卒率" />
       <CiteBox title={title} path={`/education/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['education']} extra={[
         '「卒業者総数」は15歳以上人口から在学者・未就学者・学歴不詳を除いた数。分母が異なるため、15歳以上人口に対する比率とは一致しない。',
