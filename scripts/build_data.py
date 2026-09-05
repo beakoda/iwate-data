@@ -56,6 +56,7 @@ SOURCES = {
  'econ2021': {'name':'総務省・経済産業省「令和3年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第4-1表（産業大分類、単独・本所・支所別民営事業所数、従業者数及び売上（収入）金額－市区町村）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20210', 'note':'2021年6月1日現在。売上（収入）金額は外国の会社及び法人でない団体を除く。「X」は秘匿、「-」は該当なし、「...」は非公表。'},
  'econ2016': {'name':'総務省・経済産業省「平成28年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第8表（産業別民営事業所数・従業者数－都道府県、市区町村）岩手県', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20160', 'note':'2016年6月1日現在。'},
     'building': {'name':'国土交通省「建築着工統計調査」建築物着工統計 市区町村別、用途別（大分類）／建築物の数、床面積、工事費予定額（年次）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0004019181', 'note':'各年1〜12月の着工。2011〜2019年は統計表0003114492（工事費予定額あり）、2020〜2024年は0004019181（工事費予定額なし）。e-Stat APIで取得。「＊」は秘匿。'},
+    'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
     'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
     'census': {'name':'総務省統計局「国勢調査」都道府県・市区町村別の主な結果（第１面事項・第２面事項）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001049104&tclass1=000001049105', 'note':'各回10月1日現在。2015年（平成27年）・2020年（令和2年）。2020年の年齢・就業関係の数値は不詳補完結果。「-」は該当者なし。'},
@@ -96,6 +97,25 @@ VITAL_YEARS = list(range(2010, 2024))
 VITAL_KEYS = ('births', 'deaths', 'marriages', 'divorces', 'in_migr', 'out_migr')
 HOUSE_YEARS = [2010, 2015, 2020]
 HOUSE_KEYS = ('pop75', 'foreign', 'did_pop', 'households', 'general_hh', 'nuclear_hh', 'single_hh', 'eld_couple_hh', 'eld_single_hh')
+
+
+MED_YEARS = list(range(2010, 2024))
+MED_KEYS = ('hospitals', 'gen_hospitals', 'clinics', 'dental_clinics', 'hosp_beds', 'clinic_beds', 'doctors', 'dentists', 'pharmacists')
+
+
+def load_medical():
+    out = {}
+    for r in load_csvs('medical_2010_2023.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in MED_KEYS})
+        d.setdefault('merged', [])
+        for k in MED_KEYS:
+            v = num(r[k])
+            if v is not None:
+                d[k] = (d[k] or 0) + v
+        if code != r['code'] and r['code'] not in d['merged']:
+            d['merged'].append(r['code'])
+    return out
 
 
 def load_vital():
@@ -191,6 +211,8 @@ def build():
         'dental': dental, 'population': pop, 'econ': econ,
         'census': load_census(),
         'building': load_building(),
+        'medical': load_medical(),
+        'medYears': MED_YEARS,
         'vital': load_vital(),
         'household': load_household(),
         'vitalYears': VITAL_YEARS,
@@ -222,6 +244,31 @@ def build():
     for y in BUILD_YEARS:
         s2 = sum(bld[m['code']].get(str(y), {}).get('bldg_house', 0) for m in munis)
         assert s2 == PREF_HOUSE[y], ('building', y, s2, PREF_HOUSE[y])
+
+    # 健康・医療: 市町村合計が県公表値（社会・人口統計体系 都道府県データ）と一致するか
+    med = ds['medical']
+    # [病院,一般病院,一般診療所,歯科診療所,病院病床,一般診療所病床,医師,歯科医師,薬剤師]。医師系は隔年のみ（Noneはその年に公表なし）
+    PREF_MED = {
+        2010:[95,80,918,611,18506,2133,2576,1046,2123], 2011:[92,77,902,580,17965,2044,None,None,None],
+        2012:[92,77,918,590,17856,1930,2603,1031,2183], 2013:[92,77,923,602,17756,1883,None,None,None],
+        2014:[91,76,902,594,17569,1663,2622,1031,2232], 2015:[91,76,904,594,17496,1576,None,None,None],
+        2016:[93,78,898,592,17471,1506,2631,1029,2303], 2017:[93,78,874,587,17304,1418,None,None,None],
+        2018:[93,78,882,583,17081,1343,2673,1005,2421], 2019:[91,76,879,576,15589,1270,None,None,None],
+        2020:[92,77,877,566,16436,1187,2700,1016,2536], 2021:[92,77,888,557,16158,1163,None,None,None],
+        2022:[92,77,889,548,16146,1055,2758,965,2572],  2023:[91,76,879,542,15850,939,None,None,None],
+    }
+    for y in MED_YEARS:
+        for i, k in enumerate(MED_KEYS):
+            exp = PREF_MED[y][i]
+            if exp is None: continue
+            got = sum(med[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            assert got == exp, ('medical', y, k, got, exp)
+    # 医療施設調査を出典とする2系統（/dental/ の第2表 と 社会・人口統計体系）が一致するか
+    for y in MED_YEARS:
+        for m in munis:
+            r = med[m['code']].get(str(y), {})
+            assert r.get('dental_clinics') == dental[m['code']][y]['dent'], ('dental xcheck', y, m['code'])
+            assert r.get('clinics') == dental[m['code']][y]['gen'], ('clinic xcheck', y, m['code'])
 
     # 人口動態: 市町村合計が県公表値（社会・人口統計体系 都道府県データ）と一致するか
     vit = ds['vital']
