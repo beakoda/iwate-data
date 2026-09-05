@@ -45,6 +45,7 @@ CENSUS_IND = [('wA','A','農業，林業'),('wB','B','漁業'),('wC','C','鉱業
  ('wO','O','教育，学習支援業'),('wP','P','医療，福祉'),('wQ','Q','複合サービス事業'),
  ('wR','R','サービス業（他に分類されないもの）'),('wS','S','公務（他に分類されるものを除く）'),
  ('wT','T','分類不能の産業')]
+BUILD_YEARS = list(range(2011, 2025))
 CENSUS_YEARS = [2010, 2015, 2020]
 # 2010年は第1面のみ（合算できる項目に限定）。2005年以前は平成の大合併前で対応表が必要なため未取込。
 CENSUS_FULL_YEARS = [2015, 2020]
@@ -54,6 +55,7 @@ SOURCES = {
  'population': {'name':'総務省「住民基本台帳に基づく人口、人口動態及び世帯数調査」市区町村別（総計）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200241', 'note':'各年1月1日現在の人口・世帯数。出生・死亡・転入・転出は前年1年間。2013〜2026年。'},
  'econ2021': {'name':'総務省・経済産業省「令和3年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第4-1表（産業大分類、単独・本所・支所別民営事業所数、従業者数及び売上（収入）金額－市区町村）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20210', 'note':'2021年6月1日現在。売上（収入）金額は外国の会社及び法人でない団体を除く。「X」は秘匿、「-」は該当なし、「...」は非公表。'},
  'econ2016': {'name':'総務省・経済産業省「平成28年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第8表（産業別民営事業所数・従業者数－都道府県、市区町村）岩手県', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20160', 'note':'2016年6月1日現在。'},
+    'building': {'name':'国土交通省「建築着工統計調査」建築物着工統計 市区町村別、用途別（大分類）／建築物の数、床面積、工事費予定額（年次）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0004019181', 'note':'各年1〜12月の着工。2011〜2019年は統計表0003114492（工事費予定額あり）、2020〜2024年は0004019181（工事費予定額なし）。e-Stat APIで取得。「＊」は秘匿。'},
     'census': {'name':'総務省統計局「国勢調査」都道府県・市区町村別の主な結果（第１面事項・第２面事項）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001049104&tclass1=000001049105', 'note':'各回10月1日現在。2015年（平成27年）・2020年（令和2年）。2020年の年齢・就業関係の数値は不詳補完結果。「-」は該当者なし。'},
 }
 
@@ -69,6 +71,24 @@ def load_csvs(*names):
         with open(os.path.join(RAW, n), encoding='utf-8') as f:
             rows += list(csv.DictReader(f))
     return rows
+
+def load_building():
+    out = {}
+    for f in ('building_2011_2019.csv', 'building_2020_2024.csv'):
+        for r in load_csvs(f):
+            code = LEGACY.get(r['code'], r['code'])
+            y = r['year']
+            d = out.setdefault(code, {}).setdefault(y, {'bldg_all':0,'floor_all':0,'bldg_house':0,'floor_house':0,'bldg_mixed':0,'floor_mixed':0,'cost_all':None,'cost_house':None,'merged':[]})
+            for k in ('bldg_all','floor_all','bldg_house','floor_house','bldg_mixed','floor_mixed'):
+                d[k] += num(r[k]) or 0
+            for k in ('cost_all','cost_house'):
+                v = num(r.get(k, ''))
+                if v is not None:
+                    d[k] = (d[k] or 0) + v
+            if code != r['code']:
+                d['merged'].append(r['code'])
+    return out
+
 
 def load_census():
     out = {}
@@ -132,6 +152,8 @@ def build():
         'legacy': LEGACY,
         'dental': dental, 'population': pop, 'econ': econ,
         'census': load_census(),
+        'building': load_building(),
+        'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
         'censusInd': [{'key':k,'code':c,'name':n} for k,c,n in CENSUS_IND],
@@ -151,6 +173,14 @@ def build():
                 r = cen[str(y)][m['code']]
                 tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+    # 建築着工: 市町村合計が県公表値と一致するか（居住専用住宅の棟数、2011-2024）
+    bld = ds['building']
+    PREF_HOUSE = {2011:4396,2012:6276,2013:6963,2014:6549,2015:6437,2016:6388,2017:6155,2018:6504,2019:6163,
+                  2020:5228,2021:5726,2022:5287,2023:4770,2024:4343}
+    for y in BUILD_YEARS:
+        s2 = sum(bld[m['code']].get(str(y), {}).get('bldg_house', 0) for m in munis)
+        assert s2 == PREF_HOUSE[y], ('building', y, s2, PREF_HOUSE[y])
+
     for y in range(2009, 2025):
         s = sum(dental[m['code']][y]['dent'] for m in munis)
         assert s == dental[PREF][y]['dent'], (y, s, dental[PREF][y]['dent'])
