@@ -56,6 +56,8 @@ SOURCES = {
  'econ2021': {'name':'総務省・経済産業省「令和3年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第4-1表（産業大分類、単独・本所・支所別民営事業所数、従業者数及び売上（収入）金額－市区町村）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20210', 'note':'2021年6月1日現在。売上（収入）金額は外国の会社及び法人でない団体を除く。「X」は秘匿、「-」は該当なし、「...」は非公表。'},
  'econ2016': {'name':'総務省・経済産業省「平成28年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第8表（産業別民営事業所数・従業者数－都道府県、市区町村）岩手県', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20160', 'note':'2016年6月1日現在。'},
     'building': {'name':'国土交通省「建築着工統計調査」建築物着工統計 市区町村別、用途別（大分類）／建築物の数、床面積、工事費予定額（年次）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0004019181', 'note':'各年1〜12月の着工。2011〜2019年は統計表0003114492（工事費予定額あり）、2020〜2024年は0004019181（工事費予定額なし）。e-Stat APIで取得。「＊」は秘匿。'},
+    'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
+    'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
     'census': {'name':'総務省統計局「国勢調査」都道府県・市区町村別の主な結果（第１面事項・第２面事項）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001049104&tclass1=000001049105', 'note':'各回10月1日現在。2015年（平成27年）・2020年（令和2年）。2020年の年齢・就業関係の数値は不詳補完結果。「-」は該当者なし。'},
 }
 
@@ -87,6 +89,42 @@ def load_building():
                     d[k] = (d[k] or 0) + v
             if code != r['code']:
                 d['merged'].append(r['code'])
+    return out
+
+
+VITAL_YEARS = list(range(2010, 2024))
+VITAL_KEYS = ('births', 'deaths', 'marriages', 'divorces', 'in_migr', 'out_migr')
+HOUSE_YEARS = [2010, 2015, 2020]
+HOUSE_KEYS = ('pop75', 'foreign', 'did_pop', 'households', 'general_hh', 'nuclear_hh', 'single_hh', 'eld_couple_hh', 'eld_single_hh')
+
+
+def load_vital():
+    out = {}
+    for r in load_csvs('vital_2010_2023.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in VITAL_KEYS})
+        d.setdefault('merged', [])
+        for k in VITAL_KEYS:
+            v = num(r[k])
+            if v is not None:
+                d[k] = (d[k] or 0) + v
+        if code != r['code'] and r['code'] not in d['merged']:
+            d['merged'].append(r['code'])
+    return out
+
+
+def load_household():
+    out = {}
+    for r in load_csvs('household_2010_2020.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in HOUSE_KEYS})
+        d.setdefault('merged', [])
+        for k in HOUSE_KEYS:
+            v = num(r[k])
+            if v is not None:
+                d[k] = (d[k] or 0) + v
+        if code != r['code'] and r['code'] not in d['merged']:
+            d['merged'].append(r['code'])
     return out
 
 
@@ -153,6 +191,10 @@ def build():
         'dental': dental, 'population': pop, 'econ': econ,
         'census': load_census(),
         'building': load_building(),
+        'vital': load_vital(),
+        'household': load_household(),
+        'vitalYears': VITAL_YEARS,
+        'houseYears': HOUSE_YEARS,
         'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
@@ -180,6 +222,29 @@ def build():
     for y in BUILD_YEARS:
         s2 = sum(bld[m['code']].get(str(y), {}).get('bldg_house', 0) for m in munis)
         assert s2 == PREF_HOUSE[y], ('building', y, s2, PREF_HOUSE[y])
+
+    # 人口動態: 市町村合計が県公表値（社会・人口統計体系 都道府県データ）と一致するか
+    vit = ds['vital']
+    PREF_VITAL = {2010:(9745,15756,5724,2327),2011:(9310,22335,5346,2038),2012:(9277,16072,5629,1975),
+                  2013:(9231,15970,5398,2003),2014:(8803,16274,5482,1855),2015:(8814,16502,5243,1956),
+                  2016:(8342,16959,4873,1877),2017:(8175,17232,4775,1861),2018:(7615,17390,4439,1843),
+                  2019:(6974,17826,4489,1754),2020:(6718,17204,3918,1679),2021:(6472,17631,3673,1459),
+                  2022:(5788,19342,3508,1492),2023:(5432,19612,3376,1488)}
+    for y in VITAL_YEARS:
+        got = tuple(sum(vit[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+                    for k in ('births','deaths','marriages','divorces'))
+        assert got == PREF_VITAL[y], ('vital', y, got, PREF_VITAL[y])
+    # 世帯: 市町村合計が県公表値と一致するか
+    hh = ds['household']
+    PREF_HH = {
+        2010: {'foreign':5184,'did_pop':393716,'households':483934,'general_hh':482845,'nuclear_hh':246937,'single_hh':132370,'eld_couple_hh':48029,'eld_single_hh':43479},
+        2015: {'pop75':207419,'foreign':5017,'did_pop':407920,'households':493049,'general_hh':489383,'nuclear_hh':251014,'single_hh':148575,'eld_couple_hh':53475,'eld_single_hh':53398},
+        2020: {'pop75':214277,'foreign':6937,'did_pop':400246,'households':492436,'general_hh':490828,'nuclear_hh':252005,'single_hh':163290,'eld_couple_hh':57656,'eld_single_hh':62424},
+    }
+    for y in HOUSE_YEARS:
+        for k, exp in PREF_HH[y].items():
+            got = sum(hh[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            assert got == exp, ('household', y, k, got, exp)
 
     for y in range(2009, 2025):
         s = sum(dental[m['code']][y]['dent'] for m in munis)
