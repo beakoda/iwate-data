@@ -100,40 +100,52 @@ def load_building():
     return out
 
 
-VITAL_YEARS = list(range(2010, 2024))
 VITAL_KEYS = ('births', 'deaths', 'marriages', 'divorces', 'in_migr', 'out_migr')
-HOUSE_YEARS = [2010, 2015, 2020]
 HOUSE_KEYS = ('pop75', 'foreign', 'did_pop', 'households', 'general_hh', 'nuclear_hh', 'single_hh', 'eld_couple_hh', 'eld_single_hh')
-
-
-MED_YEARS = list(range(2010, 2024))
 MED_KEYS = ('hospitals', 'gen_hospitals', 'clinics', 'dental_clinics', 'hosp_beds', 'clinic_beds', 'doctors', 'dentists', 'pharmacists')
-
-
-WEL_YEARS = list(range(2010, 2024))
 WEL_KEYS = ('tokuyo', 'tokuyo_cap', 'yuryo', 'yuryo_cap', 'kokuho')
-
-
-ENV_YEARS = list(range(2010, 2024))
 ENV_KEYS = ('gomi_collect_pop', 'gomi_total', 'gomi_per_day', 'recycle_rate', 'landfill', 'flush_rate', 'nonflush_pop')
 ENV_SUM = ('gomi_collect_pop', 'gomi_total', 'landfill', 'nonflush_pop')
-ECON_YEARS = list(range(2010, 2024))
 ECON_KEYS = ('taxable_income', 'taxpayers', 'farmland', 'mfg_shipment', 'mfg_estab', 'mfg_workers')
-SCHOOL_YEARS = list(range(2010, 2024))
 SCHOOL_KEYS = ('kg', 'kg_pupils', 'es', 'es_teachers', 'es_pupils', 'jhs', 'jhs_teachers', 'jhs_students', 'hs', 'hs_students')
-JOBLESS_YEARS = [2010, 2015, 2020]
 JOBLESS_KEYS = ('labor', 'workers', 'jobless', 'workers65')
-EDU_YEARS = [2010, 2020]
 EDU_KEYS = ('grad_total', 'grad_jhs', 'grad_hs', 'grad_col', 'grad_univ')
-FARM_YEARS = [2009, 2014, 2019]
 FARM_KEYS = ('sales_farms', 'self_farms', 'full_farms', 'part_farms', 'abandoned')
 
+# 社会・人口統計体系（e-Stat SSDS）由来の10系列。raw/ssds/{family}.csv は scripts/fetch_estat.py が生成する。
+#   floor : この年より前は市町村合併が多く LEGACY で吸収できないので捨てる
+#   req   : この列が33市町村すべてで埋まっている年だけを「公開年」にする（速報で一部列だけ先に出る年を除外）
+#   floats: 率・原単位。合算不可（合併時は None）、県値との突き合わせもしない
+#   nosum : 市町村計≠県値になる列（転入・転出は県内移動を含むため）
+#   tol   : 県値との許容差（丸め由来）。無指定は完全一致
+SSDS = {
+    'vital':     dict(keys=VITAL_KEYS,   floor=2010, req='births',         nosum=('in_migr', 'out_migr')),
+    'household': dict(keys=HOUSE_KEYS,   floor=2010, req='households'),
+    'medical':   dict(keys=MED_KEYS,     floor=2010, req='hospitals'),
+    'welfare':   dict(keys=WEL_KEYS,     floor=2010, req='kokuho'),
+    'env':       dict(keys=ENV_KEYS,     floor=2010, req='gomi_total',     floats=('gomi_per_day', 'recycle_rate', 'flush_rate')),
+    'economy':   dict(keys=ECON_KEYS,    floor=2010, req='taxable_income', tol={'farmland': ('rel', 0.002), 'mfg_shipment': ('abs', 5)}),
+    'school':    dict(keys=SCHOOL_KEYS,  floor=2010, req='es'),
+    'jobless':   dict(keys=JOBLESS_KEYS, floor=2010, req='labor'),
+    'education': dict(keys=EDU_KEYS,     floor=2010, req='grad_total'),
+    'farm':      dict(keys=FARM_KEYS,    floor=2009, req='sales_farms',    tol={'abandoned': ('abs', 1)}),
+}
 
-def _load_simple(fname, keys, floats=()):
-    out = {}
-    for r in load_csvs(fname):
+
+def load_ssds(family):
+    """raw/ssds/{family}.csv → (市町村 dict, 県(03000) dict, 公開年 list)。合併前自治体は LEGACY で現行自治体に合算。"""
+    spec = SSDS[family]
+    keys, floats = spec['keys'], spec.get('floats', ())
+    out, pref = {}, {}
+    for r in load_csvs(os.path.join('ssds', family + '.csv')):
+        y = int(r['year'])
+        if y < spec['floor']:
+            continue
+        if r['code'] == PREF:
+            pref[y] = {k: (float(r[k]) if k in floats else num(r[k])) if (r[k] or '').strip() else None for k in keys}
+            continue
         code = LEGACY.get(r['code'], r['code'])
-        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in keys})
+        d = out.setdefault(code, {}).setdefault(str(y), {k: None for k in keys})
         d.setdefault('merged', [])
         for k in keys:
             v = (r[k] or '').strip()
@@ -149,91 +161,36 @@ def _load_simple(fname, keys, floats=()):
                 d[k] = (d[k] or 0) + val
         if code != r['code'] and r['code'] not in d['merged']:
             d['merged'].append(r['code'])
-    return out
+    codes = [m[0] for m in MUNI]
+    years = sorted({int(y) for c in codes for y in out.get(c, {})
+                    if all(out.get(c2, {}).get(y, {}).get(spec['req']) is not None for c2 in codes)})
+    assert years, (family, 'no complete year')
+    out = {c: {y: v for y, v in out.get(c, {}).items() if int(y) in years} for c in sorted(codes)}
+    return out, pref, years
 
 
-def load_env():
-    return _load_simple('env_2010_2023.csv', ENV_KEYS, floats=('gomi_per_day', 'recycle_rate', 'flush_rate'))
-
-
-def load_economy():
-    return _load_simple('economy_2010_2023.csv', ECON_KEYS)
-
-
-def load_school():
-    return _load_simple('school_2010_2023.csv', SCHOOL_KEYS)
-
-
-def load_jobless():
-    return _load_simple('jobless_2010_2020.csv', JOBLESS_KEYS)
-
-
-def load_education():
-    return _load_simple('education_2010_2020.csv', EDU_KEYS)
-
-
-def load_farm():
-    return _load_simple('farm_2009_2019.csv', FARM_KEYS)
-
-
-def load_welfare():
-    out = {}
-    for r in load_csvs('welfare_2010_2023.csv'):
-        code = LEGACY.get(r['code'], r['code'])
-        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in WEL_KEYS})
-        d.setdefault('merged', [])
-        for k in WEL_KEYS:
-            v = num(r[k])
-            if v is not None:
-                d[k] = (d[k] or 0) + v
-        if code != r['code'] and r['code'] not in d['merged']:
-            d['merged'].append(r['code'])
-    return out
-
-
-def load_medical():
-    out = {}
-    for r in load_csvs('medical_2010_2023.csv'):
-        code = LEGACY.get(r['code'], r['code'])
-        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in MED_KEYS})
-        d.setdefault('merged', [])
-        for k in MED_KEYS:
-            v = num(r[k])
-            if v is not None:
-                d[k] = (d[k] or 0) + v
-        if code != r['code'] and r['code'] not in d['merged']:
-            d['merged'].append(r['code'])
-    return out
-
-
-def load_vital():
-    out = {}
-    for r in load_csvs('vital_2010_2023.csv'):
-        code = LEGACY.get(r['code'], r['code'])
-        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in VITAL_KEYS})
-        d.setdefault('merged', [])
-        for k in VITAL_KEYS:
-            v = num(r[k])
-            if v is not None:
-                d[k] = (d[k] or 0) + v
-        if code != r['code'] and r['code'] not in d['merged']:
-            d['merged'].append(r['code'])
-    return out
-
-
-def load_household():
-    out = {}
-    for r in load_csvs('household_2010_2020.csv'):
-        code = LEGACY.get(r['code'], r['code'])
-        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in HOUSE_KEYS})
-        d.setdefault('merged', [])
-        for k in HOUSE_KEYS:
-            v = num(r[k])
-            if v is not None:
-                d[k] = (d[k] or 0) + v
-        if code != r['code'] and r['code'] not in d['merged']:
-            d['merged'].append(r['code'])
-    return out
+def check_ssds(family, munis, data, pref, years):
+    """市町村33計が県値（同じ統計表の 03000 行）と一致するか。県値が無い列・年は検算しない。"""
+    spec = SSDS[family]
+    skip = set(spec.get('floats', ())) | set(spec.get('nosum', ()))
+    n = 0
+    for y in years:
+        p = pref.get(y)
+        if not p:
+            continue
+        for k in spec['keys']:
+            if k in skip or p[k] is None:
+                continue
+            vals = [data[m['code']].get(str(y), {}).get(k) for m in munis]
+            if all(v is None for v in vals):
+                continue   # 県値だけ公表され市町村値が無い（例: 2010年の65歳以上就業者数）
+            got = sum(v or 0 for v in vals)
+            kind, tol = spec.get('tol', {}).get(k, ('abs', 0))
+            diff = abs(got - p[k]) / p[k] if kind == 'rel' else abs(got - p[k])
+            assert diff <= tol, (family, y, k, got, p[k])
+            n += 1
+    assert n > 0, (family, 'nothing checked')
+    return n
 
 
 def load_census():
@@ -289,6 +246,9 @@ def build():
         econ[r['code']].setdefault(r['ind'], {})['2016'] = {'estab':num(r['estab']),'workers':num(r['workers'])}
 
     munis = [{'code':c,'name':n,'slug':s,'kind':k,'gun':g} for c,n,s,k,g in MUNI]
+    ssds = {f: load_ssds(f) for f in SSDS}   # family → (muni, pref, years)
+    YEARS_KEY = {'vital':'vitalYears','household':'houseYears','medical':'medYears','welfare':'welYears','env':'envYears',
+                 'economy':'econYears','school':'schoolYears','jobless':'joblessYears','education':'eduYears','farm':'farmYears'}
     ds = {
         'generated': __import__('datetime').date.today().isoformat(),
         'pref': {'code':PREF,'name':'岩手県'},
@@ -299,31 +259,14 @@ def build():
         'dental': dental, 'population': pop, 'econ': econ,
         'census': load_census(),
         'building': load_building(),
-        'env': load_env(),
-        'economy': load_economy(),
-        'school': load_school(),
-        'jobless': load_jobless(),
-        'education': load_education(),
-        'farm': load_farm(),
-        'envYears': ENV_YEARS,
-        'econYears': ECON_YEARS,
-        'schoolYears': SCHOOL_YEARS,
-        'joblessYears': JOBLESS_YEARS,
-        'eduYears': EDU_YEARS,
-        'farmYears': FARM_YEARS,
-        'welfare': load_welfare(),
-        'welYears': WEL_YEARS,
-        'medical': load_medical(),
-        'medYears': MED_YEARS,
-        'vital': load_vital(),
-        'household': load_household(),
-        'vitalYears': VITAL_YEARS,
-        'houseYears': HOUSE_YEARS,
         'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
         'censusInd': [{'key':k,'code':c,'name':n} for k,c,n in CENSUS_IND],
     }
+    for f, (d, _p, ys) in ssds.items():
+        ds[f] = d
+        ds[YEARS_KEY[f]] = ys
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(ds, f, ensure_ascii=False, separators=(',',':'))
@@ -354,7 +297,7 @@ def build():
                 2016:[1279875,430106,40609,351940],2017:[1266552,426270,40788,332822],2018:[1252038,424967,41305,310188],
                 2019:[1238207,420164,41265,290113],2020:[1223946,405527,37829,276071],2021:[1209697,401035,37405,252040],
                 2022:[1193904,392513,36656,240778],2023:[1176017,376721,34761,230323]}
-    for y in ENV_YEARS:
+    for y in PREF_ENV:
         for i, k in enumerate(ENV_SUM):
             got = sum(env[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == PREF_ENV[y][i], ('env', y, k, got, PREF_ENV[y][i])
@@ -367,7 +310,7 @@ def build():
                  2018:[1483560635,542075,150100,2727177,2087,86662],2019:[1499962437,544397,149800,2626206,2087,87940],
                  2020:[1509772572,545043,149500,2494299,2055,87639],2021:[1549185430,543952,149300,2713266,1866,84349],
                  2022:[1554903863,539402,148700,3112393,2114,85720],2023:[1570936991,540073,147100,3124685,2126,86593]}
-    for y in ECON_YEARS:
+    for y in PREF_ECON:
         for i, k in enumerate(ECON_KEYS):
             exp = PREF_ECON[y][i]
             if exp is None: continue
@@ -387,7 +330,7 @@ def build():
                    2018:[97,6902,316,4858,59253,164,3010,31732,80,33689],2019:[92,6351,312,4821,57949,162,2956,30973,80,32580],
                    2020:[85,5498,304,4759,56822,155,2868,30388,79,31229],2021:[74,4462,298,4699,55597,154,2833,30269,79,29980],
                    2022:[70,3902,289,4586,54373,151,2798,29625,79,29237],2023:[64,3294,271,4441,52972,149,2799,29109,79,28501]}
-    for y in SCHOOL_YEARS:
+    for y in PREF_SCHOOL:
         for i, k in enumerate(SCHOOL_KEYS):
             got = sum(sch[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == PREF_SCHOOL[y][i], ('school', y, k, got, PREF_SCHOOL[y][i])
@@ -399,7 +342,7 @@ def build():
                 2016:[111,6555,137,2639,292299],2017:[110,6608,157,3006,279192],
                 2018:[118,7082,189,3704,267902],2019:[121,7375,194,3927,259902],2020:[122,7427,198,4041,255799],
                 2021:[122,7445,267,5614,248748],2022:[123,7499,271,5866,237622],2023:[125,7520,277,5961,228224]}
-    for y in WEL_YEARS:
+    for y in PREF_WEL:
         for i, k in enumerate(WEL_KEYS):
             got = sum(wel[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == PREF_WEL[y][i], ('welfare', y, k, got, PREF_WEL[y][i])
@@ -416,14 +359,14 @@ def build():
         2020:[92,77,877,566,16436,1187,2700,1016,2536], 2021:[92,77,888,557,16158,1163,None,None,None],
         2022:[92,77,889,548,16146,1055,2758,965,2572],  2023:[91,76,879,542,15850,939,None,None,None],
     }
-    for y in MED_YEARS:
+    for y in PREF_MED:
         for i, k in enumerate(MED_KEYS):
             exp = PREF_MED[y][i]
             if exp is None: continue
             got = sum(med[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == exp, ('medical', y, k, got, exp)
     # 医療施設調査を出典とする2系統（/dental/ の第2表 と 社会・人口統計体系）が一致するか
-    for y in MED_YEARS:
+    for y in ds['medYears']:
         for m in munis:
             r = med[m['code']].get(str(y), {})
             assert r.get('dental_clinics') == dental[m['code']][y]['dent'], ('dental xcheck', y, m['code'])
@@ -436,7 +379,7 @@ def build():
                   2016:(8342,16959,4873,1877),2017:(8175,17232,4775,1861),2018:(7615,17390,4439,1843),
                   2019:(6974,17826,4489,1754),2020:(6718,17204,3918,1679),2021:(6472,17631,3673,1459),
                   2022:(5788,19342,3508,1492),2023:(5432,19612,3376,1488)}
-    for y in VITAL_YEARS:
+    for y in PREF_VITAL:
         got = tuple(sum(vit[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
                     for k in ('births','deaths','marriages','divorces'))
         assert got == PREF_VITAL[y], ('vital', y, got, PREF_VITAL[y])
@@ -447,7 +390,7 @@ def build():
         2015: {'pop75':207419,'foreign':5017,'did_pop':407920,'households':493049,'general_hh':489383,'nuclear_hh':251014,'single_hh':148575,'eld_couple_hh':53475,'eld_single_hh':53398},
         2020: {'pop75':214277,'foreign':6937,'did_pop':400246,'households':492436,'general_hh':490828,'nuclear_hh':252005,'single_hh':163290,'eld_couple_hh':57656,'eld_single_hh':62424},
     }
-    for y in HOUSE_YEARS:
+    for y in PREF_HH:
         for k, exp in PREF_HH[y].items():
             got = sum(hh[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == exp, ('household', y, k, got, exp)
@@ -459,7 +402,7 @@ def build():
         2015: {'labor':662760,'workers':636329,'jobless':26431,'workers65':94862},
         2020: {'labor':628881,'workers':605093,'jobless':23788,'workers65':111257},
     }
-    for y in JOBLESS_YEARS:
+    for y in PREF_JOBLESS:
         for k, exp in PREF_JOBLESS[y].items():
             got = sum(jb[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == exp, ('jobless', y, k, got, exp)
@@ -469,7 +412,7 @@ def build():
         2010: {'grad_total':1083905,'grad_jhs':302889,'grad_hs':517045,'grad_col':116285,'grad_univ':105426},
         2020: {'grad_total':1002457,'grad_jhs':207671,'grad_hs':477585,'grad_col':127256,'grad_univ':127072},
     }
-    for y in EDU_YEARS:
+    for y in PREF_EDU:
         for k, exp in PREF_EDU[y].items():
             got = sum(ed[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == exp, ('education', y, k, got, exp)
@@ -480,7 +423,7 @@ def build():
         2014: {'sales_farms':45254,'self_farms':20845,'full_farms':11519,'part_farms':33735,'abandoned':17428},
         2019: {'sales_farms':33861,'self_farms':18827},
     }
-    for y in FARM_YEARS:
+    for y in PREF_FARM:
         for k, exp in PREF_FARM[y].items():
             got = sum(fm[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             if k == 'abandoned':
@@ -488,6 +431,11 @@ def build():
                 assert abs(got - exp) <= 1, ('farm abandoned', y, got, exp)
             else:
                 assert got == exp, ('farm', y, k, got, exp)
+
+    # 全年（新規年を含む）: 市町村33計を同じ統計表の県行(03000)と突き合わせ。上の固定値は過去分の二重チェック
+    for f, (d, p, ys) in ssds.items():
+        n = check_ssds(f, munis, d, p, ys)
+        print(f'  {f:9s} years {ys[0]}-{ys[-1]} ({len(ys)}) pref-checked {n} cells')
 
     for y in range(2009, 2025):
         s = sum(dental[m['code']][y]['dent'] for m in munis)
