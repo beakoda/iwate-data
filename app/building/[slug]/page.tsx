@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, buildAt, buildSeries, buildPrefAt, popAt, fmt, fmtSigned, pct, rank, BUILD_YEARS, LATEST_BUILD, FIRST_BUILD, LAST_COST_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -40,6 +40,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/building/${m.slug}/`}
         keywords={[m.name, '住宅着工', '建築着工', '着工棟数', '床面積', '工務店', '岩手県']} temporal={`${FIRST_BUILD}/${LATEST_BUILD}`} sourceKeys={['building']} />
       <h1>{title}</h1>
+      <MuniStrip family="building" current={m.code} />
       <p className="key-fact">
         {m.name}の居住専用住宅の着工は{LATEST_BUILD}年に<strong>{fmt(b.bldg_house)}棟</strong>（床面積{fmt(b.floor_house)}m²）。
         前年比{fmtSigned(pct(b.bldg_house, bp.bldg_house), '%')}、岩手県内<strong>{rH.get(me) ?? '—'}位</strong>（県全体{fmt(pref.bldg_house)}棟の{Math.round(b.bldg_house / pref.bldg_house * 1000) / 10}%）。
@@ -53,6 +54,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">{FIRST_BUILD}〜{LATEST_BUILD}年の累計</div><div className="stat-value">{fmt(total14)}</div><div className="stat-sub">棟（居住専用住宅）</div></div>
         <div className="stat"><div className="stat-label">居住産業併用建築物（{LATEST_BUILD}年）</div><div className="stat-value">{fmt(b.bldg_mixed)}</div><div className="stat-sub">棟・店舗兼住宅など</div></div>
       </div>
+      <Tools family="building" slug={m.slug} label={`${m.name}の全年データ`} />
 
       <LineChart title={`${m.name}の居住専用住宅 着工棟数（${FIRST_BUILD}〜${LATEST_BUILD}年）`} unit="棟" zero
         series={[{ label: m.name, points: s.map(r => ({ x: r.year, y: r.bldg_house })) }]} />
@@ -84,6 +86,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <BarChart title="人口千人当たりの住宅着工棟数（市町村別）" items={[...rows].filter(r => r.perK != null).sort((a, b2) => b2.perK! - a.perK!).map(r => ({ label: r.m.name, value: r.perK }))} highlight={m.name} />
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/building/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/industry/construction/${m.slug}/`}>{m.name}の建設業（事業所・従業者）</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯の推移</Link></p>
+      <Cta muni={m.name} topic="住宅着工" />
       <CiteBox title={title} path={`/building/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['building']} extra={[
         '「居住専用住宅」は用途大分類Ａ。店舗兼住宅などは「居住産業併用建築物」（用途大分類Ｃ）として別に集計される。',
