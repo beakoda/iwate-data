@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, muniBySlug, dentalSeries, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, popAt } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -32,6 +32,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <Breadcrumb items={[{ name: '歯科診療所', href: '/dental/' }, { name: m.name }]} />
       <DatasetJsonLd name={title} description={sentence} path={`/dental/${m.slug}/`} keywords={[m.name, '歯科診療所数', '推移', '歯科医院', '一般診療所数', '岩手県']} temporal={`2009/${LATEST_DENTAL}`} sourceKeys={['dental', 'population']} />
       <h1>{title}</h1>
+      <MuniStrip family="dental" current={m.code} />
       <p className="key-fact"><strong>{m.name}の歯科診療所は{fmt(latest.dent)}施設</strong>（{LATEST_DENTAL}年10月1日）。岩手県内33市町村中<strong>{rCount.get(me)}位</strong>、県全体の{share}%。人口10万人当たり{fmt(me.per)}施設（県平均{fmt(prefPer)}）で<strong>{rPer.get(me) ?? '—'}位</strong>。</p>
       <div className="stats">
         <div className="stat"><div className="stat-label">歯科診療所数（{LATEST_DENTAL}年）</div><div className="stat-value">{fmt(latest.dent)}</div><div className="stat-sub">前年比 {fmtSigned(latest.dent - prev.dent)} ／ 2009年比 {fmtSigned(latest.dent - first.dent)}</div></div>
@@ -39,6 +40,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">一般診療所数（{LATEST_DENTAL}年）</div><div className="stat-value">{fmt(latest.gen)}</div><div className="stat-sub">うち有床 {fmt(latest.gen_with_beds)}・病床 {fmt(latest.gen_beds)}床</div></div>
         <div className="stat"><div className="stat-label">ピーク</div><div className="stat-value">{peak.year}年</div><div className="stat-sub">{fmt(peak.dent)}施設 → 現在 {fmtSigned(latest.dent - peak.dent)}</div></div>
       </div>
+      <Tools family="dental" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の歯科診療所数・一般診療所数（2009〜${LATEST_DENTAL}年）`} series={[{ label: '歯科診療所', points: s.map(r => ({ x: r.year, y: r.dent })) }, { label: '一般診療所', points: s.map(r => ({ x: r.year, y: r.gen })) }]} unit="施設" zero />
       <LineChart title={`人口10万人当たり歯科診療所数：${m.name}と岩手県（2012〜${LATEST_DENTAL}年）`} series={[{ label: m.name, points: perSeries }, { label: '岩手県', points: prefPerSeries, color: '#949494' }]} />
       <h2>年次データ</h2>
@@ -53,6 +55,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <BarChart title="歯科診療所数の市町村別比較（施設）" items={neighbors.map(r => ({ label: r.m.name, value: r.d.dent }))} unit="施設" highlight={m.name} />
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, i) => <span key={x.code}>{i ? '・' : ''}<Link href={`/dental/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口動態</Link>・<Link href="/industry/medical/">医療，福祉の事業所数ランキング</Link></p>
+      <Cta muni={m.name} topic="歯科診療所数" />
       <CiteBox title={title} path={`/dental/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['dental', 'population']} extra={[`人口10万人当たりは、各年10月1日の施設数を翌年1月1日の住民基本台帳人口で除して算出（住基人口は2013年以降のため、10万対は2012年以降）。`, ...(merged.length ? [`${merged.join('・')}（合併・市制施行前）の数値は${m.name}に合算。`] : [])]} />
     </>
