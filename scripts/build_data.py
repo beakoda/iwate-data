@@ -58,6 +58,9 @@ SOURCES = {
     'building': {'name':'国土交通省「建築着工統計調査」建築物着工統計 市区町村別、用途別（大分類）／建築物の数、床面積、工事費予定額（年次）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0004019181', 'note':'各年1〜12月の着工。2011〜2019年は統計表0003114492（工事費予定額あり）、2020〜2024年は0004019181（工事費予定額なし）。e-Stat APIで取得。「＊」は秘匿。'},
     'env': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｈ　居住）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020108', 'note':'ごみ関係は環境省「一般廃棄物処理事業実態調査」（各年度）。水洗化率・非水洗化人口は環境省「一般廃棄物処理事業実態調査」のし尿処理関係。e-Stat APIで取得。'},
     'economy': {'name':'総務省統計局「社会・人口統計体系」市区町村データ（Ｃ　経済基盤）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020103', 'note':'課税対象所得・納税義務者数は総務省「市町村税課税状況等の調」（各年度）。耕地面積は農林水産省「耕地及び作付面積統計」（各年7月15日現在）。製造品出荷額等・製造業事業所数・従業者数は経済産業省「工業統計調査」および「経済センサス‐活動調査」（従業者4人以上の事業所）。e-Stat APIで取得。'},
+    'jobless': {'name':'総務省統計局「社会・人口統計体系」市区町村データ（Ｆ　労働）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020106', 'note':'総務省「国勢調査」（各年10月1日現在）。労働力人口＝就業者＋完全失業者。15歳以上人口のうち労働力状態が不詳の者は含まない集計。e-Stat APIで取得。'},
+    'education': {'name':'総務省統計局「社会・人口統計体系」市区町村データ（Ｅ　教育）最終学歴人口', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020105', 'note':'総務省「国勢調査」（各年10月1日現在）。卒業者総数は在学者・未就学者を除く15歳以上人口。国勢調査で最終学歴を調査するのは10年ごと（西暦の末尾が0の年）のため2010年と2020年のみ。e-Stat APIで取得。'},
+    'farm': {'name':'総務省統計局「社会・人口統計体系」市区町村データ（Ｃ　経済基盤）農家・耕作放棄地', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020103', 'note':'農林水産省「農林業センサス」（各年2月1日現在）。販売農家＝経営耕地30a以上または農産物販売金額50万円以上。耕作放棄地面積は2015年センサスまでの調査項目で、2020年は調査されていない。e-Stat APIで取得。'},
     'school': {'name':'総務省統計局「社会・人口統計体系」市区町村データ（Ｅ　教育）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020105', 'note':'文部科学省「学校基本調査」（各年5月1日現在）。学校の所在地でカウントしており、その市町村に住む子どもの数ではない。e-Stat APIで取得。'},
     'welfare': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｊ　福祉・社会保障）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020110', 'note':'介護老人福祉施設（特別養護老人ホーム）・有料老人ホームの施設数と定員は厚生労働省「社会福祉施設等調査」（各年10月1日現在）。2017年までは詳細票、2018年以降は基本票の値（市区町村別はこの切替でしか連続しない。両票は定員でわずかに差が出る）。国民健康保険被保険者数は厚生労働省「国民健康保険事業年報」（各年度末）。e-Stat APIで取得。'},
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
@@ -118,6 +121,12 @@ ECON_YEARS = list(range(2010, 2024))
 ECON_KEYS = ('taxable_income', 'taxpayers', 'farmland', 'mfg_shipment', 'mfg_estab', 'mfg_workers')
 SCHOOL_YEARS = list(range(2010, 2024))
 SCHOOL_KEYS = ('kg', 'kg_pupils', 'es', 'es_teachers', 'es_pupils', 'jhs', 'jhs_teachers', 'jhs_students', 'hs', 'hs_students')
+JOBLESS_YEARS = [2010, 2015, 2020]
+JOBLESS_KEYS = ('labor', 'workers', 'jobless', 'workers65')
+EDU_YEARS = [2010, 2020]
+EDU_KEYS = ('grad_total', 'grad_jhs', 'grad_hs', 'grad_col', 'grad_univ')
+FARM_YEARS = [2009, 2014, 2019]
+FARM_KEYS = ('sales_farms', 'self_farms', 'full_farms', 'part_farms', 'abandoned')
 
 
 def _load_simple(fname, keys, floats=()):
@@ -153,6 +162,18 @@ def load_economy():
 
 def load_school():
     return _load_simple('school_2010_2023.csv', SCHOOL_KEYS)
+
+
+def load_jobless():
+    return _load_simple('jobless_2010_2020.csv', JOBLESS_KEYS)
+
+
+def load_education():
+    return _load_simple('education_2010_2020.csv', EDU_KEYS)
+
+
+def load_farm():
+    return _load_simple('farm_2009_2019.csv', FARM_KEYS)
 
 
 def load_welfare():
@@ -281,9 +302,15 @@ def build():
         'env': load_env(),
         'economy': load_economy(),
         'school': load_school(),
+        'jobless': load_jobless(),
+        'education': load_education(),
+        'farm': load_farm(),
         'envYears': ENV_YEARS,
         'econYears': ECON_YEARS,
         'schoolYears': SCHOOL_YEARS,
+        'joblessYears': JOBLESS_YEARS,
+        'eduYears': EDU_YEARS,
+        'farmYears': FARM_YEARS,
         'welfare': load_welfare(),
         'welYears': WEL_YEARS,
         'medical': load_medical(),
@@ -424,6 +451,43 @@ def build():
         for k, exp in PREF_HH[y].items():
             got = sum(hh[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
             assert got == exp, ('household', y, k, got, exp)
+
+    # 労働: 市町村合計が県公表値と一致するか（国勢調査）
+    jb = ds['jobless']
+    PREF_JOBLESS = {
+        2010: {'labor':679332,'workers':631303,'jobless':48029},
+        2015: {'labor':662760,'workers':636329,'jobless':26431,'workers65':94862},
+        2020: {'labor':628881,'workers':605093,'jobless':23788,'workers65':111257},
+    }
+    for y in JOBLESS_YEARS:
+        for k, exp in PREF_JOBLESS[y].items():
+            got = sum(jb[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            assert got == exp, ('jobless', y, k, got, exp)
+    # 最終学歴: 市町村合計が県公表値と一致するか（国勢調査）
+    ed = ds['education']
+    PREF_EDU = {
+        2010: {'grad_total':1083905,'grad_jhs':302889,'grad_hs':517045,'grad_col':116285,'grad_univ':105426},
+        2020: {'grad_total':1002457,'grad_jhs':207671,'grad_hs':477585,'grad_col':127256,'grad_univ':127072},
+    }
+    for y in EDU_YEARS:
+        for k, exp in PREF_EDU[y].items():
+            got = sum(ed[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            assert got == exp, ('education', y, k, got, exp)
+    # 農家: 市町村合計が県公表値と一致するか（農林業センサス）
+    fm = ds['farm']
+    PREF_FARM = {
+        2009: {'sales_farms':55347,'self_farms':21030,'full_farms':12160,'part_farms':43187,'abandoned':13933},
+        2014: {'sales_farms':45254,'self_farms':20845,'full_farms':11519,'part_farms':33735,'abandoned':17428},
+        2019: {'sales_farms':33861,'self_farms':18827},
+    }
+    for y in FARM_YEARS:
+        for k, exp in PREF_FARM[y].items():
+            got = sum(fm[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            if k == 'abandoned':
+                # ha単位で丸めた値の合計のため1haまでのずれを許容（2009年は+1ha）
+                assert abs(got - exp) <= 1, ('farm abandoned', y, got, exp)
+            else:
+                assert got == exp, ('farm', y, k, got, exp)
 
     for y in range(2009, 2025):
         s = sum(dental[m['code']][y]['dent'] for m in munis)
