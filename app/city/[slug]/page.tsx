@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { INDUSTRIES, MUNIS, PREF, muniBySlug, econAt, popAt, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, LATEST_POP, censusAt, agingRate, LATEST_CENSUS } from '@/lib/data';
+import { INDUSTRIES, MUNIS, PREF, muniBySlug, econAt, popAt, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, LATEST_POP, censusAt, agingRate, LATEST_CENSUS, FIRST_BUILD, LATEST_BUILD, FIRST_MED, LATEST_MED, FIRST_WEL, LATEST_WEL, FIRST_SCHOOL, LATEST_SCHOOL, FIRST_JOBLESS, LATEST_JOBLESS, EDU_YEARS, FIRST_FARM, LATEST_FARM, FIRST_ECON, LATEST_ECON, FIRST_ENV, LATEST_ENV, FIRST_VITAL, LATEST_VITAL } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
 import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Cta, EmbedBox } from '@/components/Shell';
 
@@ -61,16 +61,16 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/dental/${m.slug}/`}>{m.name}の歯科診療所数の推移<small>一般診療所・人口10万対 2009〜{LATEST_DENTAL}年</small></Link></li>
         <li><Link href={`/aging/${m.slug}/`}>{m.name}の高齢化率・年齢構成<small>年齢3区分・平均年齢・人口密度（国勢調査）</small></Link></li>
         <li><Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼夜間人口<small>産業別就業者・労働力率・昼夜間人口比率（国勢調査）</small></Link></li>
-        <li><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工・建築着工<small>居住専用住宅の着工棟数・床面積 2011〜2024年</small></Link></li>
-        <li><Link href={`/medical/${m.slug}/`}>{m.name}の病院・病床・医師<small>病院数・病床数・医師数・薬剤師数 2010〜2023年</small></Link></li>
-        <li><Link href={`/welfare/${m.slug}/`}>{m.name}の介護施設・国保<small>特別養護老人ホーム・有料老人ホームの定員 2010〜2023年</small></Link></li>
-        <li><Link href={`/school/${m.slug}/`}>{m.name}の学校・児童生徒<small>幼稚園・小中高の学校数と児童生徒数 2010〜2023年</small></Link></li>
-        <li><Link href={`/jobless/${m.slug}/`}>{m.name}の完全失業率<small>完全失業率・労働力人口・就業者数 2010〜2020年</small></Link></li>
-        <li><Link href={`/education/${m.slug}/`}>{m.name}の最終学歴<small>大卒率・最終学歴別人口 2010年・2020年</small></Link></li>
-        <li><Link href={`/farm/${m.slug}/`}>{m.name}の農家数<small>販売農家・自給的農家・耕作放棄地 2009〜2019年</small></Link></li>
-        <li><Link href={`/economy/${m.slug}/`}>{m.name}の所得・製造業・農地<small>課税対象所得・製造品出荷額・耕地面積 2010〜2023年</small></Link></li>
-        <li><Link href={`/garbage/${m.slug}/`}>{m.name}のごみ・生活インフラ<small>ごみ排出量・リサイクル率・水洗化率 2010〜2023年度</small></Link></li>
-        <li><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡・婚姻・離婚<small>人口動態調査 2010〜2023年・自然増減つき</small></Link></li>
+        <li><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工・建築着工<small>居住専用住宅の着工棟数・床面積 {FIRST_BUILD}〜{LATEST_BUILD}年</small></Link></li>
+        <li><Link href={`/medical/${m.slug}/`}>{m.name}の病院・病床・医師<small>病院数・病床数・医師数・薬剤師数 {FIRST_MED}〜{LATEST_MED}年</small></Link></li>
+        <li><Link href={`/welfare/${m.slug}/`}>{m.name}の介護施設・国保<small>特別養護老人ホーム・有料老人ホームの定員 {FIRST_WEL}〜{LATEST_WEL}年</small></Link></li>
+        <li><Link href={`/school/${m.slug}/`}>{m.name}の学校・児童生徒<small>幼稚園・小中高の学校数と児童生徒数 {FIRST_SCHOOL}〜{LATEST_SCHOOL}年</small></Link></li>
+        <li><Link href={`/jobless/${m.slug}/`}>{m.name}の完全失業率<small>完全失業率・労働力人口・就業者数 {FIRST_JOBLESS}〜{LATEST_JOBLESS}年</small></Link></li>
+        <li><Link href={`/education/${m.slug}/`}>{m.name}の最終学歴<small>大卒率・最終学歴別人口 {EDU_YEARS.map(y => `${y}年`).join('・')}</small></Link></li>
+        <li><Link href={`/farm/${m.slug}/`}>{m.name}の農家数<small>販売農家・自給的農家・耕作放棄地 {FIRST_FARM}〜{LATEST_FARM}年</small></Link></li>
+        <li><Link href={`/economy/${m.slug}/`}>{m.name}の所得・製造業・農地<small>課税対象所得・製造品出荷額・耕地面積 {FIRST_ECON}〜{LATEST_ECON}年</small></Link></li>
+        <li><Link href={`/garbage/${m.slug}/`}>{m.name}のごみ・生活インフラ<small>ごみ排出量・リサイクル率・水洗化率 {FIRST_ENV}〜{LATEST_ENV}年度</small></Link></li>
+        <li><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡・婚姻・離婚<small>人口動態調査 {FIRST_VITAL}〜{LATEST_VITAL}年・自然増減つき</small></Link></li>
         <li><Link href={`/household/${m.slug}/`}>{m.name}の世帯・高齢世帯<small>一般世帯・単独世帯・65歳以上の単独世帯 国勢調査</small></Link></li>
       </ul>
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/city/${x.slug}/`}>{x.name}</Link></span>)}</p>
