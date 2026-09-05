@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, welAt, welSeries, welPrefAt, capPerElderly, censusAt, popAt, fmt, fmtSigned, pct, rank, WEL_YEARS, LATEST_WEL, FIRST_WEL, WEL_SWITCH_YEAR, LATEST_CENSUS } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -38,6 +38,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/welfare/${m.slug}/`}
         keywords={[m.name, '特別養護老人ホーム', '介護老人福祉施設', '有料老人ホーム', '定員', '国民健康保険', '岩手県']} temporal={`${FIRST_WEL}/${LATEST_WEL}`} sourceKeys={['welfare']} />
       <h1>{title}</h1>
+      <MuniStrip family="welfare" current={m.code} />
       <p className="key-fact">
         {m.name}の介護老人福祉施設（特別養護老人ホーム）は{LATEST_WEL}年に<strong>{fmt(r.tokuyo)}施設・定員{fmt(r.tokuyo_cap)}人</strong>（{FIRST_WEL}年比{fmtSigned(pct(r.tokuyo_cap, r0.tokuyo_cap), '%')}）。
         65歳以上人口千人当たり<strong>{fmt(capE)}人</strong>で岩手県内<strong>{rE.get(me) ?? '—'}位</strong>（県平均{fmt(prefE)}人）。
@@ -51,6 +52,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">国民健康保険被保険者（{LATEST_WEL}年度末）</div><div className="stat-value">{fmt(r.kokuho)}</div><div className="stat-sub">人・{FIRST_WEL}年比 {fmtSigned(pct(r.kokuho, r0.kokuho), '%')}</div></div>
         {cen && <div className="stat"><div className="stat-label">65歳以上人口（{LATEST_CENSUS}年国勢調査）</div><div className="stat-value">{fmt(cen.age_65_)}</div><div className="stat-sub">人 → <Link href={`/aging/${m.slug}/`}>高齢化率を見る</Link></div></div>}
       </div>
+      <Tools family="welfare" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の老人ホーム定員（${FIRST_WEL}〜${LATEST_WEL}年、人）`} unit="人" zero
         series={[
           { label: '特別養護老人ホーム', points: s.map(x => ({ x: x.year, y: x.tokuyo_cap ?? 0 })) },
@@ -76,6 +78,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/medical/${m.slug}/`}>{m.name}の病院・医師</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="介護施設" />
       <CiteBox title={title} path={`/welfare/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['welfare']} extra={[
         `施設数・定員は${WEL_SWITCH_YEAR - 1}年までが詳細票、${WEL_SWITCH_YEAR}年以降が基本票。${WEL_SWITCH_YEAR}年の前後をまたぐ変化には票の切替分が含まれる。`,
