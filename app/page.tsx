@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { IwateMap } from '@/components/Map';
 import { MUNIS, INDUSTRIES, PREF, dentalAt, popAt, econAt, fmt, fmtSigned, LATEST_DENTAL, LATEST_POP, SITE, censusAt, agingRate, LATEST_CENSUS, buildPrefAt, LATEST_BUILD, FIRST_BUILD, vitalPrefAt, LATEST_VITAL, FIRST_VITAL, naturalChange, housePrefAt, LATEST_HOUSE, FIRST_HOUSE, hhShare, medPrefAt, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR, welPrefAt, LATEST_WEL, FIRST_WEL, schoolPrefAt, LATEST_SCHOOL, FIRST_SCHOOL, econPrefAt, LATEST_ECON, FIRST_ECON, incomePerTaxpayer, envPrefAt, envPrefPerDay, LATEST_ENV, FIRST_ENV, joblessPrefAt, joblessRate, LATEST_JOBLESS, FIRST_JOBLESS, eduPrefAt, eduShare, LATEST_EDU, FIRST_EDU, farmPrefAt, totalFarms, LATEST_FARM, FIRST_FARM, LAST_ABANDONED_YEAR } from '@/lib/data';
 
 export default function Home() {
@@ -14,7 +15,13 @@ export default function Home() {
       <section className="hero">
         <h1>岩手県の統計を、市町村×業種の粒度で。</h1>
         <p className="lead">{SITE.name}は、政府統計（e-Stat）に散らばる岩手県33市町村のデータを、一つの数字・一つのグラフ・一つの出典にまとめて公開するデータサイトです。記者・行政・研究・事業者の方が、そのまま引用できる形にしています。</p>
+        <div className="tools">
+          <Link className="btn primary" href="/city/">市町村を選んで見る</Link>
+          <Link className="btn" href="/data/">全データをExcelで入手する</Link>
+        </div>
       </section>
+      <IwateMap title={`高齢化率（${LATEST_CENSUS}年、%）— 市町村をクリックすると統計まとめへ`} unit="%" decimals={1} family="city"
+        values={MUNIS.map(m => ({ code: m.code, value: agingRate(censusAt(m.code, LATEST_CENSUS)) ?? null }))} />
       <div className="stats">
         <div className="stat"><div className="stat-label">岩手県の歯科診療所数（{LATEST_DENTAL}年）</div><div className="stat-value">{fmt(d.dent, '施設')}</div><div className="stat-sub">2009年比 {fmtSigned(d.dent - d0.dent, '施設')}</div></div>
         <div className="stat"><div className="stat-label">岩手県の人口（{LATEST_POP}年1月1日）</div><div className="stat-value">{fmt(p.total, '人')}</div><div className="stat-sub">2013年比 {fmtSigned(p.total - p0.total, '人')}</div></div>
@@ -46,6 +53,7 @@ export default function Home() {
         <div className="card"><h2>ごみ・生活インフラ</h2><p>一般廃棄物処理事業実態調査から、市町村別のごみ総排出量・1人1日当たり排出量・リサイクル率・最終処分量・水洗化率を{FIRST_ENV}〜{LATEST_ENV}年度で。</p><Link className="more" href="/garbage/">市町村別のごみを見る →</Link></div>
         <div className="card"><h2>介護施設・国民健康保険</h2><p>社会福祉施設等調査から、市町村別の特別養護老人ホーム・有料老人ホームの施設数と定員、国民健康保険被保険者数を{FIRST_WEL}〜{LATEST_WEL}年で。高齢者千人当たりつき。</p><Link className="more" href="/welfare/">市町村別の介護施設を見る →</Link></div>
         <div className="card"><h2>出生・死亡・婚姻・離婚</h2><p>人口動態調査から、市町村別の出生数・死亡数・自然増減・婚姻件数・離婚件数を{FIRST_VITAL}〜{LATEST_VITAL}年で。人口千人当たりと県内順位つき。</p><Link className="more" href="/vital/">市町村別の人口動態を見る →</Link></div>
+        <div className="card"><h2>全データを一括で（Excel）</h2><p>上の全ファミリーを1つのExcelにまとめたデータ集。33市町村×全年・出典シート付き。各ページからはCSVを無料でダウンロードできます。</p><Link className="more" href="/data/">データ集について →</Link></div>
         <div className="card"><h2>世帯・高齢者単身世帯</h2><p>国勢調査から、市町村別の一般世帯数・単独世帯・65歳以上の単独世帯・高齢夫婦のみの世帯・核家族世帯を{FIRST_HOUSE}〜{LATEST_HOUSE}年で。</p><Link className="more" href="/household/">世帯の内訳を見る →</Link></div>
       </div>
       <h2>市町村から探す</h2>

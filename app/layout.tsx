@@ -36,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/vital/">出生・死亡</Link>
               <Link href="/household/">世帯</Link>
               <Link href="/city/">市町村別</Link>
+              <Link href="/data/">データ集</Link>
             </nav>
           </div>
         </header>

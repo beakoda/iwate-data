@@ -76,4 +76,44 @@ td.pos { color: #197A4B; }
 .card h2 { border: 0; padding: 0; margin: 0 0 var(--sp-1); font-size: 20px; }
 .card a.more { font-weight: 700; }
 .note { color: var(--gray-536); font-size: 14px; }
-@media (max-width: 767px) { h1 { font-size: 26px; } .hero h1 { font-size: 28px; } .stat-value { font-size: 24px; } .brand-sub { display: none; } }
+@media (max-width: 767px) {
+  h1 { font-size: 26px; } .hero h1 { font-size: 28px; } .stat-value { font-size: 24px; } .brand-sub { display: none; }
+  /* ナビは1行の横スクロールにする（5行分の画面を食わない） */
+  .site-header .container { flex-wrap: nowrap; flex-direction: column; align-items: stretch; gap: 0; }
+  .site-header nav { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; padding: 6px 0 8px; margin: 0 calc(-1 * var(--sp-2)); padding-left: var(--sp-2); scrollbar-width: none; }
+  .site-header nav::-webkit-scrollbar { display: none; }
+  .site-header nav a { white-space: nowrap; padding: 6px 10px; border: 1px solid var(--gray-200); border-radius: 999px; font-size: 14px; border-bottom: 1px solid var(--gray-200); }
+  .site-header nav a:hover { border-color: var(--blue-900); }
+}
+
+/* 地図 */
+.map-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: var(--sp-2); align-items: start; }
+.map-wrap svg { width: 100%; max-width: 520px; height: auto; }
+.map-wrap svg a path { transition: filter .1s; }
+.map-wrap svg a:hover path, .map-wrap svg a:focus path { filter: brightness(.85); stroke: var(--focus); stroke-width: 2.5; }
+.map-legend { list-style: none; padding: 0; margin: 0; font-size: 13px; display: grid; gap: 4px; }
+.map-legend span { display: inline-block; width: 18px; height: 14px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; border: 1px solid var(--gray-200); }
+@media (max-width: 767px) { .map-wrap { grid-template-columns: 1fr; } .map-legend { grid-template-columns: repeat(2, 1fr); } }
+
+/* 市町村ジャンプ帯 */
+.muni-strip { display: flex; flex-wrap: wrap; gap: 4px; margin: var(--sp-2) 0; padding: 0; list-style: none; }
+.muni-strip a { display: inline-block; padding: 3px 9px; border: 1px solid var(--gray-200); border-radius: 999px; font-size: 13px; text-decoration: none; color: var(--gray-900); }
+.muni-strip a:hover { border-color: var(--blue-900); color: var(--blue-900); }
+.muni-strip a[aria-current="page"] { background: var(--blue-900); color: #fff; border-color: var(--blue-900); }
+
+/* CSVダウンロード・ツール行 */
+.tools { display: flex; flex-wrap: wrap; gap: var(--sp-1); align-items: center; margin: var(--sp-2) 0 0; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--blue-900); border-radius: 6px; color: var(--blue-900); text-decoration: none; font-weight: 700; font-size: 14px; background: #fff; }
+.btn:hover { background: var(--blue-50); }
+.btn.primary { background: var(--blue-900); color: #fff; }
+.btn.primary:hover { background: var(--blue-1000); }
+
+/* 問い合わせCTA */
+.cta { margin: var(--sp-6) 0 0; padding: var(--sp-3); border: 2px solid var(--blue-900); border-radius: 8px; background: #fff; }
+.cta h2 { border: 0; padding: 0; margin: 0 0 var(--sp-1); font-size: 20px; }
+.cta p { margin-bottom: var(--sp-2); }
+
+/* 埋め込み */
+.embed-box textarea { width: 100%; font-family: ui-monospace, Menlo, monospace; font-size: 13px; padding: 10px; border: 1px solid var(--gray-200); border-radius: 6px; min-height: 84px; }
+
+@media print { .site-header nav, .muni-strip, .tools, .cta, .site-footer, .embed-box { display: none !important; } body { font-size: 13px; } .chart, .stat { break-inside: avoid; } }
