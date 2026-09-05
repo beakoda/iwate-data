@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { INDUSTRIES, MUNIS, PREF, muniBySlug, econAt, popAt, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, LATEST_POP, censusAt, agingRate, LATEST_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Cta, EmbedBox } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -30,6 +30,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <Breadcrumb items={[{ name: '市町村別', href: '/city/' }, { name: m.name }]} />
       <DatasetJsonLd name={title} description={sentence} path={`/city/${m.slug}/`} keywords={[m.name, '統計', '人口', '事業所数', '産業', '歯科診療所', '岩手県']} temporal={`2009/${LATEST_POP}`} sourceKeys={['population', 'econ2021', 'econ2016', 'dental', 'census']} />
       <h1>{title}</h1>
+      <MuniStrip family="city" current={m.code} />
       <p className="lead">{m.gun ? `${m.gun}` : '岩手県'}{m.name}の公的統計を1ページに。各項目の詳細ページに推移グラフと年次表があります。</p>
       <p className="key-fact">{sentence}</p>
       <div className="stats">
@@ -73,6 +74,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/household/${m.slug}/`}>{m.name}の世帯・高齢世帯<small>一般世帯・単独世帯・65歳以上の単独世帯 国勢調査</small></Link></li>
       </ul>
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/city/${x.slug}/`}>{x.name}</Link></span>)}</p>
+      <Cta muni={m.name} />
+      <EmbedBox slug={m.slug} name={m.name} />
       <CiteBox title={title} path={`/city/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['population', 'econ2021', 'econ2016', 'dental', 'census']} extra={['特化係数＝当該市町村の産業別事業所構成比 ÷ 岩手県の産業別事業所構成比（事業所5以上の産業のみ表示）。']} />
     </>
