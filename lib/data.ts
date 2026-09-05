@@ -325,7 +325,7 @@ export function envPrefPerDay(year: number): number | null {
   return Math.round((p.gomi_total * 1_000_000) / p.gomi_collect_pop / 365);
 }
 
-/* ===== 経済（課税対象所得・製造業・耕地／2010〜2023） ===== */
+/* ===== 経済（課税対象所得・製造業・耕地／2010〜） ===== */
 export type TaxRec = {
   taxable_income: number | null; taxpayers: number | null; farmland: number | null;
   mfg_shipment: number | null; mfg_estab: number | null; mfg_workers: number | null; merged: string[];
@@ -334,9 +334,11 @@ const economy = (ds as any).economy as Record<string, Record<string, TaxRec>>;
 export const ECON_YEARS: number[] = (ds as any).econYears;
 export const LATEST_ECON = ECON_YEARS[ECON_YEARS.length - 1];
 export const FIRST_ECON = ECON_YEARS[0];
+export function econAt2(code: string, year: number): TaxRec | undefined { return economy[code]?.[String(year)]; }
+/** 製造品出荷額等が33市町村すべてで公表されている最新年。課税対象所得より公表が1年遅れるため LATEST_ECON と異なることがある */
+export const LATEST_MFG: number = [...ECON_YEARS].reverse().find(y => MUNIS.every(m => econAt2(m.code, y)?.mfg_shipment != null))!;
 /** 工業統計の事業所数・従業者数が欠測の年（2015年は経済センサスに統合され市区町村別が無い） */
 export const MFG_GAP_YEAR = 2015;
-export function econAt2(code: string, year: number): TaxRec | undefined { return economy[code]?.[String(year)]; }
 export function econSeries(code: string) {
   return ECON_YEARS.map(y => ({ year: y, ...(economy[code]?.[String(y)] as TaxRec) })).filter(r => r.taxable_income != null);
 }
@@ -354,7 +356,7 @@ export function incomePerTaxpayer(r: TaxRec | undefined): number | null {
   return Math.round((r.taxable_income * 1000) / r.taxpayers);
 }
 
-/* ===== 学校（幼稚園・小中高／2010〜2023） ===== */
+/* ===== 学校（幼稚園・小中高／2010〜） ===== */
 export type SchoolRec = {
   kg: number | null; kg_pupils: number | null;
   es: number | null; es_teachers: number | null; es_pupils: number | null;
