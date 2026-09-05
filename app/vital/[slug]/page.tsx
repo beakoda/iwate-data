@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, vitalAt, vitalSeries, vitalPrefAt, popAt, naturalChange, socialChange, fmt, fmtSigned, pct, rank, VITAL_YEARS, LATEST_VITAL, FIRST_VITAL, FIRST_MIGR_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -40,6 +40,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/vital/${m.slug}/`}
         keywords={[m.name, '出生数', '死亡数', '自然増減', '婚姻件数', '離婚件数', '人口動態', '岩手県']} temporal={`${FIRST_VITAL}/${LATEST_VITAL}`} sourceKeys={['vital']} />
       <h1>{title}</h1>
+      <MuniStrip family="vital" current={m.code} />
       <p className="key-fact">
         {m.name}の出生数は{LATEST_VITAL}年に<strong>{fmt(v.births)}人</strong>（前年比{fmtSigned(pct(v.births, vp.births), '%')}）、死亡数は<strong>{fmt(v.deaths)}人</strong>で、自然増減は<strong>{fmtSigned(nat)}人</strong>。
         岩手県内<strong>{rB.get(me) ?? '—'}位</strong>（県全体{fmt(pref.births)}人の{pref.births ? Math.round((v.births ?? 0) / pref.births * 1000) / 10 : '—'}%）。
@@ -53,6 +54,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">婚姻件数（{LATEST_VITAL}年）</div><div className="stat-value">{fmt(v.marriages)}</div><div className="stat-sub">件・離婚 {fmt(v.divorces)}件</div></div>
         {soc != null && <div className="stat"><div className="stat-label">社会増減（{LATEST_VITAL}年）</div><div className="stat-value">{fmtSigned(soc)}</div><div className="stat-sub">人・転入{fmt(v.in_migr)}／転出{fmt(v.out_migr)}</div></div>}
       </div>
+      <Tools family="vital" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の出生数と死亡数（${FIRST_VITAL}〜${LATEST_VITAL}年、人）`} unit="人" zero
         series={[
           { label: '出生数', points: s.map(r => ({ x: r.year, y: r.births ?? 0 })) },
@@ -84,6 +86,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/household/${m.slug}/`}>{m.name}の世帯・高齢世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="出生数" />
       <CiteBox title={title} path={`/vital/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['vital']} extra={[
         '出生数・死亡数・婚姻件数・離婚件数は人口動態調査（各年1〜12月）。住民基本台帳の出生・死亡（/population/）とは定義も集計期間も異なるため、直接比較しない。',
