@@ -227,3 +227,39 @@ export function hhShare(v: number | null | undefined, general: number | null | u
   if (v == null || !general) return null;
   return Math.round((v / general) * 1000) / 10;
 }
+
+/* ===== 健康・医療（病院・病床・医師・歯科医師・薬剤師／2010〜2023） ===== */
+export type MedRec = {
+  hospitals: number | null; gen_hospitals: number | null; clinics: number | null; dental_clinics: number | null;
+  hosp_beds: number | null; clinic_beds: number | null;
+  doctors: number | null; dentists: number | null; pharmacists: number | null; merged: string[];
+};
+const medical = (ds as any).medical as Record<string, Record<string, MedRec>>;
+export const MED_YEARS: number[] = (ds as any).medYears;
+export const LATEST_MED = MED_YEARS[MED_YEARS.length - 1];
+export const FIRST_MED = MED_YEARS[0];
+/** 医師・歯科医師・薬剤師統計は隔年（偶数年）。直近の公表年 */
+export const LATEST_DOC_YEAR = 2022;
+
+export function medAt(code: string, year: number): MedRec | undefined { return medical[code]?.[String(year)]; }
+export function medSeries(code: string) {
+  return MED_YEARS.map(y => ({ year: y, ...(medical[code]?.[String(y)] as MedRec) })).filter(r => r.hospitals != null);
+}
+/** 33市町村の合計（県公表値と一致することを build_data.py で検算済み） */
+export function medPrefAt(year: number): MedRec {
+  const acc: any = { hospitals: 0, gen_hospitals: 0, clinics: 0, dental_clinics: 0, hosp_beds: 0, clinic_beds: 0, doctors: 0, dentists: 0, pharmacists: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = medAt(m.code, year); if (!r) continue;
+    for (const k of ['hospitals', 'gen_hospitals', 'clinics', 'dental_clinics', 'hosp_beds', 'clinic_beds', 'doctors', 'dentists', 'pharmacists'] as const) {
+      if (r[k] != null) acc[k] += r[k] as number;
+    }
+  }
+  return acc as MedRec;
+}
+/** 人口10万人当たり（住民基本台帳人口ベース）。人口が無い年は null */
+export function per100kMed(v: number | null | undefined, code: string, year: number): number | null {
+  if (v == null) return null;
+  const p = popAt(code, year)?.total ?? null;
+  if (!p) return null;
+  return Math.round((v / p) * 100000 * 10) / 10;
+}
