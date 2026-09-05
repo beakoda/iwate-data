@@ -10,9 +10,11 @@
   - `population_2013_2026.csv` — 住民基本台帳人口・世帯・出生・死亡・転入・転出（各年1/1）
   - `econ_census_2021_major.csv` — 令和3年経済センサス 第4-1表（産業大分類×市町村：事業所・従業者・売上）
   - `econ_census_2016_major.csv` — 平成28年経済センサス 第8表（産業大分類×市町村：事業所・従業者）
+  - `census_2010_p1.csv` / `census_2015_p1,p2.csv` / `census_2020_p1,p2.csv` — 国勢調査 都道府県・市区町村別の主な結果
+  - `building_2011_2019.csv` / `building_2020_2024.csv` — 建築着工統計 市区町村別・用途別（大分類）
 - `scripts/build_data.py` — raw → `data/dataset.json`（合併前自治体の合算、整合性assert）
 - `app/` — Next.js 15 App Router、`output: 'export'` の完全静的サイト（クライアントJSほぼ無し、SVGチャートはビルド時描画）
-- ページ: `/`, `/dental/`, `/dental/[市町村]/`×33, `/population/`, `/population/[市町村]/`×33, `/industry/`, `/industry/[業種]/`×17, `/city/`, `/city/[市町村]/`×33 = 121ページ
+- ページ: 歯科 / 人口・世帯 / 高齢化率 / 就業・昼夜間 / 産業・事業所（業種×市町村クロス522本）/ 住宅着工 / 市町村別 = 745ページ
 
 ## ビルド
 ```
@@ -32,7 +34,7 @@ npx serve out
 6. JSON-LD: Dataset + BreadcrumbList
 
 ## 次にやること
-- e-Stat API（appId）で `raw/` を自動更新（`scripts/fetch_estat.py` を追加予定）。中分類・小分類、介護施設、学校、住宅着工、商業、農業センサスを同じ型で追加
+- e-Stat API（appId取得済み）で中分類・小分類、介護施設、学校、商業、農業センサスを同じ型で追加
 - PC-2 のローカルLLMで「地元の一言」（各ページ2〜3文の解説）をバッチ生成 → `data/notes/*.md` として差し込み
 - GSC 登録 → 90日計測 → 顧客サイトへの参照リンク設計
 - 埋め込みウィジェット（iframe + Powered by）
