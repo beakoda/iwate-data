@@ -26,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/industry/">産業・事業所</Link>
               <Link href="/building/">住宅着工</Link>
               <Link href="/medical/">病院・医師</Link>
+              <Link href="/welfare/">介護施設</Link>
               <Link href="/vital/">出生・死亡</Link>
               <Link href="/household/">世帯</Link>
               <Link href="/city/">市町村別</Link>

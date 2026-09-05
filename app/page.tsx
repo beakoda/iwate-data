@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MUNIS, INDUSTRIES, PREF, dentalAt, popAt, econAt, fmt, fmtSigned, LATEST_DENTAL, LATEST_POP, SITE, censusAt, agingRate, LATEST_CENSUS, buildPrefAt, LATEST_BUILD, FIRST_BUILD, vitalPrefAt, LATEST_VITAL, FIRST_VITAL, naturalChange, housePrefAt, LATEST_HOUSE, FIRST_HOUSE, hhShare, medPrefAt, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR } from '@/lib/data';
+import { MUNIS, INDUSTRIES, PREF, dentalAt, popAt, econAt, fmt, fmtSigned, LATEST_DENTAL, LATEST_POP, SITE, censusAt, agingRate, LATEST_CENSUS, buildPrefAt, LATEST_BUILD, FIRST_BUILD, vitalPrefAt, LATEST_VITAL, FIRST_VITAL, naturalChange, housePrefAt, LATEST_HOUSE, FIRST_HOUSE, hhShare, medPrefAt, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR, welPrefAt, LATEST_WEL, FIRST_WEL } from '@/lib/data';
 
 export default function Home() {
   const d = dentalAt(PREF.code, LATEST_DENTAL)!; const d0 = dentalAt(PREF.code, 2009)!;
@@ -33,6 +33,7 @@ export default function Home() {
         <div className="card"><h2>就業者・産業別就業者・昼夜間人口</h2><p>国勢調査から、市町村別の就業者数・労働力率・産業大分類別就業者数と、昼間人口・昼夜間人口比率。</p><Link className="more" href="/work/">就業と昼夜間人口を見る →</Link></div>
         <div className="card"><h2>住宅着工・建築着工</h2><p>建築着工統計（国交省）から、市町村別の居住専用住宅の着工棟数・床面積・工事費予定額を{FIRST_BUILD}〜{LATEST_BUILD}年で。</p><Link className="more" href="/building/">市町村別の住宅着工を見る →</Link></div>
         <div className="card"><h2>病院・病床・医師</h2><p>医療施設調査・医師歯科医師薬剤師統計から、市町村別の病院数・病床数・医師数・歯科医師数・薬剤師数を{FIRST_MED}〜{LATEST_MED}年で。人口10万人当たりつき。</p><Link className="more" href="/medical/">市町村別の医療体制を見る →</Link></div>
+        <div className="card"><h2>介護施設・国民健康保険</h2><p>社会福祉施設等調査から、市町村別の特別養護老人ホーム・有料老人ホームの施設数と定員、国民健康保険被保険者数を{FIRST_WEL}〜{LATEST_WEL}年で。高齢者千人当たりつき。</p><Link className="more" href="/welfare/">市町村別の介護施設を見る →</Link></div>
         <div className="card"><h2>出生・死亡・婚姻・離婚</h2><p>人口動態調査から、市町村別の出生数・死亡数・自然増減・婚姻件数・離婚件数を{FIRST_VITAL}〜{LATEST_VITAL}年で。人口千人当たりと県内順位つき。</p><Link className="more" href="/vital/">市町村別の人口動態を見る →</Link></div>
         <div className="card"><h2>世帯・高齢者単身世帯</h2><p>国勢調査から、市町村別の一般世帯数・単独世帯・65歳以上の単独世帯・高齢夫婦のみの世帯・核家族世帯を{FIRST_HOUSE}〜{LATEST_HOUSE}年で。</p><Link className="more" href="/household/">世帯の内訳を見る →</Link></div>
       </div>
