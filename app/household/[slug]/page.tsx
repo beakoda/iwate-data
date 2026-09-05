@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, houseAt, housePrefAt, censusAt, hhShare, fmt, fmtSigned, pct, rank, HOUSE_YEARS, LATEST_HOUSE, PREV_HOUSE, FIRST_HOUSE, FIRST_POP75_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -37,6 +37,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/household/${m.slug}/`}
         keywords={[m.name, '世帯数', '単独世帯', '高齢者単身世帯', '核家族', '国勢調査', '岩手県']} temporal={`${FIRST_HOUSE}/${LATEST_HOUSE}`} sourceKeys={['household']} />
       <h1>{title}</h1>
+      <MuniStrip family="household" current={m.code} />
       <p className="key-fact">
         {m.name}の一般世帯数は{LATEST_HOUSE}年に<strong>{fmt(h.general_hh)}世帯</strong>（{PREV_HOUSE}年比{fmtSigned(pct(h.general_hh, hp.general_hh), '%')}）。
         65歳以上の単独世帯は<strong>{fmt(h.eld_single_hh)}世帯</strong>で一般世帯の<strong>{fmt(eldSP)}%</strong>、岩手県内<strong>{rE.get(me) ?? '—'}位</strong>（県平均{fmt(hhShare(pref.eld_single_hh, pref.general_hh))}%）。
@@ -53,6 +54,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         {h.foreign != null && <div className="stat"><div className="stat-label">外国人人口</div><div className="stat-value">{fmt(h.foreign)}</div><div className="stat-sub">人</div></div>}
         {h.did_pop != null && <div className="stat"><div className="stat-label">人口集中地区（DID）人口</div><div className="stat-value">{fmt(h.did_pop)}</div><div className="stat-sub">人{cen ? `・総人口の${Math.round(h.did_pop / cen.total * 1000) / 10}%` : ''}</div></div>}
       </div>
+      <Tools family="household" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の世帯の内訳（${FIRST_HOUSE}〜${LATEST_HOUSE}年、世帯）`} unit="世帯" zero
         series={[
           { label: '一般世帯', points: HOUSE_YEARS.map(y => ({ x: y, y: houseAt(m.code, y)?.general_hh ?? 0 })) },
@@ -85,6 +87,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="世帯構成" />
       <CiteBox title={title} path={`/household/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['household']} extra={[
         '「一般世帯」は施設等の世帯を除く世帯。割合の分母は一般世帯数。',
