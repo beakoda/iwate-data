@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, buildAt, buildPrefAt, popAt, fmt, fmtSigned, pct, rank, BUILD_YEARS, LATEST_BUILD, FIRST_BUILD, LAST_COST_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の住宅着工・建築着工（${FIRST_BUILD}〜${LATEST_BUILD}年）`;
 const pNow = buildPrefAt(LATEST_BUILD);
@@ -31,7 +32,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: '住宅着工・建築着工' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/building/" keywords={['岩手県', '住宅着工', '建築着工', '着工棟数', '市町村別', '工務店', '建築着工統計']} temporal={`${FIRST_BUILD}/${LATEST_BUILD}`} sourceKeys={['building']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="building" />
       <p className="key-fact">岩手県の居住専用住宅の着工は{LATEST_BUILD}年に<strong>{fmt(pNow.bldg_house)}棟</strong>・床面積{fmt(pNow.floor_house)}m²。前年比{fmtSigned(pct(pNow.bldg_house, pPrev.bldg_house), '%')}、{FIRST_BUILD}年比{fmtSigned(pct(pNow.bldg_house, pFirst.bldg_house), '%')}。市町村別で最も多いのは<strong>{by[0].m.name}（{fmt(by[0].b.bldg_house)}棟）</strong>、人口千人当たりでは<strong>{byK[0].m.name}（{fmt(byK[0].perK)}棟）</strong>。</p>
+      <IwateMap title={`人口千人当たり居住専用住宅の着工棟数（${LATEST_BUILD}年）`} unit="棟" decimals={2} family="building" values={rows.map(x => ({ code: x.m.code, value: x.perK ?? null }))} />
+      <Tools family="building" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県の居住専用住宅 着工棟数（${FIRST_BUILD}〜${LATEST_BUILD}年、棟）`} unit="棟" zero
         series={[{ label: '岩手県', points: BUILD_YEARS.map(y => ({ x: y, y: buildPrefAt(y).bldg_house })) }]} />
       <BarChart title={`居住専用住宅の着工棟数（${LATEST_BUILD}年、市町村別）`} items={by.map(r => ({ label: r.m.name, value: r.b.bldg_house }))} unit="棟" />
@@ -52,6 +57,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const b = buildAt(m.code, LATEST_BUILD)!; return <li key={m.code}><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工<small>{LATEST_BUILD}年 {fmt(b.bldg_house)}棟・{fmt(b.floor_house)}m²</small></Link></li>; })}</ul>
+      <Cta topic="住宅着工" />
       <CiteBox title={TITLE} path="/building/" sentence={sentence} />
       <SourceBox keys={['building']} extra={[
         '「居住専用住宅」は用途大分類Ａ。棟数は建築物の数で、共同住宅の戸数とは異なる。',
