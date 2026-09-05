@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, eduAt, eduPrefAt, eduShare, fmt, fmtSigned, pct, rank, EDU_YEARS, LATEST_EDU, FIRST_EDU } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の最終学歴・大卒率（${FIRST_EDU}・${LATEST_EDU}年）`;
 const pNow = eduPrefAt(LATEST_EDU);
@@ -34,6 +35,7 @@ export default function Page() {
       <Breadcrumb items={[{ name: '最終学歴・大卒率' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/education/" keywords={['岩手県', '最終学歴', '大卒率', '大学卒業者', '短大', '高専', '学歴', '国勢調査', '市町村別']} temporal={`${FIRST_EDU}/${LATEST_EDU}`} sourceKeys={['education']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="education" />
       <p className="key-fact">岩手県の大学・大学院卒業者は{LATEST_EDU}年に<strong>{fmt(pNow.grad_univ)}人</strong>、卒業者{fmt(pNow.grad_total)}人に占める割合は<strong>{fmt(prefUniv)}%</strong>で、{FIRST_EDU}年の{fmt(prefUniv0)}%から{fmtSigned(Math.round(((prefUniv ?? 0) - (prefUniv0 ?? 0)) * 10) / 10, 'ポイント')}。市町村別で最も高いのは<strong>{byU[0].m.name}（{fmt(byU[0].u)}%）</strong>、最も低いのは<strong>{byU[byU.length - 1].m.name}（{fmt(byU[byU.length - 1].u)}%）</strong>。短大・高専卒は{fmt(prefCol)}%、高校・旧中卒は{fmt(prefHs)}%、小中学校卒は{fmt(prefJhs)}%。</p>
       <div className="stats">
         <div className="stat"><div className="stat-label">大学・大学院卒（{LATEST_EDU}年）</div><div className="stat-value">{fmt(prefUniv)}</div><div className="stat-sub">%・{fmt(pNow.grad_univ)}人・{FIRST_EDU}年 {fmt(prefUniv0)}%</div></div>
@@ -41,6 +43,9 @@ export default function Page() {
         <div className="stat"><div className="stat-label">高校・旧中卒</div><div className="stat-value">{fmt(prefHs)}</div><div className="stat-sub">%・{fmt(pNow.grad_hs)}人</div></div>
         <div className="stat"><div className="stat-label">小学校・中学校卒</div><div className="stat-value">{fmt(prefJhs)}</div><div className="stat-sub">%・{fmt(pNow.grad_jhs)}人・{FIRST_EDU}年比 {fmtSigned(pct(pNow.grad_jhs, pFirst.grad_jhs), '%')}</div></div>
       </div>
+      <IwateMap title={`大学・大学院卒の割合（${LATEST_EDU}年、%）`} unit="%" decimals={1} family="education" values={rows.map(x => ({ code: x.m.code, value: x.u ?? null }))} />
+      <Tools family="education" slug="all" label="33市町村の全年データ" />
+
       <BarChart title={`大学・大学院卒の割合（${LATEST_EDU}年、市町村別）`} items={byU.map(x => ({ label: x.m.name, value: x.u }))} unit="%" />
       <BarChart title={`大学・大学院卒業者数（${LATEST_EDU}年、人）`} items={[...rows].sort((a, b) => (b.r.grad_univ ?? 0) - (a.r.grad_univ ?? 0)).map(x => ({ label: x.m.name, value: x.r.grad_univ }))} unit="人" />
       <div className="table-wrap">
@@ -57,6 +62,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = eduAt(m.code, LATEST_EDU)!; return <li key={m.code}><Link href={`/education/${m.slug}/`}>{m.name}の最終学歴<small>{LATEST_EDU}年 大卒率{fmt(eduShare(r.grad_univ, r.grad_total))}%・{fmt(r.grad_univ)}人</small></Link></li>; })}</ul>
+      <Cta topic="大卒率" />
       <CiteBox title={TITLE} path="/education/" sentence={sentence} />
       <SourceBox keys={['education']} extra={[
         '「卒業者総数」は15歳以上人口から在学者・未就学者・学歴不詳を除いた数。分母が異なるため、15歳以上人口に対する比率とは一致しない。',
