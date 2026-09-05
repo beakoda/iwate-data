@@ -21,12 +21,13 @@
   - `env_2010_2023.csv` — 社会・人口統計体系 市区町村データ（一般廃棄物処理事業実態調査）
 - `scripts/build_data.py` — raw → `data/dataset.json`（合併前自治体の合算、整合性assert）
 - `app/` — Next.js 15 App Router、`output: 'export'` の完全静的サイト（クライアントJSほぼ無し、SVGチャートはビルド時描画）
-- ページ: 歯科 / 人口・世帯 / 高齢化率 / 就業・昼夜間 / 産業・事業所（業種×市町村クロス522本）/ 住宅着工 / 病院・医師 / 介護施設 / 学校 / 完全失業率 / 最終学歴 / 農家・耕作放棄地 / 所得・製造業 / ごみ / 出生・死亡 / 世帯 / 市町村別 = 1085ページ
+- ページ: 歯科 / 人口・世帯 / 高齢化率 / 就業・昼夜間 / 産業・事業所（業種×市町村クロス522本）/ 住宅着工 / 病院・医師 / 介護施設 / 学校 / 完全失業率 / 最終学歴 / 農家・耕作放棄地 / 所得・製造業 / ごみ / 出生・死亡 / 世帯 / 市町村別 / データ集 = 1086ページ（＋CSV 510本、埋め込み33本）
 
 ## ビルド
 ```
 npm install
-npm run data       # raw/ → data/dataset.json（データ更新時のみ。生成物はコミットする）
+npm run data       # raw/ → data/dataset.json, data/map.json（データ更新時のみ。生成物はコミットする）
+npm run xlsx       # build後に out/csv → dist/*.xlsx（販売用Excel。コミットしない）
 npm run build      # next build → out/（Cloudflare Pagesが叩くのはこれ）
 npx serve out
 ```

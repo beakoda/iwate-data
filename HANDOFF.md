@@ -47,7 +47,7 @@ Cloudflare Pages の設定値:
 - `public/_headers` — Cloudflare Pages のヘッダー設定。`public/` の中身は `out/` にそのままコピーされる。`/_next/static/*` は immutable で1年キャッシュ、HTMLは毎回再検証。**`X-Frame-Options` は意図的に設定していない**（§6-C の埋め込みウィジェット構想を潰すため）
 - 静的出力は `out/dental/morioka/index.html` の形（`trailingSlash: true`）。Cloudflare Pages がそのまま `/dental/morioka/` で配信する。`404.html` も出力済み
 
-### ページ構成（1085ページ）
+### ページ構成（1086ページ＋CSV 510本＋埋め込み33本）
 
 | パス | 数 | 内容 |
 |---|---|---|
@@ -69,7 +69,10 @@ Cloudflare Pages の設定値:
 | `/jobless/` `/jobless/[slug]/` | 1+33 | 完全失業率・完全失業者・労働力人口・就業者・65歳以上就業者（国勢調査 2010/2015/2020） |
 | `/education/` `/education/[slug]/` | 1+33 | 最終学歴人口と構成比（大卒率など）（国勢調査 2010/2020） |
 | `/farm/` `/farm/[slug]/` | 1+33 | 販売農家・自給的農家・専業兼業・耕作放棄地（農林業センサス 2009/2014/2019） |
-| `/city/` `/city/[slug]/` | 1+33 | 市町村ごとの全指標まとめ |
+| `/city/` `/city/[slug]/` | 1+33 | 市町村ごとの全指標まとめ。埋め込みコード付き |
+| `/data/` | 1 | Excelデータ集の販売ページ |
+| `/csv/{family}/{slug}.csv` `/csv/{family}/all.csv` | 15×34 | 各ページと同じ内容のCSV（BOM付きUTF-8、Excelで開ける）。sitemapには載せない |
+| `/embed/city/{slug}/` | 33 | iframe埋め込み用の主要6指標カード。`X-Robots-Tag: noindex` |
 
 クロスページは 17産業 × 33市町村 = 561通りのうち、**2021年の事業所数が公表されている522通りだけ**を生成する（`generateStaticParams` が `estab != null` で絞る）。空ページを作らないための意図的な設計なので、勝手に全通り生成するように変えないこと。
 
@@ -79,10 +82,18 @@ Cloudflare Pages の設定値:
 
 ```
 raw/*.csv              e-Stat から取得した原データ（人手でも自動でも、ここが唯一の真実）
+raw/iwate_map.geojson  国土数値情報の行政区域（smartnews-smri/japan-topography の1%簡素化版）
   ↓ scripts/build_data.py     合併自治体の合算・整合性assert
+  ↓ scripts/build_map.py      geojson → SVGパス（data/map.json、47KB）
 data/dataset.json      生成物だがコミットする（CI側でPython不要にするため）
+data/map.json          同上
   ↓ lib/data.ts               JSONを読んで型付きヘルパを提供
+  ↓ lib/csv.ts                CSV用の全ファミリー共通レジストリ（列名・年・アクセサ）
 app/**/page.tsx        ビルド時に全ページを静的生成（output: 'export' → out/）
+app/csv/[family]/[file]/route.ts    CSV（/csv/{family}/{slug}.csv, all.csv）を静的生成
+app/embed/city/[slug]/[file]/route.ts  埋め込みHTML（layoutを通さない素のHTML）を静的生成
+  ↓ npm run build → out/
+scripts/build_xlsx.py  out/csv/*/all.csv → dist/iwate-data_日付.xlsx（販売用、リポジトリに含めない）
 ```
 
 - Next.js 15.5.2 App Router / React 19 / TypeScript
@@ -98,7 +109,10 @@ app/**/page.tsx        ビルド時に全ページを静的生成（output: 'exp
 | `scripts/build_data.py` | raw→JSON。`MUNI`（33市町村の code/name/slug/kind/gun）、`LEGACY`（合併前コード対応）、`IND`（産業大分類18件）、`SOURCES`（出典文言とURL）を定義。末尾で市町村合計＝県計を assert |
 | `lib/data.ts` | `SITE` / `MUNIS` / `INDUSTRIES` / `SOURCES` / 年定数、`muniBySlug` `dentalSeries` `popAt` `econAt` `per100k` `fmt` `rank` などのヘルパ |
 | `components/Chart.tsx` | `LineChart` / `BarChart`（純SVG、依存なし） |
-| `components/Shell.tsx` | `Breadcrumb` `Stat` `SourceBox` `CiteBox` `DatasetJsonLd` |
+| `components/Shell.tsx` | `Breadcrumb` `Stat` `SourceBox` `CiteBox` `DatasetJsonLd` `MuniStrip`（33市町村ジャンプ帯）`Tools`（CSVボタン）`Cta`（運営会社への相談導線）`EmbedBox`（埋め込みコード） |
+| `components/Map.tsx` | `IwateMap` — 静的SVGのコロプレス。値の5分位で塗り、各市町村が個別ページへの `<a>`。JSなし |
+| `lib/csv.ts` | `FAMILIES`（15ファミリーの列定義）と `familyCsv()`。CSVルートと `/data/` と `build_xlsx.py` がここを見る。**列を足すときはここ** |
+| `app/data/page.tsx` | Excelデータ集の販売ページ。購入ボタンの向き先は環境変数 `NEXT_PUBLIC_BUY_URL`（未設定なら運営会社の問い合わせフォームへ） |
 | `app/layout.tsx` | ヘッダーナビ・フッター・共通メタ |
 
 ### データソース（すべて e-Stat）
@@ -212,7 +226,7 @@ app/**/page.tsx        ビルド時に全ページを静的生成（output: 'exp
 3. `scripts/build_data.py` の assert を無効化しない。市町村合計 ≠ 県計 になったら raw か対応表が壊れている
 4. 全ページに出典（統計名・表名・URL・時点）と算出方法の注記を必ず載せる
 5. 各ページ冒頭に **そのまま引用できる1文（key-fact）** を置く。数字＋県内順位＋県平均。これが被リンク獲得の本体
-6. クライアントJSを足さない。静的HTMLのまま保つ
+6. クライアントJSを足さない。静的HTMLのまま保つ。地図・CSV・埋め込み・モバイルナビも全部ビルド時生成＋CSSだけで実現している（2026-09-05）
 7. `data/dataset.json` は生成物だがコミットする。raw を変えたら `npm run data` を回して両方コミット
 8. 「従業者数」（経済センサス＝その市町村の事業所で働く人）と「就業者数」（国勢調査＝その市町村に住んでその産業で働く人）を混同しない。両方載せるページでは必ず違いを注記する
 9. `data/dataset.json` はビルド再現性が要る。`build_data.py` で set を辞書キー順に使うときは必ず `sorted()` を挟む（PYTHONHASHSEED で並びが変わり、中身が同じなのに巨大な差分が出る）
@@ -256,10 +270,27 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 列レイアウトは回ごとに別物：2020はコードが「03201_盛岡市」形式でヘッダー行8、2015/2010はコード列が独立（col1）でヘッダー行はそれぞれ6・5、2005/2000はcol0が県市コードでヘッダー行3。
 2020と2015でシート構成・列位置・ヘッダー行がまるごと違うので、列は必ずヘッダー名で拾うこと。
 
-**C. 運用**
+**C. 利便性・マネタイズ（2026-09-05 に一式実装済み）**
 
-8. PC-2 のローカルLLMで各ページに「地元の一言」（2〜3文）をバッチ生成 → `data/notes/*.md` として差し込み
-9. 埋め込みウィジェット（iframe + Powered by リンク）を作り、被リンクを取りに行く
+実装したもの:
+- **岩手県マップ（コロプレス）** を15ハブ＋トップに。市町村クリックで個別ページ。指標はハブごとに `app/{family}/page.tsx` の `<IwateMap values=…>` で決めている
+- **市町村ジャンプ帯** を全ハブ・全個別ページ・cityページの h1 直下に
+- **CSVダウンロード**（ページ単位・全市町村・Excel案内の3ボタン）を stats の直下に
+- **問い合わせCTA**（`Cta`）を全ページの CiteBox 直前に。リンク先は `https://beak-promo.jp/contact/?ref=iwate-data`。**GA4/Search Console 側で `ref=iwate-data` の流入を見れば効果が測れる**
+- **`/data/` 販売ページ**＋`npm run xlsx` で作る販売用Excel（¥3,300税込・買い切り、年1回更新）。`NEXT_PUBLIC_BUY_URL` に Stripe Payment Link 等を入れると購入ボタンがそこを向く。未設定の間は問い合わせフォーム経由（請求書払い）
+- **埋め込みウィジェット** `/embed/city/{slug}/` と、cityページの埋め込みコード表示
+- モバイルのヘッダーナビを横スクロール1行に（5行→1行）。印刷CSS
+
+残っている手作業（コードでは出来ない）:
+8. **`NEXT_PUBLIC_BUY_URL` を Cloudflare Pages の環境変数に設定**（Stripe Payment Link が最短。BOOTH/noteでも可）。設定して再デプロイするまで /data/ の購入ボタンは問い合わせフォームに向く
+9. 販売用Excelは `npm run build && npm run xlsx` で `dist/` に出る。**リポジトリには入れない**（`.gitignore` 済み）。決済サービス側にファイルを置く
+10. beak-promo.jp 側で `?ref=iwate-data` の流入をGA4のイベント／探索で追えるようにする
+11. PC-2 のローカルLLMで各ページに「地元の一言」（2〜3文）をバッチ生成 → `data/notes/*.md` として差し込み（大規模テンプレ判定を避ける意味でも、主要5市から）
+
+マネタイズの考え方（決定事項）:
+- **本命は問い合わせCTA**（Beakの本業＝Web集客の受注）。データ集の売上は副次
+- クライアントサイトへのリンク配給は**やらない**。1ドメインから自社クライアント多数へのリンクはPBNのパターンで、サイト自体の評価を落とす
+- CSVは無料で開放し、全分野一括のExcelだけ有料。元データが無料で取れることは /data/ に明記している（信頼の担保）
 
 ## 7. 未解決・注意
 

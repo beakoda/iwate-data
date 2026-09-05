@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "data": "python3 scripts/build_data.py",
+    "data": "python3 scripts/build_data.py && python3 scripts/build_map.py",
+    "xlsx": "python3 scripts/build_xlsx.py",
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out"
