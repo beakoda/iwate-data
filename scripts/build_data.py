@@ -56,6 +56,7 @@ SOURCES = {
  'econ2021': {'name':'総務省・経済産業省「令和3年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第4-1表（産業大分類、単独・本所・支所別民営事業所数、従業者数及び売上（収入）金額－市区町村）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20210', 'note':'2021年6月1日現在。売上（収入）金額は外国の会社及び法人でない団体を除く。「X」は秘匿、「-」は該当なし、「...」は非公表。'},
  'econ2016': {'name':'総務省・経済産業省「平成28年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第8表（産業別民営事業所数・従業者数－都道府県、市区町村）岩手県', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20160', 'note':'2016年6月1日現在。'},
     'building': {'name':'国土交通省「建築着工統計調査」建築物着工統計 市区町村別、用途別（大分類）／建築物の数、床面積、工事費予定額（年次）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0004019181', 'note':'各年1〜12月の着工。2011〜2019年は統計表0003114492（工事費予定額あり）、2020〜2024年は0004019181（工事費予定額なし）。e-Stat APIで取得。「＊」は秘匿。'},
+    'welfare': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｊ　福祉・社会保障）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020110', 'note':'介護老人福祉施設（特別養護老人ホーム）・有料老人ホームの施設数と定員は厚生労働省「社会福祉施設等調査」（各年10月1日現在）。2017年までは詳細票、2018年以降は基本票の値（市区町村別はこの切替でしか連続しない。両票は定員でわずかに差が出る）。国民健康保険被保険者数は厚生労働省「国民健康保険事業年報」（各年度末）。e-Stat APIで取得。'},
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
     'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
@@ -101,6 +102,25 @@ HOUSE_KEYS = ('pop75', 'foreign', 'did_pop', 'households', 'general_hh', 'nuclea
 
 MED_YEARS = list(range(2010, 2024))
 MED_KEYS = ('hospitals', 'gen_hospitals', 'clinics', 'dental_clinics', 'hosp_beds', 'clinic_beds', 'doctors', 'dentists', 'pharmacists')
+
+
+WEL_YEARS = list(range(2010, 2024))
+WEL_KEYS = ('tokuyo', 'tokuyo_cap', 'yuryo', 'yuryo_cap', 'kokuho')
+
+
+def load_welfare():
+    out = {}
+    for r in load_csvs('welfare_2010_2023.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in WEL_KEYS})
+        d.setdefault('merged', [])
+        for k in WEL_KEYS:
+            v = num(r[k])
+            if v is not None:
+                d[k] = (d[k] or 0) + v
+        if code != r['code'] and r['code'] not in d['merged']:
+            d['merged'].append(r['code'])
+    return out
 
 
 def load_medical():
@@ -211,6 +231,8 @@ def build():
         'dental': dental, 'population': pop, 'econ': econ,
         'census': load_census(),
         'building': load_building(),
+        'welfare': load_welfare(),
+        'welYears': WEL_YEARS,
         'medical': load_medical(),
         'medYears': MED_YEARS,
         'vital': load_vital(),
@@ -244,6 +266,18 @@ def build():
     for y in BUILD_YEARS:
         s2 = sum(bld[m['code']].get(str(y), {}).get('bldg_house', 0) for m in munis)
         assert s2 == PREF_HOUSE[y], ('building', y, s2, PREF_HOUSE[y])
+
+    # 福祉: 市町村合計が県公表値と一致するか（2017年までは詳細票、2018年以降は基本票）
+    wel = ds['welfare']
+    PREF_WEL = {2010:[93,5838,64,1223,373325],2011:[92,5795,56,1134,365839],2012:[96,6211,104,1852,351066],
+                2013:[96,6194,114,2116,336869],2014:[106,6259,160,2900,322908],2015:[108,6395,130,2423,307877],
+                2016:[111,6555,137,2639,292299],2017:[110,6608,157,3006,279192],
+                2018:[118,7082,189,3704,267902],2019:[121,7375,194,3927,259902],2020:[122,7427,198,4041,255799],
+                2021:[122,7445,267,5614,248748],2022:[123,7499,271,5866,237622],2023:[125,7520,277,5961,228224]}
+    for y in WEL_YEARS:
+        for i, k in enumerate(WEL_KEYS):
+            got = sum(wel[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            assert got == PREF_WEL[y][i], ('welfare', y, k, got, PREF_WEL[y][i])
 
     # 健康・医療: 市町村合計が県公表値（社会・人口統計体系 都道府県データ）と一致するか
     med = ds['medical']
