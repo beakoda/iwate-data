@@ -20,7 +20,7 @@
 
 - リモート: `https://github.com/beakoda/iwate-data.git`（Public、**全33ファイル反映済み**）。`main` が正。作業前に必ず `git pull`
 - ローカルにクローンが無ければ `git clone https://github.com/beakoda/iwate-data.git`
-- ビルド: 121ページ生成成功。全33市町村の主要数値を raw CSV と突き合わせ検算済み
+- ビルド: 643ページ生成成功。全33市町村の主要数値を raw CSV と突き合わせ検算済み
 - デプロイ: **稼働中** → https://iwate-data.pages.dev （Cloudflare Pages プロジェクト `iwate-data`、`main` への push で自動デプロイ。理由は下記）
 - 環境変数 `NEXT_PUBLIC_SITE_URL` は現在 `https://iwate-data.pages.dev`（**暫定**）。独自ドメイン取得後に差し替えること
 - ドメイン: `iwate-data.jp` が空きで第一候補（未取得。お名前.com等で取得し、NSをCloudflareへ）
@@ -46,7 +46,7 @@ Cloudflare Pages の設定値:
 - `public/_headers` — Cloudflare Pages のヘッダー設定。`public/` の中身は `out/` にそのままコピーされる。`/_next/static/*` は immutable で1年キャッシュ、HTMLは毎回再検証。**`X-Frame-Options` は意図的に設定していない**（§6-C の埋め込みウィジェット構想を潰すため）
 - 静的出力は `out/dental/morioka/index.html` の形（`trailingSlash: true`）。Cloudflare Pages がそのまま `/dental/morioka/` で配信する。`404.html` も出力済み
 
-### ページ構成（121ページ）
+### ページ構成（643ページ）
 
 | パス | 数 | 内容 |
 |---|---|---|
@@ -54,7 +54,10 @@ Cloudflare Pages の設定値:
 | `/dental/` `/dental/[slug]/` | 1+33 | 歯科・一般診療所数の推移（2009–2024） |
 | `/population/` `/population/[slug]/` | 1+33 | 人口・世帯・出生死亡転入転出（2013–2026） |
 | `/industry/` `/industry/[ind]/` | 1+17 | 産業大分類別の市町村ランキング（2016/2021） |
+| `/industry/[ind]/[muni]/` | 522 | **産業×市町村のクロスページ**。事業所・従業者・売上・特化係数・県内順位 |
 | `/city/` `/city/[slug]/` | 1+33 | 市町村ごとの全指標まとめ |
+
+クロスページは 17産業 × 33市町村 = 561通りのうち、**2021年の事業所数が公表されている522通りだけ**を生成する（`generateStaticParams` が `estab != null` で絞る）。空ページを作らないための意図的な設計なので、勝手に全通り生成するように変えないこと。
 
 さらに `/sitemap.xml`, `/robots.txt`。
 
@@ -120,7 +123,7 @@ npx serve out    # 静的出力の確認
 **A. 公開まで（最優先・順番通り）**
 
 1. ~~GitHubへ反映~~ **完了**（全33ファイル、内容ハッシュ一致・クローンからのビルド成功を確認済み）
-2. ~~Cloudflare Pages 連携・デプロイ~~ **完了**（121ページ配信・404・sitemap・キャッシュヘッダーまで実地検証済み）
+2. ~~Cloudflare Pages 連携・デプロイ~~ **完了**（121ページ→643ページに拡張、配信・404・sitemap・キャッシュヘッダーまで実地検証済み）
 3. `iwate-data.jp` を取得（お名前.com等）→ NSをCloudflareへ向ける → Pages のカスタムドメインに設定 → **環境変数 `NEXT_PUBLIC_SITE_URL` を `https://iwate-data.jp` に変更して再デプロイ**（canonical/JSON-LD/sitemapがこれを見るので、変更を忘れると pages.dev を正規URLとして出し続ける）
 4. Google Search Console に登録、sitemap 送信、90日計測を開始
 
