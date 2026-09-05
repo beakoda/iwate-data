@@ -1,0 +1,127 @@
+{
+  "name": "iwate-data monthly update",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 4 3 * *"
+            }
+          ]
+        }
+      },
+      "name": "毎月3日 04:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "notes": "e-Stat の SSDS 更新は月初に出ることが多いので3日。n8n の timezone 設定を Asia/Tokyo にしておく"
+    },
+    {
+      "parameters": {
+        "command": "bash /opt/iwate-data/scripts/update.sh"
+      },
+      "name": "update.sh",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        260,
+        0
+      ],
+      "continueOnFail": true,
+      "notes": "ESTAT_APP_ID と CLOUDFLARE_API_TOKEN は n8n プロセスの環境変数（docker-compose の environment）に置く。ワークフローには書かない"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "RESULT: NOCHANGE",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "更新あり or 失敗?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL",
+        "subject": "=[iwate-data] {{ ($json.stdout || '').split('\\n').filter(l => l.startsWith('RESULT:')).pop() || 'RESULT line missing (command failed?)' }}",
+        "emailType": "text",
+        "message": "=stdout:\n{{ $json.stdout }}\n\nstderr:\n{{ $json.stderr }}\n\nexit: {{ $json.exitCode }}",
+        "options": {}
+      },
+      "name": "Gmail 通知",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        780,
+        -100
+      ],
+      "notes": "Gmail の OAuth credential を設定して sendTo を自分のアドレスに。Slack にしたいならこのノードを差し替えるだけ"
+    }
+  ],
+  "connections": {
+    "毎月3日 04:00": {
+      "main": [
+        [
+          {
+            "node": "update.sh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update.sh": {
+      "main": [
+        [
+          {
+            "node": "更新あり or 失敗?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "更新あり or 失敗?": {
+      "main": [
+        [
+          {
+            "node": "Gmail 通知",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Tokyo"
+  }
+}
