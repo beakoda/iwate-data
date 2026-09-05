@@ -263,3 +263,35 @@ export function per100kMed(v: number | null | undefined, code: string, year: num
   if (!p) return null;
   return Math.round((v / p) * 100000 * 10) / 10;
 }
+
+/* ===== 福祉（特別養護老人ホーム・有料老人ホーム・国民健康保険／2010〜2023） ===== */
+export type WelRec = {
+  tokuyo: number | null; tokuyo_cap: number | null; yuryo: number | null; yuryo_cap: number | null;
+  kokuho: number | null; merged: string[];
+};
+const welfare = (ds as any).welfare as Record<string, Record<string, WelRec>>;
+export const WEL_YEARS: number[] = (ds as any).welYears;
+export const LATEST_WEL = WEL_YEARS[WEL_YEARS.length - 1];
+export const FIRST_WEL = WEL_YEARS[0];
+/** 社会福祉施設等調査の票が詳細票→基本票に切り替わる年 */
+export const WEL_SWITCH_YEAR = 2018;
+
+export function welAt(code: string, year: number): WelRec | undefined { return welfare[code]?.[String(year)]; }
+export function welSeries(code: string) {
+  return WEL_YEARS.map(y => ({ year: y, ...(welfare[code]?.[String(y)] as WelRec) })).filter(r => r.tokuyo != null || r.kokuho != null);
+}
+export function welPrefAt(year: number): WelRec {
+  const acc: any = { tokuyo: 0, tokuyo_cap: 0, yuryo: 0, yuryo_cap: 0, kokuho: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = welAt(m.code, year); if (!r) continue;
+    for (const k of ['tokuyo', 'tokuyo_cap', 'yuryo', 'yuryo_cap', 'kokuho'] as const) if (r[k] != null) acc[k] += r[k] as number;
+  }
+  return acc as WelRec;
+}
+/** 65歳以上人口千人当たりの定員（国勢調査の65歳以上人口が分母。国勢調査年のみ） */
+export function capPerElderly(cap: number | null | undefined, code: string, censusYear: number): number | null {
+  if (cap == null) return null;
+  const c = censusAt(code, censusYear);
+  if (!c || !c.age_65_) return null;
+  return Math.round((cap / c.age_65_) * 1000 * 10) / 10;
+}
