@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, medAt, medPrefAt, per100kMed, popAt, fmt, fmtSigned, pct, rank, MED_YEARS, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の病院・病床・医師数（${FIRST_MED}〜${LATEST_MED}年）`;
 const pNow = medPrefAt(LATEST_MED);
@@ -32,7 +33,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: '病院・病床・医師' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/medical/" keywords={['岩手県', '病院数', '病床数', '医師数', '歯科医師数', '薬剤師数', '医療施設調査', '市町村別']} temporal={`${FIRST_MED}/${LATEST_MED}`} sourceKeys={['medical']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="medical" />
       <p className="key-fact">岩手県の病院は{LATEST_MED}年に<strong>{fmt(pNow.hospitals)}施設</strong>・病床<strong>{fmt(pNow.hosp_beds)}床</strong>（{FIRST_MED}年比{fmtSigned(pct(pNow.hosp_beds, pFirst.hosp_beds), '%')}）。医師数は{LATEST_DOC_YEAR}年に<strong>{fmt(pDoc.doctors)}人</strong>、歯科医師{fmt(pDoc.dentists)}人、薬剤師{fmt(pDoc.pharmacists)}人。33市町村のうち<strong>{noHosp.length}町村</strong>には病院が1つもない（{noHosp.join('・')}）。人口10万人当たり医師数が最も多いのは<strong>{byDK[0].m.name}（{fmt(byDK[0].docK)}人）</strong>。</p>
+      <IwateMap title={`人口10万人当たり医師数（${LATEST_DOC_YEAR}年）`} unit="人" decimals={1} family="medical" values={rows.map(x => ({ code: x.m.code, value: x.docK ?? null }))} />
+      <Tools family="medical" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県の病院病床数と一般診療所病床数（${FIRST_MED}〜${LATEST_MED}年、床）`} unit="床" zero
         series={[
           { label: '病院病床', points: MED_YEARS.map(y => ({ x: y, y: medPrefAt(y).hosp_beds ?? 0 })) },
@@ -57,6 +62,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = medAt(m.code, LATEST_MED)!; return <li key={m.code}><Link href={`/medical/${m.slug}/`}>{m.name}の病院・医師<small>{LATEST_MED}年 病院{fmt(r.hospitals)}・病床{fmt(r.hosp_beds)}</small></Link></li>; })}</ul>
+      <Cta topic="医師数・病床数" />
       <CiteBox title={TITLE} path="/medical/" sentence={sentence} />
       <SourceBox keys={['medical']} extra={[
         '病院は病床20床以上、一般診療所は19床以下（無床を含む）。病床数は所在地の市町村に計上され、その市町村の住民が使う病床数ではない。',
