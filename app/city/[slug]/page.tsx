@@ -64,6 +64,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/medical/${m.slug}/`}>{m.name}の病院・病床・医師<small>病院数・病床数・医師数・薬剤師数 2010〜2023年</small></Link></li>
         <li><Link href={`/welfare/${m.slug}/`}>{m.name}の介護施設・国保<small>特別養護老人ホーム・有料老人ホームの定員 2010〜2023年</small></Link></li>
         <li><Link href={`/school/${m.slug}/`}>{m.name}の学校・児童生徒<small>幼稚園・小中高の学校数と児童生徒数 2010〜2023年</small></Link></li>
+        <li><Link href={`/jobless/${m.slug}/`}>{m.name}の完全失業率<small>完全失業率・労働力人口・就業者数 2010〜2020年</small></Link></li>
+        <li><Link href={`/education/${m.slug}/`}>{m.name}の最終学歴<small>大卒率・最終学歴別人口 2010年・2020年</small></Link></li>
+        <li><Link href={`/farm/${m.slug}/`}>{m.name}の農家数<small>販売農家・自給的農家・耕作放棄地 2009〜2019年</small></Link></li>
         <li><Link href={`/economy/${m.slug}/`}>{m.name}の所得・製造業・農地<small>課税対象所得・製造品出荷額・耕地面積 2010〜2023年</small></Link></li>
         <li><Link href={`/garbage/${m.slug}/`}>{m.name}のごみ・生活インフラ<small>ごみ排出量・リサイクル率・水洗化率 2010〜2023年度</small></Link></li>
         <li><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡・婚姻・離婚<small>人口動態調査 2010〜2023年・自然増減つき</small></Link></li>
