@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, joblessAt, joblessSeries, joblessPrefAt, joblessRate, elderWorkerShare, fmt, fmtSigned, pct, rank, LATEST_JOBLESS, FIRST_JOBLESS } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -34,6 +34,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/jobless/${m.slug}/`}
         keywords={[m.name, '完全失業率', '失業率', '労働力人口', '就業者数', '高齢者就業', '国勢調査', '岩手県']} temporal={`${FIRST_JOBLESS}/${LATEST_JOBLESS}`} sourceKeys={['jobless']} />
       <h1>{title}</h1>
+      <MuniStrip family="jobless" current={m.code} />
       <p className="key-fact">
         {m.name}の完全失業率は{LATEST_JOBLESS}年に<strong>{fmt(rate)}%</strong>で岩手県内<strong>{rR.get(me) ?? '—'}位</strong>（県平均{fmt(prefRate)}%）。
         完全失業者{fmt(r.jobless)}人、労働力人口{fmt(r.labor)}人で、{FIRST_JOBLESS}年の{fmt(rate0)}%から<strong>{fmtSigned(Math.round(((rate ?? 0) - (rate0 ?? 0)) * 10) / 10, 'ポイント')}</strong>。就業者{fmt(r.workers)}人のうち65歳以上は{fmt(r.workers65)}人（{fmt(e65)}%）。
@@ -45,6 +46,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">就業者数</div><div className="stat-value">{fmt(r.workers)}</div><div className="stat-sub">人・県内 {rW.get(me) ?? '—'}位</div></div>
         <div className="stat"><div className="stat-label">65歳以上の就業者</div><div className="stat-value">{fmt(r.workers65)}</div><div className="stat-sub">人・就業者の {fmt(e65)}%・県内 {rE.get(me) ?? '—'}位（県平均 {fmt(prefE65)}%）</div></div>
       </div>
+      <Tools family="jobless" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の完全失業率（${FIRST_JOBLESS}〜${LATEST_JOBLESS}年、%）`} unit="%" zero
         series={[{ label: '完全失業率', points: s.map(x => ({ x: x.year, y: joblessRate(x) ?? 0 })) }]} />
       <LineChart title={`${m.name}の労働力人口・就業者数（${FIRST_JOBLESS}〜${LATEST_JOBLESS}年、人）`} unit="人" zero
@@ -70,6 +72,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/industry/${m.slug}/`}>{m.name}の産業・事業所</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="完全失業率" />
       <CiteBox title={title} path={`/jobless/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['jobless']} extra={[
         '完全失業者＝仕事がなく、仕事を探していて、すぐ就ける状態にあった人（調査週間中）。ハローワークの求職者数とは別の概念。',
