@@ -72,3 +72,55 @@ export function rank<T>(items: T[], value: (t: T) => number | null): Map<T, numb
   sorted.forEach((it, idx) => { const v = value(it)!; if (v !== prev) { r = idx + 1; prev = v; } m.set(it, r); });
   return m;
 }
+
+/* ===== 国勢調査（2015 / 2020） ===== */
+export type CensusRec = {
+  total: number; male?: number; female?: number;
+  area_km2: number | null; density: number | null; avg_age: number | null; median_age: number | null;
+  age_0_14: number; age_15_64: number; age_65_: number;
+  pop15: number; labor: number; labor_rate: number | null; workers: number;
+  w1: number; w2: number; w3: number;
+  commute: number; school: number; day_pop: number; dn_ratio: number | null;
+  [k: string]: number | null | undefined;
+};
+export type CensusInd = { key: string; code: string; name: string };
+
+const census = (ds as any).census as Record<string, Record<string, CensusRec>>;
+export const CENSUS_YEARS: number[] = (ds as any).censusYears;
+export const CENSUS_IND: CensusInd[] = (ds as any).censusInd;
+export const LATEST_CENSUS = CENSUS_YEARS[CENSUS_YEARS.length - 1];
+export const PREV_CENSUS = CENSUS_YEARS[0];
+
+export function censusAt(code: string, year: number): CensusRec | undefined { return census[String(year)]?.[code]; }
+
+/** 国勢調査の産業大分類キー → サイト内 /industry/[slug]/ のスラッグ。A・Bは経済センサスに合わせてAB(農林漁業)へ。 */
+export const CENSUS_IND_TO_SLUG: Record<string, string> = {
+  wA: 'agriculture-fishery', wB: 'agriculture-fishery', wC: 'mining', wD: 'construction', wE: 'manufacturing',
+  wF: 'utilities', wG: 'ict', wH: 'transport', wI: 'retail', wJ: 'finance', wK: 'realestate', wL: 'professional',
+  wM: 'hospitality', wN: 'lifestyle', wO: 'education', wP: 'medical', wQ: 'compound', wR: 'services',
+};
+/** サイトの産業スラッグ → その国勢調査就業者数（該当なしは null。公務Sと分類不能Tは対応する産業ページを持たない） */
+export function censusWorkers(code: string, indSlug: string, year: number): number | null {
+  const c = censusAt(code, year); if (!c) return null;
+  const keys = Object.keys(CENSUS_IND_TO_SLUG).filter(k => CENSUS_IND_TO_SLUG[k] === indSlug);
+  if (!keys.length) return null;
+  let sum = 0, any = false;
+  for (const k of keys) { const v = c[k]; if (v != null) { sum += v as number; any = true; } }
+  return any ? sum : null;
+}
+/** 高齢化率（65歳以上人口 ÷ 年齢3区分の合計）。総数には年齢不詳が含まれ得るため分母は3区分の合計を使う。 */
+export function agingRate(c: CensusRec | undefined): number | null {
+  if (!c) return null;
+  const d = c.age_0_14 + c.age_15_64 + c.age_65_;
+  return d ? Math.round((c.age_65_ / d) * 1000) / 10 : null;
+}
+export function youthRate(c: CensusRec | undefined): number | null {
+  if (!c) return null;
+  const d = c.age_0_14 + c.age_15_64 + c.age_65_;
+  return d ? Math.round((c.age_0_14 / d) * 1000) / 10 : null;
+}
+export function workingRate(c: CensusRec | undefined): number | null {
+  if (!c) return null;
+  const d = c.age_0_14 + c.age_15_64 + c.age_65_;
+  return d ? Math.round((c.age_15_64 / d) * 1000) / 10 : null;
+}
