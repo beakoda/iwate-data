@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, censusAt, CENSUS_IND, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の就業者数・昼夜間人口比率（${LATEST_CENSUS}年国勢調査）`;
 const p = censusAt(PREF.code, LATEST_CENSUS)!;
@@ -26,7 +27,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: '就業・昼夜間人口' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/work/" keywords={['岩手県', '就業者数', '労働力率', '昼夜間人口比率', '産業別就業者', '国勢調査']} temporal={`${PREV_CENSUS}/${LATEST_CENSUS}`} sourceKeys={['census']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="work" />
       <p className="key-fact">岩手県の就業者数は<strong>{fmt(p.workers)}人</strong>（{LATEST_CENSUS}年10月1日、{PREV_CENSUS}年比{fmtSigned(pct(p.workers, p0.workers), '%')}）。第1次{fmt(Math.round(p.w1 / p.workers * 1000) / 10)}%・第2次{fmt(Math.round(p.w2 / p.workers * 1000) / 10)}%・第3次{fmt(Math.round(p.w3 / p.workers * 1000) / 10)}%。昼夜間人口比率が最も高いのは<strong>{byDn[0].m.name}（{fmt(byDn[0].dn)}）</strong>。</p>
+      <IwateMap title={`昼夜間人口比率（${LATEST_CENSUS}年）`} unit="" decimals={1} family="work" values={rows.map(x => ({ code: x.m.code, value: x.dn ?? null }))} />
+      <Tools family="work" slug="all" label="33市町村の全年データ" />
+
 
       <h2>岩手県の産業大分類別就業者数</h2>
       <BarChart title={`岩手県 産業別就業者数（${LATEST_CENSUS}年、人）`} items={inds.map(x => ({ label: x.ci.code + ' ' + x.ci.name.slice(0, 8), value: x.now }))} />
@@ -61,6 +66,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const c = censusAt(m.code, LATEST_CENSUS)!; return <li key={m.code}><Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼夜間人口<small>就業者{fmt(c.workers)}人・昼夜間{fmt(c.dn_ratio != null ? Math.round(c.dn_ratio * 10) / 10 : null)}</small></Link></li>; })}</ul>
+      <Cta topic="就業者数・昼夜間人口" />
       <CiteBox title={TITLE} path="/work/" sentence={sentence} />
       <SourceBox keys={['census']} extra={['就業者数は15歳以上の就業者。昼夜間人口比率＝昼間人口÷常住人口×100。', `${LATEST_CENSUS}年は不詳補完結果のため「分類不能の産業」が計上されない。`]} />
     </>
