@@ -60,6 +60,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/dental/${m.slug}/`}>{m.name}の歯科診療所数の推移<small>一般診療所・人口10万対 2009〜{LATEST_DENTAL}年</small></Link></li>
         <li><Link href={`/aging/${m.slug}/`}>{m.name}の高齢化率・年齢構成<small>年齢3区分・平均年齢・人口密度（国勢調査）</small></Link></li>
         <li><Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼夜間人口<small>産業別就業者・労働力率・昼夜間人口比率（国勢調査）</small></Link></li>
+        <li><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工・建築着工<small>居住専用住宅の着工棟数・床面積 2011〜2024年</small></Link></li>
       </ul>
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/city/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <CiteBox title={title} path={`/city/${m.slug}/`} sentence={sentence} />
