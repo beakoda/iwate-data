@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, farmAt, farmPrefAt, totalFarms, fmt, fmtSigned, pct, rank, FARM_YEARS, LATEST_FARM, FIRST_FARM, LAST_ABANDONED_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の農家数・耕作放棄地（${FIRST_FARM}〜${LATEST_FARM}年）`;
 const pNow = farmPrefAt(LATEST_FARM);
@@ -29,6 +30,7 @@ export default function Page() {
       <Breadcrumb items={[{ name: '農家数・耕作放棄地' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/farm/" keywords={['岩手県', '農家数', '販売農家', '自給的農家', '専業農家', '兼業農家', '耕作放棄地', '農林業センサス', '市町村別']} temporal={`${FIRST_FARM}/${LATEST_FARM}`} sourceKeys={['farm']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="farm" />
       <p className="key-fact">岩手県の販売農家は{LATEST_FARM}年に<strong>{fmt(pNow.sales_farms)}戸</strong>で、{FIRST_FARM}年の{fmt(pFirst.sales_farms)}戸から<strong>{fmtSigned(pct(pNow.sales_farms, pFirst.sales_farms), '%')}</strong>。自給的農家{fmt(pNow.self_farms)}戸を合わせた総農家数は{fmt(totalFarms(pNow))}戸。販売農家が最も多いのは<strong>{byS[0].m.name}（{fmt(byS[0].r.sales_farms)}戸）</strong>、次いで{byS[1].m.name}（{fmt(byS[1].r.sales_farms)}戸）。耕作放棄地面積は{LAST_ABANDONED_YEAR}年に<strong>{fmt(pAb.abandoned)}ha</strong>で、最も広いのは{byA[0].m.name}（{fmt(byA[0].ra.abandoned)}ha）。</p>
       <div className="stats">
         <div className="stat"><div className="stat-label">販売農家（{LATEST_FARM}年）</div><div className="stat-value">{fmt(pNow.sales_farms)}</div><div className="stat-sub">戸・{FIRST_FARM}年比 {fmtSigned(pct(pNow.sales_farms, pFirst.sales_farms), '%')}</div></div>
@@ -36,6 +38,9 @@ export default function Page() {
         <div className="stat"><div className="stat-label">総農家数</div><div className="stat-value">{fmt(totalFarms(pNow))}</div><div className="stat-sub">戸・販売＋自給的</div></div>
         <div className="stat"><div className="stat-label">耕作放棄地（{LAST_ABANDONED_YEAR}年）</div><div className="stat-value">{fmt(pAb.abandoned)}</div><div className="stat-sub">ha・{FIRST_FARM}年 {fmt(pFirst.abandoned)}ha</div></div>
       </div>
+      <IwateMap title={`販売農家数（${LATEST_FARM}年）`} unit="戸" decimals={0} family="farm" values={rows.map(x => ({ code: x.m.code, value: x.r.sales_farms ?? null }))} />
+      <Tools family="farm" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県の農家数（${FIRST_FARM}〜${LATEST_FARM}年、戸）`} unit="戸" zero
         series={[
           { label: '販売農家', points: FARM_YEARS.map(y => ({ x: y, y: farmPrefAt(y).sales_farms ?? 0 })) },
@@ -60,6 +65,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = farmAt(m.code, LATEST_FARM)!; return <li key={m.code}><Link href={`/farm/${m.slug}/`}>{m.name}の農家数<small>{LATEST_FARM}年 販売農家{fmt(r.sales_farms)}戸・総農家{fmt(totalFarms(r))}戸</small></Link></li>; })}</ul>
+      <Cta topic="農家数" />
       <CiteBox title={TITLE} path="/farm/" sentence={sentence} />
       <SourceBox keys={['farm']} extra={[
         '販売農家＝経営耕地30a以上、または農産物販売金額50万円以上の農家。自給的農家はそれ未満。総農家数＝販売農家＋自給的農家（本サイトの計算値）。',
