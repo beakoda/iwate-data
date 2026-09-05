@@ -56,6 +56,9 @@ SOURCES = {
  'econ2021': {'name':'総務省・経済産業省「令和3年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第4-1表（産業大分類、単独・本所・支所別民営事業所数、従業者数及び売上（収入）金額－市区町村）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20210', 'note':'2021年6月1日現在。売上（収入）金額は外国の会社及び法人でない団体を除く。「X」は秘匿、「-」は該当なし、「...」は非公表。'},
  'econ2016': {'name':'総務省・経済産業省「平成28年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第8表（産業別民営事業所数・従業者数－都道府県、市区町村）岩手県', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20160', 'note':'2016年6月1日現在。'},
     'building': {'name':'国土交通省「建築着工統計調査」建築物着工統計 市区町村別、用途別（大分類）／建築物の数、床面積、工事費予定額（年次）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0004019181', 'note':'各年1〜12月の着工。2011〜2019年は統計表0003114492（工事費予定額あり）、2020〜2024年は0004019181（工事費予定額なし）。e-Stat APIで取得。「＊」は秘匿。'},
+    'env': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｈ　居住）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020108', 'note':'ごみ関係は環境省「一般廃棄物処理事業実態調査」（各年度）。水洗化率・非水洗化人口は環境省「一般廃棄物処理事業実態調査」のし尿処理関係。e-Stat APIで取得。'},
+    'economy': {'name':'総務省統計局「社会・人口統計体系」市区町村データ（Ｃ　経済基盤）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020103', 'note':'課税対象所得・納税義務者数は総務省「市町村税課税状況等の調」（各年度）。耕地面積は農林水産省「耕地及び作付面積統計」（各年7月15日現在）。製造品出荷額等・製造業事業所数・従業者数は経済産業省「工業統計調査」および「経済センサス‐活動調査」（従業者4人以上の事業所）。e-Stat APIで取得。'},
+    'school': {'name':'総務省統計局「社会・人口統計体系」市区町村データ（Ｅ　教育）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020105', 'note':'文部科学省「学校基本調査」（各年5月1日現在）。学校の所在地でカウントしており、その市町村に住む子どもの数ではない。e-Stat APIで取得。'},
     'welfare': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｊ　福祉・社会保障）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020110', 'note':'介護老人福祉施設（特別養護老人ホーム）・有料老人ホームの施設数と定員は厚生労働省「社会福祉施設等調査」（各年10月1日現在）。2017年までは詳細票、2018年以降は基本票の値（市区町村別はこの切替でしか連続しない。両票は定員でわずかに差が出る）。国民健康保険被保険者数は厚生労働省「国民健康保険事業年報」（各年度末）。e-Stat APIで取得。'},
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
@@ -106,6 +109,50 @@ MED_KEYS = ('hospitals', 'gen_hospitals', 'clinics', 'dental_clinics', 'hosp_bed
 
 WEL_YEARS = list(range(2010, 2024))
 WEL_KEYS = ('tokuyo', 'tokuyo_cap', 'yuryo', 'yuryo_cap', 'kokuho')
+
+
+ENV_YEARS = list(range(2010, 2024))
+ENV_KEYS = ('gomi_collect_pop', 'gomi_total', 'gomi_per_day', 'recycle_rate', 'landfill', 'flush_rate', 'nonflush_pop')
+ENV_SUM = ('gomi_collect_pop', 'gomi_total', 'landfill', 'nonflush_pop')
+ECON_YEARS = list(range(2010, 2024))
+ECON_KEYS = ('taxable_income', 'taxpayers', 'farmland', 'mfg_shipment', 'mfg_estab', 'mfg_workers')
+SCHOOL_YEARS = list(range(2010, 2024))
+SCHOOL_KEYS = ('kg', 'kg_pupils', 'es', 'es_teachers', 'es_pupils', 'jhs', 'jhs_teachers', 'jhs_students', 'hs', 'hs_students')
+
+
+def _load_simple(fname, keys, floats=()):
+    out = {}
+    for r in load_csvs(fname):
+        code = LEGACY.get(r['code'], r['code'])
+        d = out.setdefault(code, {}).setdefault(r['year'], {k: None for k in keys})
+        d.setdefault('merged', [])
+        for k in keys:
+            v = (r[k] or '').strip()
+            if v == '':
+                continue
+            val = float(v) if k in floats else num(v)
+            if val is None:
+                continue
+            if k in floats:
+                # 率・原単位は合算できない。合併時は面積・人口の按分ができないので先勝ちにせず None にする
+                d[k] = val if d[k] is None else None
+            else:
+                d[k] = (d[k] or 0) + val
+        if code != r['code'] and r['code'] not in d['merged']:
+            d['merged'].append(r['code'])
+    return out
+
+
+def load_env():
+    return _load_simple('env_2010_2023.csv', ENV_KEYS, floats=('gomi_per_day', 'recycle_rate', 'flush_rate'))
+
+
+def load_economy():
+    return _load_simple('economy_2010_2023.csv', ECON_KEYS)
+
+
+def load_school():
+    return _load_simple('school_2010_2023.csv', SCHOOL_KEYS)
 
 
 def load_welfare():
@@ -231,6 +278,12 @@ def build():
         'dental': dental, 'population': pop, 'econ': econ,
         'census': load_census(),
         'building': load_building(),
+        'env': load_env(),
+        'economy': load_economy(),
+        'school': load_school(),
+        'envYears': ENV_YEARS,
+        'econYears': ECON_YEARS,
+        'schoolYears': SCHOOL_YEARS,
         'welfare': load_welfare(),
         'welYears': WEL_YEARS,
         'medical': load_medical(),
@@ -266,6 +319,51 @@ def build():
     for y in BUILD_YEARS:
         s2 = sum(bld[m['code']].get(str(y), {}).get('bldg_house', 0) for m in munis)
         assert s2 == PREF_HOUSE[y], ('building', y, s2, PREF_HOUSE[y])
+
+    # ごみ・生活インフラ: 合算できる4指標が県公表値と一致するか
+    env = ds['env']
+    PREF_ENV = {2010:[1342291,446281,47400,467852],2011:[1325147,449111,52498,450810],2012:[1321598,455076,52678,428584],
+                2013:[1312383,452666,50415,395956],2014:[1302923,449548,49913,381636],2015:[1291352,440812,44939,362090],
+                2016:[1279875,430106,40609,351940],2017:[1266552,426270,40788,332822],2018:[1252038,424967,41305,310188],
+                2019:[1238207,420164,41265,290113],2020:[1223946,405527,37829,276071],2021:[1209697,401035,37405,252040],
+                2022:[1193904,392513,36656,240778],2023:[1176017,376721,34761,230323]}
+    for y in ENV_YEARS:
+        for i, k in enumerate(ENV_SUM):
+            got = sum(env[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            assert got == PREF_ENV[y][i], ('env', y, k, got, PREF_ENV[y][i])
+    # 経済: 課税対象所得・納税義務者数・製造業は完全一致。耕地面積（有効3桁丸め）と製造品出荷額（百万円丸め）は許容差
+    eco = ds['economy']
+    PREF_ECON = {2010:[1303693847,504658,153900,2099077,2353,87736],2011:[1283491264,498385,152700,1911917,2211,81154],
+                 2012:[1272447206,489891,152600,2229565,2206,81870],2013:[1330773557,510640,152000,2267151,2148,82077],
+                 2014:[1371497119,517405,151500,2270696,2130,82600],2015:[1382209949,520120,151100,2366978,None,None],
+                 2016:[1429066296,532005,150800,2371678,2281,84546],2017:[1460469707,537647,150500,2525650,2081,85282],
+                 2018:[1483560635,542075,150100,2727177,2087,86662],2019:[1499962437,544397,149800,2626206,2087,87940],
+                 2020:[1509772572,545043,149500,2494299,2055,87639],2021:[1549185430,543952,149300,2713266,1866,84349],
+                 2022:[1554903863,539402,148700,3112393,2114,85720],2023:[1570936991,540073,147100,3124685,2126,86593]}
+    for y in ECON_YEARS:
+        for i, k in enumerate(ECON_KEYS):
+            exp = PREF_ECON[y][i]
+            if exp is None: continue
+            got = sum(eco[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            if k == 'farmland':
+                assert abs(got - exp) / exp < 0.002, ('econ farmland', y, got, exp)   # 有効3桁丸め
+            elif k == 'mfg_shipment':
+                assert abs(got - exp) <= 5, ('econ mfg_shipment', y, got, exp)        # 百万円単位の丸め
+            else:
+                assert got == exp, ('econ', y, k, got, exp)
+    # 学校: 全指標が県公表値と一致するか
+    sch = ds['school']
+    PREF_SCHOOL = {2010:[147,12616,394,5399,71949,193,3276,38010,82,39350],2011:[145,12066,378,5358,70055,189,3326,37709,82,38374],
+                   2012:[142,12287,372,5303,68004,189,3346,37079,81,37533],2013:[142,11962,362,5221,66328,178,3290,36764,81,36252],
+                   2014:[141,11709,347,5093,64512,172,3235,36137,81,35879],2015:[113,8687,342,5082,63101,171,3187,35404,81,35313],
+                   2016:[106,7810,334,4979,61184,167,3111,34239,80,35110],2017:[102,7387,326,4911,60141,165,3051,33023,80,34446],
+                   2018:[97,6902,316,4858,59253,164,3010,31732,80,33689],2019:[92,6351,312,4821,57949,162,2956,30973,80,32580],
+                   2020:[85,5498,304,4759,56822,155,2868,30388,79,31229],2021:[74,4462,298,4699,55597,154,2833,30269,79,29980],
+                   2022:[70,3902,289,4586,54373,151,2798,29625,79,29237],2023:[64,3294,271,4441,52972,149,2799,29109,79,28501]}
+    for y in SCHOOL_YEARS:
+        for i, k in enumerate(SCHOOL_KEYS):
+            got = sum(sch[m['code']].get(str(y), {}).get(k) or 0 for m in munis)
+            assert got == PREF_SCHOOL[y][i], ('school', y, k, got, PREF_SCHOOL[y][i])
 
     # 福祉: 市町村合計が県公表値と一致するか（2017年までは詳細票、2018年以降は基本票）
     wel = ds['welfare']
