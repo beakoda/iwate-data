@@ -45,7 +45,9 @@ CENSUS_IND = [('wA','A','農業，林業'),('wB','B','漁業'),('wC','C','鉱業
  ('wO','O','教育，学習支援業'),('wP','P','医療，福祉'),('wQ','Q','複合サービス事業'),
  ('wR','R','サービス業（他に分類されないもの）'),('wS','S','公務（他に分類されるものを除く）'),
  ('wT','T','分類不能の産業')]
-CENSUS_YEARS = [2015, 2020]
+CENSUS_YEARS = [2010, 2015, 2020]
+# 2010年は第1面のみ（合算できる項目に限定）。2005年以前は平成の大合併前で対応表が必要なため未取込。
+CENSUS_FULL_YEARS = [2015, 2020]
 
 SOURCES = {
  'dental': {'name':'厚生労働省「医療施設調査」二次医療圏・市区町村編 第２表（一般診療所数；歯科診療所数；病床数，病床の有無・二次医療圏・市区町村別）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00450021&tstat=000001030908', 'note':'各年10月1日現在。2009〜2024年。e-Stat 掲載CSVより集計。'},
@@ -72,12 +74,22 @@ def load_census():
     out = {}
     for y in CENSUS_YEARS:
         rec = {}
-        for part in ('p1', 'p2'):
+        parts = ('p1', 'p2') if y in CENSUS_FULL_YEARS else ('p1',)
+        for part in parts:
             for r in load_csvs(f'census_{y}_{part}.csv'):
-                d = rec.setdefault(r['code'], {})
+                code = r['code'] if r['code'] == PREF else LEGACY.get(r['code'], r['code'])
+                d = rec.setdefault(code, {})
+                merged = code != r['code']
                 for k, v in r.items():
-                    if k == 'code': continue
-                    d[k] = num(v) if k not in ('area_km2','density','avg_age','median_age','labor_rate','dn_ratio') else (float(v) if v.strip() not in ('','-','...','X') else None)
+                    if k in ('code', 'name'): continue
+                    fl = k in ('area_km2', 'density', 'avg_age', 'median_age', 'labor_rate', 'dn_ratio')
+                    val = (float(v) if v.strip() not in ('', '-', '...', 'X') else None) if fl else num(v)
+                    if code in rec and k in d and d[k] is not None and val is not None and k in ('total','male','female','age_0_14','age_15_64','age_65_','area_km2'):
+                        d[k] = d[k] + val   # 合併前自治体を合算（2010年の藤沢町→一関市など）
+                    elif k not in d or d[k] is None:
+                        d[k] = val
+                if merged:
+                    rec[code].setdefault('_merged', []).append(r.get('name', r['code']))
         out[str(y)] = rec
     return out
 
@@ -121,6 +133,7 @@ def build():
         'dental': dental, 'population': pop, 'econ': econ,
         'census': load_census(),
         'censusYears': CENSUS_YEARS,
+        'censusFullYears': CENSUS_FULL_YEARS,
         'censusInd': [{'key':k,'code':c,'name':n} for k,c,n in CENSUS_IND],
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -129,13 +142,15 @@ def build():
     # sanity
     cen = ds['census']
     for y in CENSUS_YEARS:
-        for k in ('total','age_0_14','age_15_64','age_65_','pop15','labor','workers','w1','w2','w3','day_pop'):
+        keys = ('total','age_0_14','age_15_64','age_65_','pop15','labor','workers','w1','w2','w3','day_pop') if y in CENSUS_FULL_YEARS else ('total','age_0_14','age_15_64','age_65_')
+        for k in keys:
             s2 = sum(cen[str(y)][m['code']][k] or 0 for m in munis)
             assert s2 == cen[str(y)][PREF][k], (y, k, s2, cen[str(y)][PREF][k])
-        for m in munis:
-            r = cen[str(y)][m['code']]
-            tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
-            assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+        if y in CENSUS_FULL_YEARS:
+            for m in munis:
+                r = cen[str(y)][m['code']]
+                tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
+                assert tot == r['workers'], (y, m['code'], tot, r['workers'])
     for y in range(2009, 2025):
         s = sum(dental[m['code']][y]['dent'] for m in munis)
         assert s == dental[PREF][y]['dent'], (y, s, dental[PREF][y]['dent'])
