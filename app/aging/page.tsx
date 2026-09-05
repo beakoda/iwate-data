@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, censusAt, agingRate, youthRate, workingRate, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS, FIRST_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の高齢化率ランキング（${LATEST_CENSUS}年国勢調査）`;
 const p = censusAt(PREF.code, LATEST_CENSUS)!;
@@ -29,7 +30,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: '高齢化率・年齢構成' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/aging/" keywords={['岩手県', '高齢化率', '年齢構成', '市町村別', 'ランキング', '国勢調査']} temporal={`${FIRST_CENSUS}/${LATEST_CENSUS}`} sourceKeys={['census']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="aging" />
       <p className="key-fact">岩手県の高齢化率は<strong>{fmt(prefAging)}%</strong>（{LATEST_CENSUS}年10月1日）。{PREV_CENSUS}年の{fmt(prefPrev)}%から{fmtSigned(Math.round(((prefAging ?? 0) - (prefPrev ?? 0)) * 10) / 10)}ポイント。県内で最も高いのは<strong>{top.m.name}の{fmt(top.aging)}%</strong>、最も低いのは<strong>{low.m.name}の{fmt(low.aging)}%</strong>で、その差は{fmt(Math.round(((top.aging ?? 0) - (low.aging ?? 0)) * 10) / 10)}ポイント。</p>
+      <IwateMap title={`高齢化率（${LATEST_CENSUS}年、%）`} unit="%" decimals={1} family="aging" values={rows.map(x => ({ code: x.m.code, value: x.aging ?? null }))} />
+      <Tools family="aging" slug="all" label="33市町村の全年データ" />
+
       <BarChart title={`市町村別 高齢化率（${LATEST_CENSUS}年、％）`} items={by.map(x => ({ label: x.m.name, value: x.aging }))} unit="%" />
       <div className="table-wrap">
         <table>
@@ -48,6 +53,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const c = censusAt(m.code, LATEST_CENSUS)!; return <li key={m.code}><Link href={`/aging/${m.slug}/`}>{m.name}の高齢化率<small>{fmt(agingRate(c))}%・平均年齢{fmt(c.avg_age != null ? Math.round(c.avg_age * 10) / 10 : null)}歳</small></Link></li>; })}</ul>
+      <Cta topic="高齢化率" />
       <CiteBox title={TITLE} path="/aging/" sentence={sentence} />
       <SourceBox keys={['census']} extra={['高齢化率・年少人口割合・生産年齢人口割合は年齢3区分の合計を分母として算出。総人口には年齢「不詳」が含まれる。', `${FIRST_CENSUS}年は合併前の旧自治体を現行の市町村に合算（藤沢町→一関市、滝沢村→滝沢市）。`]} />
     </>
