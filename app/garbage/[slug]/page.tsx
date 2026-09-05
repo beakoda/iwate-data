@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, envAt, envSeries, envPrefAt, envPrefPerDay, fmt, fmtSigned, pct, rank, ENV_YEARS, LATEST_ENV, FIRST_ENV } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -32,6 +32,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/garbage/${m.slug}/`}
         keywords={[m.name, 'ごみ排出量', 'リサイクル率', '最終処分量', '水洗化率', '一般廃棄物', '岩手県']} temporal={`${FIRST_ENV}/${LATEST_ENV}`} sourceKeys={['env']} />
       <h1>{title}</h1>
+      <MuniStrip family="garbage" current={m.code} />
       <p className="key-fact">
         {m.name}のごみ総排出量は{LATEST_ENV}年度に<strong>{fmt(r.gomi_total)}t</strong>（{FIRST_ENV}年度比{fmtSigned(pct(r.gomi_total, r0.gomi_total), '%')}）。
         1人1日当たり<strong>{fmt(r.gomi_per_day)}g</strong>で岩手県内<strong>{rP.get(me) ?? '—'}位</strong>（県平均{fmt(prefPerDay)}g）、リサイクル率は<strong>{fmt(r.recycle_rate)}%</strong>で県内{rR.get(me) ?? '—'}位。
@@ -44,6 +45,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">計画収集人口</div><div className="stat-value">{fmt(r.gomi_collect_pop)}</div><div className="stat-sub">人</div></div>
         <div className="stat"><div className="stat-label">水洗化率</div><div className="stat-value">{fmt(r.flush_rate)}</div><div className="stat-sub">%・県内 {rF.get(me) ?? '—'}位・非水洗化人口 {fmt(r.nonflush_pop)}人</div></div>
       </div>
+      <Tools family="garbage" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}のごみ総排出量（${FIRST_ENV}〜${LATEST_ENV}年度、t）`} unit="t" zero
         series={[
           { label: 'ごみ総排出量', points: s.map(x => ({ x: x.year, y: x.gomi_total ?? 0 })) },
@@ -72,6 +74,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="ごみ排出量" />
       <CiteBox title={title} path={`/garbage/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['env']} extra={[
         '「ごみ総排出量」は計画収集量＋直接搬入量＋自家処理量＋集団回収量。年度の値。',
