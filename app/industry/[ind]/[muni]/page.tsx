@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { INDUSTRIES, MUNIS, PREF, industryBySlug, muniBySlug, econAt, popAt, fmt, fmtSigned, pct, rank } from '@/lib/data';
+import { INDUSTRIES, MUNIS, PREF, industryBySlug, muniBySlug, econAt, popAt, fmt, fmtSigned, pct, rank, censusWorkers, LATEST_CENSUS, PREV_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
 import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
 
@@ -74,7 +74,7 @@ export default async function Page({ params }: { params: Promise<{ ind: string; 
     <>
       <Breadcrumb items={[{ name: '産業・事業所', href: '/industry/' }, { name: i.name, href: `/industry/${i.slug}/` }, { name: m.name }]} />
       <DatasetJsonLd name={title} description={sentence} path={`/industry/${i.slug}/${m.slug}/`}
-        keywords={[m.name, i.name, '事業所数', '従業者数', '経済センサス', '岩手県']} temporal="2016/2021" sourceKeys={['econ2021', 'econ2016']} />
+        keywords={[m.name, i.name, '事業所数', '従業者数', '経済センサス', '岩手県']} temporal="2016/2021" sourceKeys={['econ2021', 'econ2016', 'census']} />
       <h1>{title}</h1>
       <p className="key-fact">
         {m.name}の{i.name}は<strong>{fmt(e21.estab)}事業所</strong>・従業者<strong>{fmt(e21.workers)}人</strong>（2021年6月1日）。
@@ -87,6 +87,7 @@ export default async function Page({ params }: { params: Promise<{ ind: string; 
         <div className="stat"><div className="stat-label">人口千人当たり事業所</div><div className="stat-value">{fmt(d.perK)}</div><div className="stat-sub">県内{rK.get(meK) ?? '—'}位・人口は2021年1月1日住基</div></div>
         <div className="stat"><div className="stat-label">特化係数</div><div className="stat-value">{d.lq == null ? '—' : d.lq.toFixed(2)}</div><div className="stat-sub">1.00＝県平均と同じ構成比</div></div>
         <div className="stat"><div className="stat-label">売上（収入）金額</div><div className="stat-value" style={{ fontSize: '1.4rem' }}>{salesTxt}</div><div className="stat-sub">外国の会社・法人でない団体を除く</div></div>
+        <div className="stat"><div className="stat-label">就業者数（{LATEST_CENSUS}年国勢調査）</div><div className="stat-value">{fmt(censusWorkers(m.code, i.slug, LATEST_CENSUS))}</div><div className="stat-sub">{PREV_CENSUS}年 {fmt(censusWorkers(m.code, i.slug, PREV_CENSUS))}人・この産業で働く{m.name}居住者</div></div>
         <div className="stat"><div className="stat-label">町内の産業順位</div><div className="stat-value">{myRankInMuni || '—'}位</div><div className="stat-sub">{m.name}の産業大分類17区分中（事業所数）</div></div>
       </div>
 
@@ -127,7 +128,8 @@ export default async function Page({ params }: { params: Promise<{ ind: string; 
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口動態</Link>・<Link href={`/industry/${i.slug}/`}>岩手県の{i.name}ランキング</Link></p>
 
       <CiteBox title={title} path={`/industry/${i.slug}/${m.slug}/`} sentence={sentence} />
-      <SourceBox keys={['econ2021', 'econ2016']} extra={[
+      <SourceBox keys={['econ2021', 'econ2016', 'census']} extra={[
+        '「従業者数」（経済センサス）はその市町村に所在する事業所で働く人の数、「就業者数」（国勢調査）はその市町村に住んでいてその産業で働く人の数。集計の立場が違うため一致しない。',
         '特化係数＝当該市町村の当該産業の事業所構成比 ÷ 岩手県の同産業の事業所構成比。1.00で県平均と同じ、1を超えるほどその産業に偏っている。',
         '人口千人当たりは2021年1月1日の住民基本台帳人口で算出。',
         '「秘匿」は事業所数が少なく個別の値が特定されるため公表されていない項目、「非公表」は当該表で集計されていない項目。',
