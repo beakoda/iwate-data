@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, envAt, envPrefAt, envPrefPerDay, fmt, fmtSigned, pct, rank, ENV_YEARS, LATEST_ENV, FIRST_ENV } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村のごみ排出量・リサイクル率（${FIRST_ENV}〜${LATEST_ENV}年度）`;
 const pNow = envPrefAt(LATEST_ENV);
@@ -29,7 +30,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: 'ごみ・生活インフラ' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/garbage/" keywords={['岩手県', 'ごみ排出量', 'リサイクル率', '最終処分量', '1人1日当たりごみ', '水洗化率', '市町村別']} temporal={`${FIRST_ENV}/${LATEST_ENV}`} sourceKeys={['env']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="garbage" />
       <p className="key-fact">岩手県33市町村のごみ総排出量は{LATEST_ENV}年度に<strong>{fmt(pNow.gomi_total)}t</strong>（{FIRST_ENV}年度比{fmtSigned(pct(pNow.gomi_total, pFirst.gomi_total), '%')}）。1人1日当たりは<strong>{fmt(perDay)}g</strong>（{FIRST_ENV}年度{fmt(perDay0)}g）、最終処分量は{fmt(pNow.landfill)}t。1人1日当たりが最も多いのは<strong>{byP[0].m.name}（{fmt(byP[0].r.gomi_per_day)}g）</strong>、最も少ないのは<strong>{byP[byP.length - 1].m.name}（{fmt(byP[byP.length - 1].r.gomi_per_day)}g）</strong>。リサイクル率が最も高いのは<strong>{byR[0].m.name}（{fmt(byR[0].r.recycle_rate)}%）</strong>。</p>
+      <IwateMap title={`1人1日当たりごみ排出量（${LATEST_ENV}年度、g）`} unit="g" decimals={0} family="garbage" values={rows.map(x => ({ code: x.m.code, value: x.r.gomi_per_day ?? null }))} />
+      <Tools family="garbage" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県33市町村のごみ総排出量と最終処分量（${FIRST_ENV}〜${LATEST_ENV}年度、t）`} unit="t" zero
         series={[
           { label: 'ごみ総排出量', points: ENV_YEARS.map(y => ({ x: y, y: envPrefAt(y).gomi_total ?? 0 })) },
@@ -54,6 +59,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = envAt(m.code, LATEST_ENV)!; return <li key={m.code}><Link href={`/garbage/${m.slug}/`}>{m.name}のごみ<small>{LATEST_ENV}年度 {fmt(r.gomi_total)}t・1人1日{fmt(r.gomi_per_day)}g</small></Link></li>; })}</ul>
+      <Cta topic="ごみ排出量" />
       <CiteBox title={TITLE} path="/garbage/" sentence={sentence} />
       <SourceBox keys={['env']} extra={[
         '「ごみ総排出量」は計画収集量＋直接搬入量＋自家処理量＋集団回収量。年度の値。',
