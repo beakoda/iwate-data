@@ -128,3 +128,32 @@ export function workingRate(c: CensusRec | undefined): number | null {
   const d = c.age_0_14 + c.age_15_64 + c.age_65_;
   return d ? Math.round((c.age_15_64 / d) * 1000) / 10 : null;
 }
+
+/* ===== 建築着工統計（2011〜2024） ===== */
+export type BuildRec = {
+  bldg_all: number; floor_all: number; bldg_house: number; floor_house: number;
+  bldg_mixed: number; floor_mixed: number; cost_all: number | null; cost_house: number | null;
+  merged: string[];
+};
+const building = (ds as any).building as Record<string, Record<string, BuildRec>>;
+export const BUILD_YEARS: number[] = (ds as any).buildYears;
+export const LATEST_BUILD = BUILD_YEARS[BUILD_YEARS.length - 1];
+export const FIRST_BUILD = BUILD_YEARS[0];
+/** 工事費予定額が公表されている最後の年（2020年以降の市区町村表には工事費がない） */
+export const LAST_COST_YEAR = 2019;
+
+export function buildAt(code: string, year: number): BuildRec | undefined { return building[code]?.[String(year)]; }
+export function buildSeries(code: string) {
+  return BUILD_YEARS.map(y => ({ year: y, ...(building[code]?.[String(y)] as BuildRec) })).filter(r => r.bldg_all != null);
+}
+/** 33市町村の合計（県の公表値と一致することを build_data.py で検算済み） */
+export function buildPrefAt(year: number): BuildRec {
+  const acc: any = { bldg_all: 0, floor_all: 0, bldg_house: 0, floor_house: 0, bldg_mixed: 0, floor_mixed: 0, cost_all: 0, cost_house: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = buildAt(m.code, year); if (!r) continue;
+    for (const k of ['bldg_all', 'floor_all', 'bldg_house', 'floor_house', 'bldg_mixed', 'floor_mixed'] as const) acc[k] += r[k];
+    if (r.cost_all != null) acc.cost_all += r.cost_all;
+    if (r.cost_house != null) acc.cost_house += r.cost_house;
+  }
+  return acc as BuildRec;
+}
