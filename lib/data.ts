@@ -157,3 +157,73 @@ export function buildPrefAt(year: number): BuildRec {
   }
   return acc as BuildRec;
 }
+
+/* ===== 人口動態（出生・死亡・婚姻・離婚・転入・転出／2010〜2023） ===== */
+export type VitalRec = {
+  births: number | null; deaths: number | null; marriages: number | null; divorces: number | null;
+  in_migr: number | null; out_migr: number | null; merged: string[];
+};
+const vital = (ds as any).vital as Record<string, Record<string, VitalRec>>;
+export const VITAL_YEARS: number[] = (ds as any).vitalYears;
+export const LATEST_VITAL = VITAL_YEARS[VITAL_YEARS.length - 1];
+export const FIRST_VITAL = VITAL_YEARS[0];
+/** 転入者数・転出者数が市区町村別に収録されている最初の年 */
+export const FIRST_MIGR_YEAR = 2018;
+
+export function vitalAt(code: string, year: number): VitalRec | undefined { return vital[code]?.[String(year)]; }
+export function vitalSeries(code: string) {
+  return VITAL_YEARS.map(y => ({ year: y, ...(vital[code]?.[String(y)] as VitalRec) })).filter(r => r.births != null || r.deaths != null);
+}
+/** 自然増減（出生数 − 死亡数）。どちらか欠けていれば null */
+export function naturalChange(v: VitalRec | undefined): number | null {
+  if (!v || v.births == null || v.deaths == null) return null;
+  return v.births - v.deaths;
+}
+/** 社会増減（転入者数 − 転出者数）。2018年以降のみ */
+export function socialChange(v: VitalRec | undefined): number | null {
+  if (!v || v.in_migr == null || v.out_migr == null) return null;
+  return v.in_migr - v.out_migr;
+}
+/** 33市町村の合計（県公表値と一致することを build_data.py で検算済み） */
+export function vitalPrefAt(year: number): VitalRec {
+  const acc: any = { births: 0, deaths: 0, marriages: 0, divorces: 0, in_migr: 0, out_migr: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = vitalAt(m.code, year); if (!r) continue;
+    for (const k of ['births', 'deaths', 'marriages', 'divorces', 'in_migr', 'out_migr'] as const) {
+      if (r[k] != null) acc[k] += r[k] as number;
+    }
+  }
+  return acc as VitalRec;
+}
+
+/* ===== 世帯・高齢世帯（国勢調査 2010／2015／2020） ===== */
+export type HouseRec = {
+  pop75: number | null; foreign: number | null; did_pop: number | null;
+  households: number | null; general_hh: number | null; nuclear_hh: number | null;
+  single_hh: number | null; eld_couple_hh: number | null; eld_single_hh: number | null;
+  merged: string[];
+};
+const household = (ds as any).household as Record<string, Record<string, HouseRec>>;
+export const HOUSE_YEARS: number[] = (ds as any).houseYears;
+export const LATEST_HOUSE = HOUSE_YEARS[HOUSE_YEARS.length - 1];
+export const PREV_HOUSE = HOUSE_YEARS[HOUSE_YEARS.length - 2];
+export const FIRST_HOUSE = HOUSE_YEARS[0];
+/** 75歳以上人口が収録されている最初の年（2010年は未収録） */
+export const FIRST_POP75_YEAR = 2015;
+
+export function houseAt(code: string, year: number): HouseRec | undefined { return household[code]?.[String(year)]; }
+export function housePrefAt(year: number): HouseRec {
+  const acc: any = { pop75: 0, foreign: 0, did_pop: 0, households: 0, general_hh: 0, nuclear_hh: 0, single_hh: 0, eld_couple_hh: 0, eld_single_hh: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = houseAt(m.code, year); if (!r) continue;
+    for (const k of ['pop75', 'foreign', 'did_pop', 'households', 'general_hh', 'nuclear_hh', 'single_hh', 'eld_couple_hh', 'eld_single_hh'] as const) {
+      if (r[k] != null) acc[k] += r[k] as number;
+    }
+  }
+  return acc as HouseRec;
+}
+/** 一般世帯に占める割合（%）。分母は一般世帯数 */
+export function hhShare(v: number | null | undefined, general: number | null | undefined): number | null {
+  if (v == null || !general) return null;
+  return Math.round((v / general) * 1000) / 10;
+}
