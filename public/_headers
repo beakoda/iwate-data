@@ -17,3 +17,13 @@
 # 注: X-Frame-Options / frame-ancestors は設定しない。
 # 将来「埋め込みウィジェット（iframe + Powered by リンク）」で外部サイトに
 # 貼らせる計画（HANDOFF.md §6-C）があり、フレーム禁止はそれを潰すため。
+
+# CSVダウンロード（route handler の出力は拡張子で判定される）
+/csv/*
+  Content-Type: text/csv; charset=utf-8
+  Cache-Control: public, max-age=86400
+
+# 埋め込みウィジェットは検索に出さない（iframe専用）
+/embed/*
+  X-Robots-Tag: noindex
+  Content-Type: text/html; charset=utf-8
