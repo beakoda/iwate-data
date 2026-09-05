@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, muniBySlug, censusAt, agingRate, youthRate, workingRate, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS, FIRST_CENSUS, CENSUS_YEARS } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -43,6 +43,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/aging/${m.slug}/`}
         keywords={[m.name, '高齢化率', '年齢構成', '人口ピラミッド', '国勢調査', '岩手県']} temporal={`${FIRST_CENSUS}/${LATEST_CENSUS}`} sourceKeys={['census']} />
       <h1>{title}</h1>
+      <MuniStrip family="aging" current={m.code} />
       <p className="key-fact">
         {m.name}の高齢化率は<strong>{fmt(me.aging)}%</strong>（{LATEST_CENSUS}年10月1日）。岩手県平均{fmt(prefAging)}%、県内33市町村中<strong>{rA.get(me) ?? '—'}位</strong>。
         {PREV_CENSUS}年の{fmt(me.prevAging)}%から<strong>{fmtSigned(diff)}ポイント</strong>。
@@ -55,6 +56,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">人口密度</div><div className="stat-value">{fmt(c.density)}</div><div className="stat-sub">人/km²・面積 {fmt(c.area_km2)}km²・県内{rD.get(me) ?? '—'}位</div></div>
         <div className="stat"><div className="stat-label">国勢調査人口</div><div className="stat-value">{fmt(c.total)}</div><div className="stat-sub">{PREV_CENSUS}年比 {fmtSigned(pct(c.total, c0.total), '%')}</div></div>
       </div>
+      <Tools family="aging" slug={m.slug} label={`${m.name}の全年データ`} />
 
       <h2>年齢3区分別人口（{FIRST_CENSUS}年 → {LATEST_CENSUS}年）</h2>
       <div className="table-wrap">
@@ -98,6 +100,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       </div>
 
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯の推移（住民基本台帳）</Link>・<Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼夜間人口</Link></p>
+      <Cta muni={m.name} topic="高齢化率" />
       <CiteBox title={title} path={`/aging/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['census']} extra={[
         '高齢化率・年少人口割合・生産年齢人口割合は、年齢3区分（15歳未満／15〜64歳／65歳以上）の合計を分母として算出。総人口には年齢「不詳」が含まれるため、総人口を分母にした値とは一致しない。',
