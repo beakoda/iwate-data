@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, schoolAt, schoolPrefAt, pupilsPerSchool, fmt, fmtSigned, pct, rank, SCHOOL_YEARS, LATEST_SCHOOL, FIRST_SCHOOL } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の小中学校数・児童生徒数（${FIRST_SCHOOL}〜${LATEST_SCHOOL}年）`;
 const pNow = schoolPrefAt(LATEST_SCHOOL);
@@ -28,7 +29,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: '学校・児童生徒' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/school/" keywords={['岩手県', '小学校', '中学校', '高校', '幼稚園', '児童数', '生徒数', '教員数', '学校統廃合', '市町村別']} temporal={`${FIRST_SCHOOL}/${LATEST_SCHOOL}`} sourceKeys={['school']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="school" />
       <p className="key-fact">岩手県の小学校は{LATEST_SCHOOL}年に<strong>{fmt(pNow.es)}校・児童{fmt(pNow.es_pupils)}人</strong>で、{FIRST_SCHOOL}年から学校は<strong>{fmtSigned(pNow.es! - pFirst.es!, '校')}</strong>、児童は<strong>{fmtSigned(pct(pNow.es_pupils, pFirst.es_pupils), '%')}</strong>。中学校は{fmt(pNow.jhs)}校・生徒{fmt(pNow.jhs_students)}人、幼稚園は{fmt(pNow.kg)}園（{FIRST_SCHOOL}年{fmt(pFirst.kg)}園）。小学校1校当たりの児童数は{fmt(prefPps)}人で、最も多いのは<strong>{byP[0].m.name}（{fmt(byP[0].pps)}人）</strong>、最も少ないのは<strong>{byP[byP.length - 1].m.name}（{fmt(byP[byP.length - 1].pps)}人）</strong>。</p>
+      <IwateMap title={`小学校1校当たり児童数（${LATEST_SCHOOL}年）`} unit="人" decimals={1} family="school" values={rows.map(x => ({ code: x.m.code, value: x.pps ?? null }))} />
+      <Tools family="school" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県の児童・生徒数（${FIRST_SCHOOL}〜${LATEST_SCHOOL}年、人）`} unit="人" zero
         series={[
           { label: '小学校 児童数', points: SCHOOL_YEARS.map(y => ({ x: y, y: schoolPrefAt(y).es_pupils ?? 0 })) },
@@ -60,6 +65,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = schoolAt(m.code, LATEST_SCHOOL)!; return <li key={m.code}><Link href={`/school/${m.slug}/`}>{m.name}の学校<small>{LATEST_SCHOOL}年 小{fmt(r.es)}校{fmt(r.es_pupils)}人・中{fmt(r.jhs)}校{fmt(r.jhs_students)}人</small></Link></li>; })}</ul>
+      <Cta topic="児童生徒数" />
       <CiteBox title={TITLE} path="/school/" sentence={sentence} />
       <SourceBox keys={['school']} extra={[
         '学校の所在地でカウントしており、その市町村に住む子どもの数ではない。高校は県立・私立を含み、通学区域は市町村をまたぐ。',
