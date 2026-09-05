@@ -88,8 +88,12 @@ export type CensusInd = { key: string; code: string; name: string };
 const census = (ds as any).census as Record<string, Record<string, CensusRec>>;
 export const CENSUS_YEARS: number[] = (ds as any).censusYears;
 export const CENSUS_IND: CensusInd[] = (ds as any).censusInd;
+export const CENSUS_FULL_YEARS: number[] = (ds as any).censusFullYears;
 export const LATEST_CENSUS = CENSUS_YEARS[CENSUS_YEARS.length - 1];
-export const PREV_CENSUS = CENSUS_YEARS[0];
+/** 直近1回前の国勢調査（5年前）。就業・労働力の比較はこの年と行う。 */
+export const PREV_CENSUS = CENSUS_FULL_YEARS[0];
+/** 取り込んでいる最も古い国勢調査。人口・年齢3区分のみ。 */
+export const FIRST_CENSUS = CENSUS_YEARS[0];
 
 export function censusAt(code: string, year: number): CensusRec | undefined { return census[String(year)]?.[code]; }
 
