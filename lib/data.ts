@@ -295,3 +295,90 @@ export function capPerElderly(cap: number | null | undefined, code: string, cens
   if (!c || !c.age_65_) return null;
   return Math.round((cap / c.age_65_) * 1000 * 10) / 10;
 }
+
+/* ===== ごみ・生活インフラ（2010〜2023） ===== */
+export type EnvRec = {
+  gomi_collect_pop: number | null; gomi_total: number | null; gomi_per_day: number | null;
+  recycle_rate: number | null; landfill: number | null; flush_rate: number | null; nonflush_pop: number | null;
+  merged: string[];
+};
+const env = (ds as any).env as Record<string, Record<string, EnvRec>>;
+export const ENV_YEARS: number[] = (ds as any).envYears;
+export const LATEST_ENV = ENV_YEARS[ENV_YEARS.length - 1];
+export const FIRST_ENV = ENV_YEARS[0];
+export function envAt(code: string, year: number): EnvRec | undefined { return env[code]?.[String(year)]; }
+export function envSeries(code: string) {
+  return ENV_YEARS.map(y => ({ year: y, ...(env[code]?.[String(y)] as EnvRec) })).filter(r => r.gomi_total != null);
+}
+export function envPrefAt(year: number): EnvRec {
+  const acc: any = { gomi_collect_pop: 0, gomi_total: 0, landfill: 0, nonflush_pop: 0, gomi_per_day: null, recycle_rate: null, flush_rate: null, merged: [] };
+  for (const m of MUNIS) {
+    const r = envAt(m.code, year); if (!r) continue;
+    for (const k of ['gomi_collect_pop', 'gomi_total', 'landfill', 'nonflush_pop'] as const) if (r[k] != null) acc[k] += r[k] as number;
+  }
+  return acc as EnvRec;
+}
+/** 33市町村計から計算した1人1日当たり排出量（g）。ごみ総排出量t ÷ 計画収集人口 ÷ 365 */
+export function envPrefPerDay(year: number): number | null {
+  const p = envPrefAt(year);
+  if (!p.gomi_total || !p.gomi_collect_pop) return null;
+  return Math.round((p.gomi_total * 1_000_000) / p.gomi_collect_pop / 365);
+}
+
+/* ===== 経済（課税対象所得・製造業・耕地／2010〜2023） ===== */
+export type TaxRec = {
+  taxable_income: number | null; taxpayers: number | null; farmland: number | null;
+  mfg_shipment: number | null; mfg_estab: number | null; mfg_workers: number | null; merged: string[];
+};
+const economy = (ds as any).economy as Record<string, Record<string, TaxRec>>;
+export const ECON_YEARS: number[] = (ds as any).econYears;
+export const LATEST_ECON = ECON_YEARS[ECON_YEARS.length - 1];
+export const FIRST_ECON = ECON_YEARS[0];
+/** 工業統計の事業所数・従業者数が欠測の年（2015年は経済センサスに統合され市区町村別が無い） */
+export const MFG_GAP_YEAR = 2015;
+export function econAt2(code: string, year: number): TaxRec | undefined { return economy[code]?.[String(year)]; }
+export function econSeries(code: string) {
+  return ECON_YEARS.map(y => ({ year: y, ...(economy[code]?.[String(y)] as TaxRec) })).filter(r => r.taxable_income != null);
+}
+export function econPrefAt(year: number): TaxRec {
+  const acc: any = { taxable_income: 0, taxpayers: 0, farmland: 0, mfg_shipment: 0, mfg_estab: 0, mfg_workers: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = econAt2(m.code, year); if (!r) continue;
+    for (const k of ['taxable_income', 'taxpayers', 'farmland', 'mfg_shipment', 'mfg_estab', 'mfg_workers'] as const) if (r[k] != null) acc[k] += r[k] as number;
+  }
+  return acc as TaxRec;
+}
+/** 納税義務者1人当たり課税対象所得（円）。所得の平均ではなく、課税対象所得÷納税義務者数 */
+export function incomePerTaxpayer(r: TaxRec | undefined): number | null {
+  if (!r || !r.taxable_income || !r.taxpayers) return null;
+  return Math.round((r.taxable_income * 1000) / r.taxpayers);
+}
+
+/* ===== 学校（幼稚園・小中高／2010〜2023） ===== */
+export type SchoolRec = {
+  kg: number | null; kg_pupils: number | null;
+  es: number | null; es_teachers: number | null; es_pupils: number | null;
+  jhs: number | null; jhs_teachers: number | null; jhs_students: number | null;
+  hs: number | null; hs_students: number | null; merged: string[];
+};
+const school = (ds as any).school as Record<string, Record<string, SchoolRec>>;
+export const SCHOOL_YEARS: number[] = (ds as any).schoolYears;
+export const LATEST_SCHOOL = SCHOOL_YEARS[SCHOOL_YEARS.length - 1];
+export const FIRST_SCHOOL = SCHOOL_YEARS[0];
+export function schoolAt(code: string, year: number): SchoolRec | undefined { return school[code]?.[String(year)]; }
+export function schoolSeries(code: string) {
+  return SCHOOL_YEARS.map(y => ({ year: y, ...(school[code]?.[String(y)] as SchoolRec) })).filter(r => r.es != null);
+}
+export function schoolPrefAt(year: number): SchoolRec {
+  const acc: any = { kg: 0, kg_pupils: 0, es: 0, es_teachers: 0, es_pupils: 0, jhs: 0, jhs_teachers: 0, jhs_students: 0, hs: 0, hs_students: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = schoolAt(m.code, year); if (!r) continue;
+    for (const k of ['kg', 'kg_pupils', 'es', 'es_teachers', 'es_pupils', 'jhs', 'jhs_teachers', 'jhs_students', 'hs', 'hs_students'] as const) if (r[k] != null) acc[k] += r[k] as number;
+  }
+  return acc as SchoolRec;
+}
+/** 小学校1校当たり児童数 */
+export function pupilsPerSchool(n: number | null | undefined, schools: number | null | undefined): number | null {
+  if (n == null || !schools) return null;
+  return Math.round((n / schools) * 10) / 10;
+}
