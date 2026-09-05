@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, joblessAt, joblessPrefAt, joblessRate, elderWorkerShare, fmt, fmtSigned, pct, rank, JOBLESS_YEARS, LATEST_JOBLESS, FIRST_JOBLESS } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の完全失業率・労働力人口（${FIRST_JOBLESS}〜${LATEST_JOBLESS}年）`;
 const pNow = joblessPrefAt(LATEST_JOBLESS);
@@ -32,6 +33,7 @@ export default function Page() {
       <Breadcrumb items={[{ name: '完全失業率・労働力' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/jobless/" keywords={['岩手県', '完全失業率', '失業率', '労働力人口', '就業者数', '完全失業者', '高齢者就業', '国勢調査', '市町村別']} temporal={`${FIRST_JOBLESS}/${LATEST_JOBLESS}`} sourceKeys={['jobless']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="jobless" />
       <p className="key-fact">岩手県の完全失業率は{LATEST_JOBLESS}年に<strong>{fmt(prefRate)}%</strong>（完全失業者{fmt(pNow.jobless)}人、労働力人口{fmt(pNow.labor)}人）で、{FIRST_JOBLESS}年の{fmt(prefRate0)}%から{fmtSigned(Math.round(((prefRate ?? 0) - (prefRate0 ?? 0)) * 10) / 10, 'ポイント')}。市町村別で最も高いのは<strong>{byRate[0].m.name}（{fmt(byRate[0].rate)}%）</strong>、最も低いのは<strong>{byRate[byRate.length - 1].m.name}（{fmt(byRate[byRate.length - 1].rate)}%）</strong>。就業者に占める65歳以上の割合は県全体で{fmt(prefE65)}%。</p>
       <div className="stats">
         <div className="stat"><div className="stat-label">完全失業率（{LATEST_JOBLESS}年）</div><div className="stat-value">{fmt(prefRate)}</div><div className="stat-sub">%・{FIRST_JOBLESS}年 {fmt(prefRate0)}%</div></div>
@@ -39,6 +41,9 @@ export default function Page() {
         <div className="stat"><div className="stat-label">労働力人口</div><div className="stat-value">{fmt(pNow.labor)}</div><div className="stat-sub">人・{FIRST_JOBLESS}年比 {fmtSigned(pct(pNow.labor, pFirst.labor), '%')}</div></div>
         <div className="stat"><div className="stat-label">65歳以上の就業者</div><div className="stat-value">{fmt(pNow.workers65)}</div><div className="stat-sub">人・就業者の {fmt(prefE65)}%</div></div>
       </div>
+      <IwateMap title={`完全失業率（${LATEST_JOBLESS}年、%）`} unit="%" decimals={1} family="jobless" values={rows.map(x => ({ code: x.m.code, value: x.rate ?? null }))} />
+      <Tools family="jobless" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県の完全失業率（${FIRST_JOBLESS}〜${LATEST_JOBLESS}年、%）`} unit="%" zero
         series={[{ label: '完全失業率', points: JOBLESS_YEARS.map(y => ({ x: y, y: joblessRate(joblessPrefAt(y)) ?? 0 })) }]} />
       <LineChart title={`岩手県の労働力人口・就業者数（${FIRST_JOBLESS}〜${LATEST_JOBLESS}年、人）`} unit="人" zero
@@ -63,6 +68,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = joblessAt(m.code, LATEST_JOBLESS)!; return <li key={m.code}><Link href={`/jobless/${m.slug}/`}>{m.name}の完全失業率<small>{LATEST_JOBLESS}年 {fmt(joblessRate(r))}%・就業者{fmt(r.workers)}人</small></Link></li>; })}</ul>
+      <Cta topic="完全失業率" />
       <CiteBox title={TITLE} path="/jobless/" sentence={sentence} />
       <SourceBox keys={['jobless']} extra={[
         '完全失業者＝仕事がなく、仕事を探していて、すぐ就ける状態にあった人（調査週間中）。ハローワークの求職者数とは別の概念。',
