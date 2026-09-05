@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, econAt2, econSeries, econPrefAt, incomePerTaxpayer, popAt, fmt, fmtSigned, pct, rank, ECON_YEARS, LATEST_ECON, FIRST_ECON, MFG_GAP_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -34,6 +34,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/economy/${m.slug}/`}
         keywords={[m.name, '課税対象所得', '納税義務者', '製造品出荷額', '製造業', '耕地面積', '岩手県']} temporal={`${FIRST_ECON}/${LATEST_ECON}`} sourceKeys={['economy']} />
       <h1>{title}</h1>
+      <MuniStrip family="economy" current={m.code} />
       <p className="key-fact">
         {m.name}の納税義務者1人当たり課税対象所得は{LATEST_ECON}年に<strong>{fmt(per)}円</strong>（{FIRST_ECON}年比{fmtSigned(pct(per, per0), '%')}）で、岩手県内<strong>{rI.get(me) ?? '—'}位</strong>（県平均{fmt(prefPer)}円）。
         製造品出荷額等は<strong>{fmt(r.mfg_shipment)}百万円</strong>で県内{rM.get(me) ?? '—'}位、耕地面積は{fmt(r.farmland)}haで県内{rF.get(me) ?? '—'}位。
@@ -46,6 +47,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">製造業（{LATEST_ECON}年）</div><div className="stat-value">{fmt(r.mfg_estab)}</div><div className="stat-sub">事業所・従業者 {fmt(r.mfg_workers)}人・県内 {rW.get(me) ?? '—'}位</div></div>
         <div className="stat"><div className="stat-label">耕地面積</div><div className="stat-value">{fmt(r.farmland)}</div><div className="stat-sub">ha・県内 {rF.get(me) ?? '—'}位・{FIRST_ECON}年比 {fmtSigned(pct(r.farmland, r0.farmland), '%')}</div></div>
       </div>
+      <Tools family="economy" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の納税義務者1人当たり課税対象所得（${FIRST_ECON}〜${LATEST_ECON}年、円）`} unit="円"
         series={[
           { label: m.name, points: s.map(x => ({ x: x.year, y: incomePerTaxpayer(x) ?? 0 })) },
@@ -74,6 +76,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="所得" />
       <CiteBox title={title} path={`/economy/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['economy']} extra={[
         '「課税対象所得」は市町村民税の所得割の課税対象となった前年の所得の合計（千円）で、住民の平均年収ではない。「1人当たり」は課税対象所得÷納税義務者数（所得割）で本サイトの計算値。所得のない人・課税されない人は分母に入らない。',
