@@ -1,0 +1,15 @@
+{
+  "name": "iwate-data-mcp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "いわてデータ MCP サーバー（Cloudflare Worker、ステートレス Streamable HTTP）",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "test": "node test/client.mjs http://localhost:8787/mcp"
+  },
+  "devDependencies": {
+    "wrangler": "^4.30.0",
+    "@modelcontextprotocol/sdk": "^1.17.0"
+  }
+}

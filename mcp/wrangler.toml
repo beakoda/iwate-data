@@ -1,0 +1,13 @@
+# いわてデータ MCP サーバー
+# デプロイ: cd mcp && npx wrangler login && npx wrangler deploy
+# 本番URL: https://iwate-data-mcp.<account>.workers.dev/mcp → カスタムドメインで https://mcp.iwate-data.jp/mcp に付け替える
+name = "iwate-data-mcp"
+main = "src/index.ts"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+# データは data/dataset.json をそのままバンドルする（DB不要・KV不要）。
+# サイト側で raw を更新して dataset.json を作り直したら、ここも deploy し直すこと。
