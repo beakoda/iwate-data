@@ -94,6 +94,7 @@ app/csv/[family]/[file]/route.ts    CSV（/csv/{family}/{slug}.csv, all.csv）�
 app/embed/city/[slug]/[file]/route.ts  埋め込みHTML（layoutを通さない素のHTML）を静的生成
   ↓ npm run build → out/
 scripts/build_xlsx.py  out/csv/*/all.csv → dist/iwate-data_日付.xlsx（販売用、リポジトリに含めない）
+mcp/                   MCPサーバー（Cloudflare Worker）。data/dataset.json を同梱。詳細は mcp/README.md
 ```
 
 - Next.js 15.5.2 App Router / React 19 / TypeScript
@@ -281,7 +282,10 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - **埋め込みウィジェット** `/embed/city/{slug}/` と、cityページの埋め込みコード表示
 - モバイルのヘッダーナビを横スクロール1行に（5行→1行）。印刷CSS
 
+**MCPサーバー（2026-09-05 追加、`mcp/`）**: 同じ dataset.json を Cloudflare Worker に同梱し、ステートレスな MCP Streamable HTTP（POST /mcp）で6ツール＋15リソースを出す。公式SDKクライアント（`mcp/test/client.mjs`）で全ツールの実通信テスト済み。バンドルは gzip 後 122KB で無料枠（3MB）内。**デプロイはまだ**（wrangler login が要るのでコンテナからはできない）。手順は `mcp/README.md`。カスタムドメインは `mcp.iwate-data.jp` を想定。列定義 `mcp/src/catalog.ts` は `lib/csv.ts` と手で同期している（列を足したら両方）
+
 残っている手作業（コードでは出来ない）:
+7. **MCPを `cd mcp && npx wrangler login && npm run deploy` でデプロイ** → Worker にカスタムドメイン `mcp.iwate-data.jp` → Claude.ai のコネクタに登録して動作確認 → サイトのフッターか `/data/` に MCP の案内を足す
 8. **`NEXT_PUBLIC_BUY_URL` を Cloudflare Pages の環境変数に設定**（Stripe Payment Link が最短。BOOTH/noteでも可）。設定して再デプロイするまで /data/ の購入ボタンは問い合わせフォームに向く
 9. 販売用Excelは `npm run build && npm run xlsx` で `dist/` に出る。**リポジトリには入れない**（`.gitignore` 済み）。決済サービス側にファイルを置く
 10. beak-promo.jp 側で `?ref=iwate-data` の流入をGA4のイベント／探索で追えるようにする
