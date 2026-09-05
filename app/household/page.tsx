@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, houseAt, housePrefAt, hhShare, fmt, fmtSigned, pct, rank, HOUSE_YEARS, LATEST_HOUSE, PREV_HOUSE, FIRST_HOUSE, FIRST_POP75_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の世帯・高齢世帯・単独世帯（${FIRST_HOUSE}〜${LATEST_HOUSE}年）`;
 const pNow = housePrefAt(LATEST_HOUSE);
@@ -31,7 +32,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: '世帯・高齢世帯' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/household/" keywords={['岩手県', '世帯数', '単独世帯', '高齢者単身世帯', '核家族', '外国人人口', '国勢調査', '市町村別']} temporal={`${FIRST_HOUSE}/${LATEST_HOUSE}`} sourceKeys={['household']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="household" />
       <p className="key-fact">岩手県の一般世帯数は{LATEST_HOUSE}年に<strong>{fmt(pNow.general_hh)}世帯</strong>（{FIRST_HOUSE}年比{fmtSigned(pct(pNow.general_hh, pFirst.general_hh), '%')}）。うち単独世帯が<strong>{fmt(pNow.single_hh)}世帯（{fmt(hhShare(pNow.single_hh, pNow.general_hh))}%）</strong>、65歳以上の単独世帯が<strong>{fmt(pNow.eld_single_hh)}世帯（{fmt(hhShare(pNow.eld_single_hh, pNow.general_hh))}%）</strong>。65歳以上の単独世帯の割合が最も高いのは<strong>{byE[0].m.name}（{fmt(byE[0].eldS)}%）</strong>、単独世帯の割合が最も高いのは<strong>{byS[0].m.name}（{fmt(byS[0].single)}%）</strong>。</p>
+      <IwateMap title={`65歳以上の単独世帯の割合（${LATEST_HOUSE}年、%）`} unit="%" decimals={1} family="household" values={rows.map(x => ({ code: x.m.code, value: x.eldS ?? null }))} />
+      <Tools family="household" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県の世帯の内訳（${FIRST_HOUSE}〜${LATEST_HOUSE}年、世帯）`} unit="世帯" zero
         series={[
           { label: '一般世帯', points: HOUSE_YEARS.map(y => ({ x: y, y: housePrefAt(y).general_hh ?? 0 })) },
@@ -58,6 +63,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const h = houseAt(m.code, LATEST_HOUSE)!; return <li key={m.code}><Link href={`/household/${m.slug}/`}>{m.name}の世帯<small>{LATEST_HOUSE}年 一般世帯{fmt(h.general_hh)}・65歳以上単独{fmt(h.eld_single_hh)}</small></Link></li>; })}</ul>
+      <Cta topic="世帯構成" />
       <CiteBox title={TITLE} path="/household/" sentence={sentence} />
       <SourceBox keys={['household']} extra={[
         '「一般世帯」は施設等の世帯を除く世帯。割合の分母は一般世帯数。',
