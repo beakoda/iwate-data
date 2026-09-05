@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { SITE, SOURCES, GENERATED } from '@/lib/data';
+import { SITE, SOURCES, GENERATED, MUNIS } from '@/lib/data';
 
 export function Breadcrumb({ items }: { items: { name: string; href?: string }[] }) {
   const all = [{ name: 'ホーム', href: '/' }, ...items];
@@ -66,4 +66,53 @@ export function DatasetJsonLd({ name, description, path, keywords, temporal, sou
     dateModified: GENERATED,
   };
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
+}
+
+/** 33市町村へのジャンプ帯。current は市町村コード。family はパス先頭（例: 'jobless'）。 */
+export function MuniStrip({ family, current }: { family: string; current?: string }) {
+  return (
+    <nav aria-label="市町村を選ぶ">
+      <ul className="muni-strip">
+        {MUNIS.map(m => <li key={m.code}><Link href={`/${family}/${m.slug}/`} aria-current={m.code === current ? 'page' : undefined}>{m.name}</Link></li>)}
+      </ul>
+    </nav>
+  );
+}
+
+/** CSVダウンロードなどのツール行。family と slug（'all' で全市町村） */
+export function Tools({ family, slug, label }: { family: string; slug: string; label?: string }) {
+  return (
+    <div className="tools">
+      <a className="btn" href={`/csv/${family}/${slug}.csv`} download>⬇ {label ?? 'このページのデータ'}をCSVで保存</a>
+      {slug !== 'all' && <a className="btn" href={`/csv/${family}/all.csv`} download>⬇ 33市町村すべてのCSV</a>}
+      <Link className="btn" href="/data/">📊 全データ一括（Excel）</Link>
+    </div>
+  );
+}
+
+/** 運営会社への相談導線。muni を渡すと文言が市町村名入りになる。 */
+export function Cta({ muni, topic }: { muni?: string; topic?: string }) {
+  const where = muni ? `${muni}で` : '岩手県内で';
+  return (
+    <section className="cta" aria-label="お問い合わせ">
+      <h2>{where}集客・開業・出店を考えている事業者の方へ</h2>
+      <p>このページの{topic ? topic + 'などの' : ''}数字をもとに、商圏の見立てからWeb集客（ホームページ・広告・MEO・AI検索対策）までを、盛岡のビークプロモーションが引き受けます。初回の相談とデータの読み解きは無料です。</p>
+      <a className="btn primary" href={`${SITE.publisherUrl}contact/?ref=iwate-data`} rel="noopener">データをもとに相談する（無料）</a>
+      <a className="btn" href={SITE.publisherUrl} rel="noopener">ビークプロモーションについて</a>
+    </section>
+  );
+}
+
+/** 埋め込みコードの表示 */
+export function EmbedBox({ slug, name }: { slug: string; name: string }) {
+  const src = `${SITE.url}/embed/city/${slug}/`;
+  const code = `<iframe src="${src}" width="100%" height="320" style="border:1px solid #D8D8DB;border-radius:8px" loading="lazy" title="${name}の主要統計（いわてデータ）"></iframe>`;
+  return (
+    <section className="embed-box">
+      <h2>{name}の統計をサイトに埋め込む</h2>
+      <p>下のコードを貼ると、{name}の主要指標カードが表示されます（出典リンク付き・無料）。自治体・議員・不動産・医療機関のサイトでご利用ください。</p>
+      <textarea readOnly rows={3} defaultValue={code} />
+      <p><small>プレビュー: <a href={src}>{src}</a></small></p>
+    </section>
+  );
 }
