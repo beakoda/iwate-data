@@ -37,11 +37,22 @@ IND = [  # 産業大分類（日本標準産業分類）
  ('Q','複合サービス事業','compound'),('R','サービス業（他に分類されないもの）','services'),
 ]
 
+# 国勢調査の産業大分類（A〜S）→ サイト内の産業スラッグ対応。A+B は経済センサス側に合わせて AB に合算。
+CENSUS_IND = [('wA','A','農業，林業'),('wB','B','漁業'),('wC','C','鉱業，採石業，砂利採取業'),('wD','D','建設業'),
+ ('wE','E','製造業'),('wF','F','電気・ガス・熱供給・水道業'),('wG','G','情報通信業'),('wH','H','運輸業，郵便業'),
+ ('wI','I','卸売業，小売業'),('wJ','J','金融業，保険業'),('wK','K','不動産業，物品賃貸業'),
+ ('wL','L','学術研究，専門・技術サービス業'),('wM','M','宿泊業，飲食サービス業'),('wN','N','生活関連サービス業，娯楽業'),
+ ('wO','O','教育，学習支援業'),('wP','P','医療，福祉'),('wQ','Q','複合サービス事業'),
+ ('wR','R','サービス業（他に分類されないもの）'),('wS','S','公務（他に分類されるものを除く）'),
+ ('wT','T','分類不能の産業')]
+CENSUS_YEARS = [2015, 2020]
+
 SOURCES = {
  'dental': {'name':'厚生労働省「医療施設調査」二次医療圏・市区町村編 第２表（一般診療所数；歯科診療所数；病床数，病床の有無・二次医療圏・市区町村別）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00450021&tstat=000001030908', 'note':'各年10月1日現在。2009〜2024年。e-Stat 掲載CSVより集計。'},
  'population': {'name':'総務省「住民基本台帳に基づく人口、人口動態及び世帯数調査」市区町村別（総計）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200241', 'note':'各年1月1日現在の人口・世帯数。出生・死亡・転入・転出は前年1年間。2013〜2026年。'},
  'econ2021': {'name':'総務省・経済産業省「令和3年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第4-1表（産業大分類、単独・本所・支所別民営事業所数、従業者数及び売上（収入）金額－市区町村）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20210', 'note':'2021年6月1日現在。売上（収入）金額は外国の会社及び法人でない団体を除く。「X」は秘匿、「-」は該当なし、「...」は非公表。'},
  'econ2016': {'name':'総務省・経済産業省「平成28年経済センサス‐活動調査」事業所に関する集計 産業横断的集計 第8表（産業別民営事業所数・従業者数－都道府県、市区町村）岩手県', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&toukei=00200553&year=20160', 'note':'2016年6月1日現在。'},
+    'census': {'name':'総務省統計局「国勢調査」都道府県・市区町村別の主な結果（第１面事項・第２面事項）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001049104&tclass1=000001049105', 'note':'各回10月1日現在。2015年（平成27年）・2020年（令和2年）。2020年の年齢・就業関係の数値は不詳補完結果。「-」は該当者なし。'},
 }
 
 def num(v):
@@ -56,6 +67,19 @@ def load_csvs(*names):
         with open(os.path.join(RAW, n), encoding='utf-8') as f:
             rows += list(csv.DictReader(f))
     return rows
+
+def load_census():
+    out = {}
+    for y in CENSUS_YEARS:
+        rec = {}
+        for part in ('p1', 'p2'):
+            for r in load_csvs(f'census_{y}_{part}.csv'):
+                d = rec.setdefault(r['code'], {})
+                for k, v in r.items():
+                    if k == 'code': continue
+                    d[k] = num(v) if k not in ('area_km2','density','avg_age','median_age','labor_rate','dn_ratio') else (float(v) if v.strip() not in ('','-','...','X') else None)
+        out[str(y)] = rec
+    return out
 
 def build():
     codes = {m[0] for m in MUNI}
@@ -95,11 +119,23 @@ def build():
         'sources': SOURCES,
         'legacy': LEGACY,
         'dental': dental, 'population': pop, 'econ': econ,
+        'census': load_census(),
+        'censusYears': CENSUS_YEARS,
+        'censusInd': [{'key':k,'code':c,'name':n} for k,c,n in CENSUS_IND],
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(ds, f, ensure_ascii=False, separators=(',',':'))
     # sanity
+    cen = ds['census']
+    for y in CENSUS_YEARS:
+        for k in ('total','age_0_14','age_15_64','age_65_','pop15','labor','workers','w1','w2','w3','day_pop'):
+            s2 = sum(cen[str(y)][m['code']][k] or 0 for m in munis)
+            assert s2 == cen[str(y)][PREF][k], (y, k, s2, cen[str(y)][PREF][k])
+        for m in munis:
+            r = cen[str(y)][m['code']]
+            tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
+            assert tot == r['workers'], (y, m['code'], tot, r['workers'])
     for y in range(2009, 2025):
         s = sum(dental[m['code']][y]['dent'] for m in munis)
         assert s == dental[PREF][y]['dent'], (y, s, dental[PREF][y]['dent'])
