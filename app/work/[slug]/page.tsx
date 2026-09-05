@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, muniBySlug, censusAt, CENSUS_IND, CENSUS_IND_TO_SLUG, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -34,6 +34,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/work/${m.slug}/`}
         keywords={[m.name, '就業者数', '産業別就業者', '昼夜間人口比率', '労働力率', '国勢調査', '岩手県']} temporal={`${PREV_CENSUS}/${LATEST_CENSUS}`} sourceKeys={['census']} />
       <h1>{title}</h1>
+      <MuniStrip family="work" current={m.code} />
       <p className="key-fact">
         {m.name}の就業者数は<strong>{fmt(c.workers)}人</strong>（{LATEST_CENSUS}年10月1日、県内<strong>{rW.get(me) ?? '—'}位</strong>）。労働力率{fmt(c.labor_rate != null ? Math.round(c.labor_rate * 10) / 10 : null)}%、
         昼夜間人口比率<strong>{fmt(dn)}</strong>（県内{rD.get(me) ?? '—'}位）。最も就業者が多い産業は{byW[0].ci.name}の{fmt(byW[0].now)}人。
@@ -46,6 +47,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">第2次産業</div><div className="stat-value">{fmt(Math.round(c.w2 / c.workers * 1000) / 10)}%</div><div className="stat-sub">{fmt(c.w2)}人</div></div>
         <div className="stat"><div className="stat-label">第3次産業</div><div className="stat-value">{fmt(Math.round(c.w3 / c.workers * 1000) / 10)}%</div><div className="stat-sub">{fmt(c.w3)}人</div></div>
       </div>
+      <Tools family="work" slug={m.slug} label={`${m.name}の全年データ`} />
 
       <h2>産業大分類別の就業者数（{PREV_CENSUS}年 → {LATEST_CENSUS}年）</h2>
       <BarChart title={`${m.name}の産業別就業者数（${LATEST_CENSUS}年、人）`} items={byW.map(x => ({ label: x.ci.code + ' ' + x.ci.name.slice(0, 8), value: x.now }))} />
@@ -86,6 +88,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <BarChart title={`市町村別 昼夜間人口比率（${LATEST_CENSUS}年）`} items={[...rows].sort((a, b) => (b.dn ?? -1) - (a.dn ?? -1)).map(x => ({ label: x.m.name, value: x.dn != null ? Math.round(x.dn * 10) / 10 : null }))} highlight={m.name} />
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/work/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/aging/${m.slug}/`}>{m.name}の高齢化率</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯の推移</Link></p>
+      <Cta muni={m.name} topic="就業者数・昼夜間人口" />
       <CiteBox title={title} path={`/work/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['census']} extra={[
         '就業者数は15歳以上の就業者。産業大分類は日本標準産業分類による。',
