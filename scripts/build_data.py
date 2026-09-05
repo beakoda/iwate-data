@@ -241,7 +241,7 @@ def load_census():
 def build():
     codes = {m[0] for m in MUNI}
     # ---- dental / general clinics
-    dental = {c: {} for c in codes | {PREF}}
+    dental = {c: {} for c in sorted(codes | {PREF})}
     for r in load_csvs('dental_2009_2016.csv', 'dental_2017_2024.csv'):
         code = r['code'].strip(); y = int(r['year'])
         if code == '03': code = PREF
@@ -253,7 +253,7 @@ def build():
             v = num(r[col]); rec[k] += (v or 0)
         if r['code'].strip() in LEGACY: rec['merged'].append(r['name'])
     # ---- population
-    pop = {c: {} for c in codes | {PREF}}
+    pop = {c: {} for c in sorted(codes | {PREF})}
     for r in load_csvs('population_2013_2026.csv'):
         code = LEGACY.get(r['code'], r['code']); y = int(r['year'])
         if code not in pop: continue
@@ -261,7 +261,7 @@ def build():
         for k, col in (('total','total'),('households','households'),('births','births'),('deaths','deaths'),('in','in_total'),('out','out_total')):
             rec[k] += num(r[col]) or 0
     # ---- econ census
-    econ = {c: {} for c in codes | {PREF}}
+    econ = {c: {} for c in sorted(codes | {PREF})}
     for r in load_csvs('econ_census_2021_major.csv'):
         econ[r['code']].setdefault(r['ind'], {})['2021'] = {'estab':num(r['estab']),'workers':num(r['workers']),'sales':num(r['sales_mil']), 'sales_raw':r['sales_mil']}
     for r in load_csvs('econ_census_2016_major.csv'):
