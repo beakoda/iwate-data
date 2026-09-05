@@ -1,13 +1,16 @@
 # Cloudflare Pages のヘッダー設定。public/ の中身は out/ にそのままコピーされる。
 # 参考: https://developers.cloudflare.com/pages/configuration/headers/
+#
+# 注意: マッチするルールは「すべて」適用され、同名ヘッダーは連結される。
+# そのため /* 側に Cache-Control を書くと /_next/static/* の immutable 指定と
+# 二重になって壊れる（実際に一度やらかした）。Cache-Control は個別ルールにだけ置く。
+# HTML の既定は Cloudflare Pages 側の public, max-age=0, must-revalidate に任せる。
 
 # ビルドごとにハッシュが変わる静的アセットは永久キャッシュしてよい
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
-# HTML は Cloudflare のエッジに置きつつ、更新が即反映されるよう都度検証させる
 /*
-  Cache-Control: public, max-age=0, must-revalidate
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 
