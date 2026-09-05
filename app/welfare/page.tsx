@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, welAt, welPrefAt, capPerElderly, censusAt, popAt, fmt, fmtSigned, pct, rank, WEL_YEARS, LATEST_WEL, FIRST_WEL, WEL_SWITCH_YEAR, LATEST_CENSUS } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の特別養護老人ホーム・有料老人ホーム・国保（${FIRST_WEL}〜${LATEST_WEL}年）`;
 const pNow = welPrefAt(LATEST_WEL);
@@ -31,7 +32,11 @@ export default function Page() {
       <Breadcrumb items={[{ name: '介護施設・国保' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/welfare/" keywords={['岩手県', '特別養護老人ホーム', '介護老人福祉施設', '有料老人ホーム', '定員', '国民健康保険', '市町村別']} temporal={`${FIRST_WEL}/${LATEST_WEL}`} sourceKeys={['welfare']} />
       <h1>{TITLE}</h1>
+      <MuniStrip family="welfare" />
       <p className="key-fact">岩手県の介護老人福祉施設（特別養護老人ホーム）は{LATEST_WEL}年に<strong>{fmt(pNow.tokuyo)}施設・定員{fmt(pNow.tokuyo_cap)}人</strong>（{FIRST_WEL}年比{fmtSigned(pct(pNow.tokuyo_cap, pFirst.tokuyo_cap), '%')}）。有料老人ホームは<strong>{fmt(pNow.yuryo)}施設・定員{fmt(pNow.yuryo_cap)}人</strong>で同{fmtSigned(pct(pNow.yuryo_cap, pFirst.yuryo_cap), '%')}と大きく増えた。65歳以上人口千人当たりの特養定員が最も多いのは<strong>{byE[0].m.name}（{fmt(byE[0].capE)}人）</strong>。有料老人ホームが1施設もないのは<strong>{noYuryo.length}市町村</strong>。国民健康保険被保険者数は{fmt(pNow.kokuho)}人（{FIRST_WEL}年比{fmtSigned(pct(pNow.kokuho, pFirst.kokuho), '%')}）。</p>
+      <IwateMap title={`65歳以上人口千人当たり特養定員（${LATEST_WEL}年）`} unit="人" decimals={1} family="welfare" values={rows.map(x => ({ code: x.m.code, value: x.capE ?? null }))} />
+      <Tools family="welfare" slug="all" label="33市町村の全年データ" />
+
       <LineChart title={`岩手県の老人ホーム定員（${FIRST_WEL}〜${LATEST_WEL}年、人）`} unit="人" zero
         series={[
           { label: '特別養護老人ホーム', points: WEL_YEARS.map(y => ({ x: y, y: welPrefAt(y).tokuyo_cap ?? 0 })) },
@@ -57,6 +62,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = welAt(m.code, LATEST_WEL)!; return <li key={m.code}><Link href={`/welfare/${m.slug}/`}>{m.name}の介護施設<small>{LATEST_WEL}年 特養{fmt(r.tokuyo)}施設・定員{fmt(r.tokuyo_cap)}人</small></Link></li>; })}</ul>
+      <Cta topic="介護施設" />
       <CiteBox title={TITLE} path="/welfare/" sentence={sentence} />
       <SourceBox keys={['welfare']} extra={[
         `施設数・定員は${WEL_SWITCH_YEAR - 1}年までが詳細票、${WEL_SWITCH_YEAR}年以降が基本票。市区町村別はこの切替でしか全期間つながらない。両票は定員がわずかに異なるため、${WEL_SWITCH_YEAR}年の前後をまたぐ変化には切替分が含まれる。`,
