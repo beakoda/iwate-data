@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MUNIS, muniBySlug, econAt2, econSeries, econPrefAt, incomePerTaxpayer, popAt, fmt, fmtSigned, pct, rank, ECON_YEARS, LATEST_ECON, FIRST_ECON, MFG_GAP_YEAR } from '@/lib/data';
+import { MUNIS, muniBySlug, econAt2, econSeries, econPrefAt, incomePerTaxpayer, popAt, fmt, fmtSigned, pct, rank, ECON_YEARS, LATEST_ECON, LATEST_MFG, FIRST_ECON, MFG_GAP_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
 import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params; const m = muniBySlug(slug)!; const r = econAt2(m.code, LATEST_ECON)!;
+  const { slug } = await params; const m = muniBySlug(slug)!; const r = econAt2(m.code, LATEST_ECON)!, rm = econAt2(m.code, LATEST_MFG)!;
   return {
     title: `${m.name}の課税対象所得・製造品出荷額・耕地面積（${FIRST_ECON}〜${LATEST_ECON}年）`,
-    description: `${m.name}（岩手県）の納税義務者1人当たり課税対象所得は${LATEST_ECON}年に${fmt(incomePerTaxpayer(r))}円、製造品出荷額等は${fmt(r.mfg_shipment)}百万円、耕地面積は${fmt(r.farmland)}ha。県内33市町村の順位つき。`,
+    description: `${m.name}（岩手県）の納税義務者1人当たり課税対象所得は${LATEST_ECON}年に${fmt(incomePerTaxpayer(r))}円、製造品出荷額等は${LATEST_MFG}年に${fmt(rm.mfg_shipment)}百万円、耕地面積は${fmt(r.farmland)}ha。県内33市町村の順位つき。`,
     alternates: { canonical: `/economy/${m.slug}/` },
   };
 }
@@ -18,15 +18,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params; const m = muniBySlug(slug)!;
   const s = econSeries(m.code);
-  const r = econAt2(m.code, LATEST_ECON)!, r0 = econAt2(m.code, FIRST_ECON)!;
+  const r = econAt2(m.code, LATEST_ECON)!, r0 = econAt2(m.code, FIRST_ECON)!, rm = econAt2(m.code, LATEST_MFG)!;
   const pref = econPrefAt(LATEST_ECON);
   const per = incomePerTaxpayer(r), per0 = incomePerTaxpayer(r0), prefPer = incomePerTaxpayer(pref);
   const pop = popAt(m.code, LATEST_ECON)?.total ?? null;
-  const rows = MUNIS.map(mm => { const x = econAt2(mm.code, LATEST_ECON)!; return { m: mm, per: incomePerTaxpayer(x), mfg: x.mfg_shipment, farm: x.farmland, w: x.mfg_workers }; });
+  const rows = MUNIS.map(mm => { const x = econAt2(mm.code, LATEST_ECON)!, xm = econAt2(mm.code, LATEST_MFG)!; return { m: mm, per: incomePerTaxpayer(x), mfg: xm.mfg_shipment, farm: x.farmland, w: x.mfg_workers }; });
   const rI = rank(rows, x => x.per), rM = rank(rows, x => x.mfg), rF = rank(rows, x => x.farm), rW = rank(rows, x => x.w);
   const me = rows.find(x => x.m.code === m.code)!;
   const title = `${m.name}の課税対象所得・製造品出荷額・耕地面積（${FIRST_ECON}〜${LATEST_ECON}年）`;
-  const sentence = `${m.name}の納税義務者1人当たり課税対象所得は${LATEST_ECON}年に${fmt(per)}円で、岩手県内33市町村中${rI.get(me) ?? '—'}位（県平均${fmt(prefPer)}円）。製造品出荷額等は${fmt(r.mfg_shipment)}百万円（県内${rM.get(me) ?? '—'}位）、耕地面積は${fmt(r.farmland)}ha（県内${rF.get(me) ?? '—'}位）。`;
+  const sentence = `${m.name}の納税義務者1人当たり課税対象所得は${LATEST_ECON}年に${fmt(per)}円で、岩手県内33市町村中${rI.get(me) ?? '—'}位（県平均${fmt(prefPer)}円）。製造品出荷額等は${LATEST_MFG}年に${fmt(rm.mfg_shipment)}百万円（県内${rM.get(me) ?? '—'}位）、耕地面積は${fmt(r.farmland)}ha（県内${rF.get(me) ?? '—'}位）。`;
   const merged = [...new Set(s.flatMap(x => x.merged || []))];
   return (
     <>
@@ -37,13 +37,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <MuniStrip family="economy" current={m.code} />
       <p className="key-fact">
         {m.name}の納税義務者1人当たり課税対象所得は{LATEST_ECON}年に<strong>{fmt(per)}円</strong>（{FIRST_ECON}年比{fmtSigned(pct(per, per0), '%')}）で、岩手県内<strong>{rI.get(me) ?? '—'}位</strong>（県平均{fmt(prefPer)}円）。
-        製造品出荷額等は<strong>{fmt(r.mfg_shipment)}百万円</strong>で県内{rM.get(me) ?? '—'}位、耕地面積は{fmt(r.farmland)}haで県内{rF.get(me) ?? '—'}位。
+        製造品出荷額等は{LATEST_MFG}年に<strong>{fmt(rm.mfg_shipment)}百万円</strong>で県内{rM.get(me) ?? '—'}位、耕地面積は{fmt(r.farmland)}haで県内{rF.get(me) ?? '—'}位。
       </p>
       <div className="stats">
         <div className="stat"><div className="stat-label">1人当たり課税対象所得（{LATEST_ECON}年）</div><div className="stat-value">{fmt(per)}</div><div className="stat-sub">円・県内 {rI.get(me) ?? '—'}位（県平均 {fmt(prefPer)}円）</div></div>
         <div className="stat"><div className="stat-label">課税対象所得の総額</div><div className="stat-value">{fmt(r.taxable_income)}</div><div className="stat-sub">千円・納税義務者 {fmt(r.taxpayers)}人</div></div>
         {pop && <div className="stat"><div className="stat-label">人口に対する納税義務者の割合</div><div className="stat-value">{Math.round((r.taxpayers ?? 0) / pop * 1000) / 10}</div><div className="stat-sub">%（住民基本台帳人口 {fmt(pop)}人）</div></div>}
-        <div className="stat"><div className="stat-label">製造品出荷額等</div><div className="stat-value">{fmt(r.mfg_shipment)}</div><div className="stat-sub">百万円・県内 {rM.get(me) ?? '—'}位</div></div>
+        <div className="stat"><div className="stat-label">製造品出荷額等（{LATEST_MFG}年）</div><div className="stat-value">{fmt(rm.mfg_shipment)}</div><div className="stat-sub">百万円・県内 {rM.get(me) ?? '—'}位</div></div>
         <div className="stat"><div className="stat-label">製造業（{LATEST_ECON}年）</div><div className="stat-value">{fmt(r.mfg_estab)}</div><div className="stat-sub">事業所・従業者 {fmt(r.mfg_workers)}人・県内 {rW.get(me) ?? '—'}位</div></div>
         <div className="stat"><div className="stat-label">耕地面積</div><div className="stat-value">{fmt(r.farmland)}</div><div className="stat-sub">ha・県内 {rF.get(me) ?? '—'}位・{FIRST_ECON}年比 {fmtSigned(pct(r.farmland, r0.farmland), '%')}</div></div>
       </div>
@@ -82,6 +82,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         '「課税対象所得」は市町村民税の所得割の課税対象となった前年の所得の合計（千円）で、住民の平均年収ではない。「1人当たり」は課税対象所得÷納税義務者数（所得割）で本サイトの計算値。所得のない人・課税されない人は分母に入らない。',
         `製造業の事業所数・従業者数は${MFG_GAP_YEAR}年が空欄（工業統計調査が経済センサス‐活動調査に統合された年で、市区町村別の収録がない）。製造業は従業者4人以上の事業所が対象。`,
         '耕地面積は有効3桁で丸められた値。',
+        ...(ECON_YEARS.includes(2024) ? ['2024年（令和6年度）は納税義務者数（所得割）が前年比で大きく減っており（33市町村計で約7%減）、1人当たり課税対象所得は前年までと連続しない可能性がある。令和6年度は個人住民税の定額減税が実施された年。'] : []),
+        ...(LATEST_MFG < LATEST_ECON ? [`製造品出荷額等は${LATEST_MFG}年が最新（${LATEST_ECON}年分は未公表）。`] : []),
         ...(merged.length ? [`合併前の${merged.join('・')}の値を合算している。`] : []),
       ]} />
     </>
