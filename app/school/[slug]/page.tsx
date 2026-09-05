@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, schoolAt, schoolSeries, schoolPrefAt, pupilsPerSchool, censusAt, fmt, fmtSigned, pct, rank, SCHOOL_YEARS, LATEST_SCHOOL, FIRST_SCHOOL } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -34,6 +34,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/school/${m.slug}/`}
         keywords={[m.name, '小学校', '中学校', '幼稚園', '児童数', '生徒数', '教員数', '学校基本調査', '岩手県']} temporal={`${FIRST_SCHOOL}/${LATEST_SCHOOL}`} sourceKeys={['school']} />
       <h1>{title}</h1>
+      <MuniStrip family="school" current={m.code} />
       <p className="key-fact">
         {m.name}の小学校は{LATEST_SCHOOL}年に<strong>{fmt(r.es)}校・児童{fmt(r.es_pupils)}人</strong>。{FIRST_SCHOOL}年（{fmt(r0.es)}校・{fmt(r0.es_pupils)}人）から学校は<strong>{fmtSigned((r.es ?? 0) - (r0.es ?? 0), '校')}</strong>、児童は<strong>{fmtSigned(pct(r.es_pupils, r0.es_pupils), '%')}</strong>。
         1校当たり<strong>{fmt(pps)}人</strong>で岩手県内{rP.get(me) ?? '—'}位（県平均{fmt(prefPps)}人）。中学校は{fmt(r.jhs)}校・生徒{fmt(r.jhs_students)}人。
@@ -46,6 +47,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">中学校（{LATEST_SCHOOL}年）</div><div className="stat-value">{fmt(r.jhs)}</div><div className="stat-sub">校・生徒 {fmt(r.jhs_students)}人・教員 {fmt(r.jhs_teachers)}人</div></div>
         <div className="stat"><div className="stat-label">高校・幼稚園（{LATEST_SCHOOL}年）</div><div className="stat-value">{fmt(r.hs)}</div><div className="stat-sub">高校（生徒 {fmt(r.hs_students)}人）・幼稚園 {fmt(r.kg)}園（{fmt(r.kg_pupils)}人）</div></div>
       </div>
+      <Tools family="school" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の児童・生徒数（${FIRST_SCHOOL}〜${LATEST_SCHOOL}年、人）`} unit="人" zero
         series={[
           { label: '小学校 児童数', points: s.map(x => ({ x: x.year, y: x.es_pupils ?? 0 })) },
@@ -76,6 +78,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="児童生徒数" />
       <CiteBox title={title} path={`/school/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['school']} extra={[
         '学校の所在地でカウントしており、その市町村に住む子どもの数ではない。高校は県立・私立を含み、通学区域は市町村をまたぐ。',
