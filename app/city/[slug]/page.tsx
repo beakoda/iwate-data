@@ -63,6 +63,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工・建築着工<small>居住専用住宅の着工棟数・床面積 2011〜2024年</small></Link></li>
         <li><Link href={`/medical/${m.slug}/`}>{m.name}の病院・病床・医師<small>病院数・病床数・医師数・薬剤師数 2010〜2023年</small></Link></li>
         <li><Link href={`/welfare/${m.slug}/`}>{m.name}の介護施設・国保<small>特別養護老人ホーム・有料老人ホームの定員 2010〜2023年</small></Link></li>
+        <li><Link href={`/school/${m.slug}/`}>{m.name}の学校・児童生徒<small>幼稚園・小中高の学校数と児童生徒数 2010〜2023年</small></Link></li>
+        <li><Link href={`/economy/${m.slug}/`}>{m.name}の所得・製造業・農地<small>課税対象所得・製造品出荷額・耕地面積 2010〜2023年</small></Link></li>
+        <li><Link href={`/garbage/${m.slug}/`}>{m.name}のごみ・生活インフラ<small>ごみ排出量・リサイクル率・水洗化率 2010〜2023年度</small></Link></li>
         <li><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡・婚姻・離婚<small>人口動態調査 2010〜2023年・自然増減つき</small></Link></li>
         <li><Link href={`/household/${m.slug}/`}>{m.name}の世帯・高齢世帯<small>一般世帯・単独世帯・65歳以上の単独世帯 国勢調査</small></Link></li>
       </ul>
