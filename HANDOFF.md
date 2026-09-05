@@ -21,7 +21,8 @@
 - リモート: `https://github.com/beakoda/iwate-data.git`（Public、**全33ファイル反映済み**）。`main` が正。作業前に必ず `git pull`
 - ローカルにクローンが無ければ `git clone https://github.com/beakoda/iwate-data.git`
 - ビルド: 121ページ生成成功。全33市町村の主要数値を raw CSV と突き合わせ検算済み
-- デプロイ: **未実施**。**Cloudflare Pages に決定**（理由は下記）
+- デプロイ: **稼働中** → https://iwate-data.pages.dev （Cloudflare Pages プロジェクト `iwate-data`、`main` への push で自動デプロイ。理由は下記）
+- 環境変数 `NEXT_PUBLIC_SITE_URL` は現在 `https://iwate-data.pages.dev`（**暫定**）。独自ドメイン取得後に差し替えること
 - ドメイン: `iwate-data.jp` が空きで第一候補（未取得。お名前.com等で取得し、NSをCloudflareへ）
 
 ### デプロイ先を Cloudflare Pages にした理由（2026-09-04 決定）
@@ -37,7 +38,7 @@ Cloudflare Pages の設定値:
 | Framework preset | Next.js (Static HTML Export) |
 | Build command | `npm run build` |
 | Build output directory | `out` |
-| 環境変数 | `NEXT_PUBLIC_SITE_URL=https://iwate-data.jp` |
+| 環境変数 | `NEXT_PUBLIC_SITE_URL`（現在は暫定で `https://iwate-data.pages.dev`） |
 
 リポジトリ側は対応済み:
 
@@ -119,8 +120,8 @@ npx serve out    # 静的出力の確認
 **A. 公開まで（最優先・順番通り）**
 
 1. ~~GitHubへ反映~~ **完了**（全33ファイル、内容ハッシュ一致・クローンからのビルド成功を確認済み）
-2. Cloudflare Pages で GitHub 連携プロジェクトを作成 → 本番デプロイ（設定値は §2 の表）。以後 push で自動デプロイ
-3. `iwate-data.jp` を取得（お名前.com等）→ NSをCloudflareへ向ける → Pages のカスタムドメインに設定 → 環境変数 `NEXT_PUBLIC_SITE_URL=https://iwate-data.jp`（canonical/JSON-LD/sitemapがこれを見る）
+2. ~~Cloudflare Pages 連携・デプロイ~~ **完了**（121ページ配信・404・sitemap・キャッシュヘッダーまで実地検証済み）
+3. `iwate-data.jp` を取得（お名前.com等）→ NSをCloudflareへ向ける → Pages のカスタムドメインに設定 → **環境変数 `NEXT_PUBLIC_SITE_URL` を `https://iwate-data.jp` に変更して再デプロイ**（canonical/JSON-LD/sitemapがこれを見るので、変更を忘れると pages.dev を正規URLとして出し続ける）
 4. Google Search Console に登録、sitemap 送信、90日計測を開始
 
 **B. データ拡張（公開後）**
@@ -137,5 +138,6 @@ npx serve out    # 静的出力の確認
 ## 7. 未解決・注意
 
 - クラウド上のClaudeセッションからは `git push` できない（gitプロキシがセッション許可リポ外にcredentialを出さず403）。初回投入はGitHubのWebアップロードで行ったため、コミット履歴は `Add files via upload` が並んでいる（内容は検証済みで正）。**以降の push はローカルのCLIから行う**
+- `public/_headers` はマッチするルールが**すべて**適用され、同名ヘッダーは連結される。`/*` に `Cache-Control` を書くと `/_next/static/*` の immutable 指定と二重になって壊れる（一度やらかして修正済み）。Cache-Control は個別ルールにだけ置くこと
 - 経済センサス2021に産業大分類 A/B が別掲されず、`AB`（農林漁業）1本に統合してある。中分類展開時に再検討
 - 住基人口は2013年からしかないため、人口10万対の指標は2012年以降しか出せない
