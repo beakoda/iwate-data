@@ -382,3 +382,90 @@ export function pupilsPerSchool(n: number | null | undefined, schools: number | 
   if (n == null || !schools) return null;
   return Math.round((n / schools) * 10) / 10;
 }
+
+/* ===== 労働力・完全失業率（国勢調査 2010/2015/2020） ===== */
+export type JoblessRec = {
+  labor: number | null; workers: number | null; jobless: number | null; workers65: number | null; merged: string[];
+};
+const jobless = (ds as any).jobless as Record<string, Record<string, JoblessRec>>;
+export const JOBLESS_YEARS: number[] = (ds as any).joblessYears;
+export const LATEST_JOBLESS = JOBLESS_YEARS[JOBLESS_YEARS.length - 1];
+export const FIRST_JOBLESS = JOBLESS_YEARS[0];
+export function joblessAt(code: string, year: number): JoblessRec | undefined { return jobless[code]?.[String(year)]; }
+export function joblessSeries(code: string) {
+  return JOBLESS_YEARS.map(y => ({ year: y, ...(jobless[code]?.[String(y)] as JoblessRec) })).filter(r => r.labor != null);
+}
+export function joblessPrefAt(year: number): JoblessRec {
+  const acc: any = { labor: 0, workers: 0, jobless: 0, workers65: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = joblessAt(m.code, year); if (!r) continue;
+    for (const k of ['labor', 'workers', 'jobless', 'workers65'] as const) if (r[k] != null) acc[k] += r[k] as number;
+  }
+  return acc as JoblessRec;
+}
+/** 完全失業率(%) = 完全失業者 ÷ 労働力人口 */
+export function joblessRate(r: { jobless: number | null; labor: number | null } | undefined): number | null {
+  if (!r || r.jobless == null || !r.labor) return null;
+  return Math.round((r.jobless / r.labor) * 1000) / 10;
+}
+/** 就業者に占める65歳以上の割合(%) */
+export function elderWorkerShare(r: { workers65: number | null; workers: number | null } | undefined): number | null {
+  if (!r || r.workers65 == null || !r.workers) return null;
+  return Math.round((r.workers65 / r.workers) * 1000) / 10;
+}
+
+/* ===== 最終学歴人口（国勢調査 2010/2020） ===== */
+export type EduRec = {
+  grad_total: number | null; grad_jhs: number | null; grad_hs: number | null;
+  grad_col: number | null; grad_univ: number | null; merged: string[];
+};
+const education = (ds as any).education as Record<string, Record<string, EduRec>>;
+export const EDU_YEARS: number[] = (ds as any).eduYears;
+export const LATEST_EDU = EDU_YEARS[EDU_YEARS.length - 1];
+export const FIRST_EDU = EDU_YEARS[0];
+export function eduAt(code: string, year: number): EduRec | undefined { return education[code]?.[String(year)]; }
+export function eduSeries(code: string) {
+  return EDU_YEARS.map(y => ({ year: y, ...(education[code]?.[String(y)] as EduRec) })).filter(r => r.grad_total != null);
+}
+export function eduPrefAt(year: number): EduRec {
+  const acc: any = { grad_total: 0, grad_jhs: 0, grad_hs: 0, grad_col: 0, grad_univ: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = eduAt(m.code, year); if (!r) continue;
+    for (const k of ['grad_total', 'grad_jhs', 'grad_hs', 'grad_col', 'grad_univ'] as const) if (r[k] != null) acc[k] += r[k] as number;
+  }
+  return acc as EduRec;
+}
+/** 卒業者に占める割合(%) */
+export function eduShare(n: number | null | undefined, total: number | null | undefined): number | null {
+  if (n == null || !total) return null;
+  return Math.round((n / total) * 1000) / 10;
+}
+
+/* ===== 農家数・耕作放棄地（農林業センサス 2009/2014/2019） ===== */
+export type FarmRec = {
+  sales_farms: number | null; self_farms: number | null; full_farms: number | null;
+  part_farms: number | null; abandoned: number | null; merged: string[];
+};
+const farm = (ds as any).farm as Record<string, Record<string, FarmRec>>;
+export const FARM_YEARS: number[] = (ds as any).farmYears;
+export const LATEST_FARM = FARM_YEARS[FARM_YEARS.length - 1];
+export const FIRST_FARM = FARM_YEARS[0];
+/** 耕作放棄地が調査された最後の年（2020年センサスでは廃止） */
+export const LAST_ABANDONED_YEAR = 2014;
+export function farmAt(code: string, year: number): FarmRec | undefined { return farm[code]?.[String(year)]; }
+export function farmSeries(code: string) {
+  return FARM_YEARS.map(y => ({ year: y, ...(farm[code]?.[String(y)] as FarmRec) })).filter(r => r.sales_farms != null);
+}
+export function farmPrefAt(year: number): FarmRec {
+  const acc: any = { sales_farms: 0, self_farms: 0, full_farms: 0, part_farms: 0, abandoned: 0, merged: [] };
+  for (const m of MUNIS) {
+    const r = farmAt(m.code, year); if (!r) continue;
+    for (const k of ['sales_farms', 'self_farms', 'full_farms', 'part_farms', 'abandoned'] as const) if (r[k] != null) acc[k] += r[k] as number;
+  }
+  return acc as FarmRec;
+}
+/** 総農家数 = 販売農家 + 自給的農家 */
+export function totalFarms(r: { sales_farms: number | null; self_farms: number | null } | undefined): number | null {
+  if (!r || r.sales_farms == null || r.self_farms == null) return null;
+  return r.sales_farms + r.self_farms;
+}
