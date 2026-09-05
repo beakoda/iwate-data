@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, medAt, medSeries, medPrefAt, per100kMed, popAt, dentalAt, fmt, fmtSigned, pct, rank, MED_YEARS, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -42,6 +42,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <DatasetJsonLd name={title} description={sentence} path={`/medical/${m.slug}/`}
         keywords={[m.name, '病院数', '病床数', '医師数', '歯科医師数', '薬剤師数', '医療施設調査', '岩手県']} temporal={`${FIRST_MED}/${LATEST_MED}`} sourceKeys={['medical']} />
       <h1>{title}</h1>
+      <MuniStrip family="medical" current={m.code} />
       <p className="key-fact">
         {noHosp
           ? <>{m.name}には{LATEST_MED}年時点で<strong>病院（病床20床以上）が1つもない</strong>。一般診療所{fmt(r.clinics)}施設・歯科診療所{fmt(r.dental_clinics)}施設で、一般診療所の病床は{fmt(r.clinic_beds)}床。</>
@@ -58,6 +59,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">一般診療所（{LATEST_MED}年）</div><div className="stat-value">{fmt(r.clinics)}</div><div className="stat-sub">施設・病床 {fmt(r.clinic_beds)}床</div></div>
         <div className="stat"><div className="stat-label">歯科診療所（{LATEST_MED}年）</div><div className="stat-value">{fmt(r.dental_clinics)}</div><div className="stat-sub">施設 → <Link href={`/dental/${m.slug}/`}>推移を見る</Link></div></div>
       </div>
+      <Tools family="medical" slug={m.slug} label={`${m.name}の全年データ`} />
       <LineChart title={`${m.name}の病床数（${FIRST_MED}〜${LATEST_MED}年、床）`} unit="床" zero
         series={[
           { label: '病院病床', points: s.map(x => ({ x: x.year, y: x.hosp_beds ?? 0 })) },
@@ -82,6 +84,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="医師数・病床数" />
       <CiteBox title={title} path={`/medical/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['medical']} extra={[
         '病院は病床20床以上、一般診療所は19床以下（無床を含む）。病床は所在地の市町村に計上され、その市町村の住民が使う病床数ではない。',
