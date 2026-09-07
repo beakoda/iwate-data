@@ -35,12 +35,17 @@ echo "== build_data (検算 assert。ここで止まったら raw を直すか S
 python3 scripts/build_data.py
 python3 scripts/build_map.py
 
-echo "== next build（ページが全部生成できるか）"
-[ -d node_modules ] || npm ci --no-audit --no-fund
-npx next build >/tmp/iwate-next.log 2>&1 || { tail -30 /tmp/iwate-next.log; echo "RESULT: FAIL next build"; exit 1; }
-PAGES=$(grep -c '<loc>' out/sitemap.xml || true)
-echo "sitemap pages: $PAGES"
-[ "$PAGES" -ge 1086 ] || { echo "RESULT: FAIL sitemap has $PAGES pages (<1086)"; exit 1; }
+PAGES=skipped
+if [ -z "${SKIP_BUILD:-}" ] && command -v npx >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
+  echo "== next build（node がある時だけ）"
+  [ -d node_modules ] || npm ci --no-audit --no-fund
+  npx next build >/tmp/iwate-next.log 2>&1 || { tail -30 /tmp/iwate-next.log; echo "RESULT: FAIL next build"; exit 1; }
+  PAGES=$(grep -c '<loc>' out/sitemap.xml || true)
+  echo "sitemap pages: $PAGES"
+  [ "$PAGES" -ge 1086 ] || { echo "RESULT: FAIL sitemap has $PAGES pages (<1086)"; exit 1; }
+else
+  echo "== next build スキップ（node不在）。データ検算は build_data.py 済み"
+fi
 
 echo "== commit / push"
 git add raw/ssds data/dataset.json
