@@ -37,6 +37,8 @@ python3 scripts/build_map.py
 
 PAGES=skipped
 if [ -z "${SKIP_BUILD:-}" ] && command -v npx >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
+  PAGES=skipped
+if [ -z "${SKIP_BUILD:-}" ] && command -v npx >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
   echo "== next build（node がある時だけ）"
   [ -d node_modules ] || npm ci --no-audit --no-fund
   npx next build >/tmp/iwate-next.log 2>&1 || { tail -30 /tmp/iwate-next.log; echo "RESULT: FAIL next build"; exit 1; }
