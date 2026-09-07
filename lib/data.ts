@@ -9,7 +9,7 @@ export type EconRec = { estab: number | null; workers: number | null; sales?: nu
 export const SITE = {
   name: 'いわてデータ',
   nameEn: 'iwate-data',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://iwate-data.jp',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://iwate-deta.com',
   publisher: 'ビークプロモーション株式会社',
   publisherUrl: 'https://beak-promo.jp/',
   description: '岩手県33市町村の公的統計を、市町村×業種の粒度で整理して公開するデータサイト。出典はすべて政府統計（e-Stat）。',
