@@ -45,7 +45,7 @@ echo "sitemap pages: $PAGES"
 echo "== commit / push"
 git add raw/ssds data/dataset.json
 if git diff --cached --quiet; then echo "RESULT: NOCHANGE $STAMP (nothing to commit)"; exit 0; fi
-git -c user.name="iwate-data bot" -c user.email="bot@iwate-data.jp" commit -q -m "data: e-Stat update $STAMP ($(grep '^changed:' /tmp/iwate-fetch.log | cut -d' ' -f2-))"
+git -c user.name="iwate-data bot" -c user.email="bot@iwate-deta.com" commit -q -m "data: e-Stat update $STAMP ($(grep '^changed:' /tmp/iwate-fetch.log | cut -d' ' -f2-))"
 git push -q
 
 if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
