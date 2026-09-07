@@ -257,7 +257,7 @@ npx serve out    # 静的出力の確認
 1. ~~GitHubへ反映~~ **完了**（全33ファイル、内容ハッシュ一致・クローンからのビルド成功を確認済み）
 2. ~~Cloudflare Pages 連携・デプロイ~~ **完了**（121ページ→643ページに拡張、配信・404・sitemap・キャッシュヘッダーまで実地検証済み）
 3. ~~ドメイン取得 → NS変更 → Pages カスタムドメイン → `NEXT_PUBLIC_SITE_URL` 差し替え~~ **完了（2026-09-07）**: iwate-data.com。apex＋www を Pages に登録、www→apex は Redirect Rule で301、`NEXT_PUBLIC_SITE_URL=https://iwate-data.com` で再デプロイ済み
-4. Google Search Console に登録、sitemap 送信、90日計測を開始
+4. ~~Google Search Console に登録、sitemap 送信~~ **完了（2026-09-07）**: ドメインプロパティ `sc-domain:iwate-data.com` を DNS TXT で所有権確認、`https://iwate-data.com/sitemap.xml` を送信して「成功しました / 検出 1,086 ページ」を確認。ここから90日計測
 
 **B. データ拡張（公開後）**
 
@@ -289,10 +289,10 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - **埋め込みウィジェット** `/embed/city/{slug}/` と、cityページの埋め込みコード表示
 - モバイルのヘッダーナビを横スクロール1行に（5行→1行）。印刷CSS
 
-**MCPサーバー（2026-09-05 追加、`mcp/`）**: 同じ dataset.json を Cloudflare Worker に同梱し、ステートレスな MCP Streamable HTTP（POST /mcp）で6ツール＋15リソースを出す。公式SDKクライアント（`mcp/test/client.mjs`）で全ツールの実通信テスト済み。バンドルは gzip 後 122KB で無料枠（3MB）内。**デプロイはまだ**（wrangler login が要るのでコンテナからはできない）。手順は `mcp/README.md`。カスタムドメインは `mcp.iwate-data.com` を想定。列定義 `mcp/src/catalog.ts` は `lib/csv.ts` と手で同期している（列を足したら両方）
+**MCPサーバー（2026-09-05 追加、`mcp/`）**: 同じ dataset.json を Cloudflare Worker に同梱し、ステートレスな MCP Streamable HTTP（POST /mcp）で6ツール＋15リソースを出す。公式SDKクライアント（`mcp/test/client.mjs`）で全ツールの実通信テスト済み。バンドルは gzip 後 122KB で無料枠（3MB）内。**本番稼働中（2026-09-07）→ https://mcp.iwate-data.com/mcp** （Cloudflare Worker `iwate-data-mcp`。GitHub 連携の Workers Builds で main への push ごとに自動再デプロイ。ビルド設定は root=/・build `cd mcp && npm install --no-audit --no-fund`・deploy `cd mcp && npx wrangler deploy`。workers.dev は https://iwate-data-mcp.oda-2ba.workers.dev/mcp）。手順は `mcp/README.md`。列定義 `mcp/src/catalog.ts` は `lib/csv.ts` と手で同期している（列を足したら両方）
 
 残っている手作業（コードでは出来ない）:
-7. **MCPを `cd mcp && npx wrangler login && npm run deploy` でデプロイ** → Worker にカスタムドメイン `mcp.iwate-data.com` → Claude.ai のコネクタに登録して動作確認 → サイトのフッターか `/data/` に MCP の案内を足す
+7. ~~MCPのデプロイとカスタムドメイン~~ **完了（2026-09-07）**: https://mcp.iwate-data.com/mcp が稼働（tools/list で6ツール応答を実測確認）。main への push で自動再デプロイされるので、月次のデータ更新がそのまま MCP にも反映される。残り: Claude.ai のコネクタに登録して動作確認 → サイトのフッターか `/data/` に MCP の案内を足す
 8. **`NEXT_PUBLIC_BUY_URL` を Cloudflare Pages の環境変数に設定**（Stripe Payment Link が最短。BOOTH/noteでも可）。設定して再デプロイするまで /data/ の購入ボタンは問い合わせフォームに向く
 9. 販売用Excelは `npm run build && npm run xlsx` で `dist/` に出る。**リポジトリには入れない**（`.gitignore` 済み）。決済サービス側にファイルを置く
 10. beak-promo.jp 側で `?ref=iwate-data` の流入をGA4のイベント／探索で追えるようにする

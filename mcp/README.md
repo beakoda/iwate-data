@@ -29,13 +29,15 @@ cd mcp
 npm install
 npm run dev            # http://localhost:8787/mcp
 npm test               # 公式SDKのクライアントで全ツールを叩く
-npx wrangler login     # 初回のみ
-npm run deploy         # → https://iwate-data-mcp.<account>.workers.dev
+npx wrangler login     # 手動デプロイする時だけ（通常は不要）
+npm run deploy         # → https://iwate-data-mcp.oda-2ba.workers.dev
 ```
 
-デプロイ後、Cloudflare ダッシュボードで Worker にカスタムドメイン `mcp.iwate-data.com` を付ける（Workers → iwate-data-mcp → Settings → Domains & Routes）。
+**通常は手動デプロイ不要。** Cloudflare の Workers Builds が GitHub リポジトリ（beakoda/iwate-data）に連携済みで、`main` への push ごとに自動でビルド・デプロイされる。
+ビルド設定（Workers & Pages → iwate-data-mcp → Settings → Build）: root directory `/`、build command `cd mcp && npm install --no-audit --no-fund`、deploy command `cd mcp && npx wrangler deploy`。
+カスタムドメイン `mcp.iwate-data.com` 設定済み。
 
-`data/dataset.json` を更新したら `npm run deploy` し直す（バンドルしているため）。
+`data/dataset.json` はバンドルしているが、更新して push すれば自動で再デプロイされるので手作業は不要。
 
 ## クライアント側の登録
 
