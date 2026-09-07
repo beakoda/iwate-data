@@ -28,7 +28,7 @@ npm run xlsx       # build後に out/csv → dist/*.xlsx（販売用Excel。コ�
 npm run build      # next build → out/（Cloudflare Pagesが叩くのはこれ）
 npx serve out
 ```
-本番URLは `NEXT_PUBLIC_SITE_URL`（既定 https://iwate-data.jp）。canonical / JSON-LD / sitemap に使う。
+本番URLは `NEXT_PUBLIC_SITE_URL`（既定 https://iwate-deta.com）。canonical / JSON-LD / sitemap に使う。
 
 ## 各ページの型（記者キーワード設計）
 1. H1 = 「◯◯市の△△の推移（年〜年）」
