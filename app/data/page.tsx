@@ -44,11 +44,11 @@ export default function Page() {
           <thead><tr><th>シート</th><th>指標</th><th>年</th><th>行数</th><th>無料CSV</th></tr></thead>
           <tbody>
             {fams.map(([key, f]) => (
-              <tr key={key}><td>{f.label}</td><td style={{ whiteSpace: 'normal', textAlign: 'left' }}>{f.cols.map(c => c[1]).join('・')}</td>
+              <tr key={key}><td>{f.label}</td><td className="wrap">{f.cols.map(c => c[1]).join('・')}</td>
                 <td>{f.years[0]}〜{f.years[f.years.length - 1]}{f.yearLabel ?? '年'}（{f.years.length}時点）</td>
                 <td>{(MUNIS.length * f.years.length).toLocaleString('ja-JP')}</td>
                 <td><a href={`/csv/${key}/all.csv`} download>CSV</a></td></tr>))}
-            <tr><td>出典・注記</td><td style={{ whiteSpace: 'normal', textAlign: 'left' }}>各分野の統計名・表名・URL・時点・注意点（合併の扱い、率の計算方法、系列の切れ目）</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>出典・注記</td><td className="wrap">各分野の統計名・表名・URL・時点・注意点（合併の扱い、率の計算方法、系列の切れ目）</td><td>—</td><td>—</td><td>—</td></tr>
           </tbody>
         </table>
       </div>
