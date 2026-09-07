@@ -56,6 +56,8 @@ th:first-child { background: var(--gray-50); }
 tr.hl td { background: var(--blue-50); font-weight: 700; }
 td.neg { color: #B03A2E; }
 td.pos { color: #197A4B; }
+/* 長文セル: 折り返すが最低幅を確保し、狭い画面では表ごと横スクロールさせる（1文字ずつ改行させない） */
+td.wrap { white-space: normal; text-align: left; min-width: 22em; max-width: 34em; line-height: 1.5; }
 
 .sources, .cite { margin-top: var(--sp-6); padding: var(--sp-3); background: var(--gray-50); border-radius: 8px; }
 .sources h2, .cite h2 { margin-top: 0; font-size: 20px; }
