@@ -4,7 +4,7 @@
 import ds from '../../data/dataset.json';
 import { DATASETS, DERIVED, type Dataset } from './catalog';
 
-const SITE = 'https://iwate-deta.com';
+const SITE = 'https://iwate-data.com';
 const SERVER = { name: 'iwate-data', version: '1.0.0' };
 const PROTOCOL = '2025-06-18';
 

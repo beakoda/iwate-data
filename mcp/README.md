@@ -33,12 +33,12 @@ npx wrangler login     # 初回のみ
 npm run deploy         # → https://iwate-data-mcp.<account>.workers.dev
 ```
 
-デプロイ後、Cloudflare ダッシュボードで Worker にカスタムドメイン `mcp.iwate-deta.com` を付ける（Workers → iwate-data-mcp → Settings → Domains & Routes）。
+デプロイ後、Cloudflare ダッシュボードで Worker にカスタムドメイン `mcp.iwate-data.com` を付ける（Workers → iwate-data-mcp → Settings → Domains & Routes）。
 
 `data/dataset.json` を更新したら `npm run deploy` し直す（バンドルしているため）。
 
 ## クライアント側の登録
 
-- Claude.ai: 設定 → コネクタ → カスタムコネクタを追加 → `https://mcp.iwate-deta.com/mcp`
-- Claude Code: `claude mcp add --transport http iwate-data https://mcp.iwate-deta.com/mcp`
+- Claude.ai: 設定 → コネクタ → カスタムコネクタを追加 → `https://mcp.iwate-data.com/mcp`
+- Claude Code: `claude mcp add --transport http iwate-data https://mcp.iwate-data.com/mcp`
 - Cursor / その他: Streamable HTTP の URL として同じものを登録

@@ -1,6 +1,6 @@
 # いわてデータ MCP サーバー
 # デプロイ: cd mcp && npx wrangler login && npx wrangler deploy
-# 本番URL: https://iwate-data-mcp.<account>.workers.dev/mcp → カスタムドメインで https://mcp.iwate-deta.com/mcp に付け替える
+# 本番URL: https://iwate-data-mcp.<account>.workers.dev/mcp → カスタムドメインで https://mcp.iwate-data.com/mcp に付け替える
 name = "iwate-data-mcp"
 main = "src/index.ts"
 compatibility_date = "2025-06-01"
