@@ -114,6 +114,9 @@ td.wrap { white-space: normal; text-align: left; min-width: 22em; max-width: 34e
 .cta { margin: var(--sp-6) 0 0; padding: var(--sp-3); border: 2px solid var(--blue-900); border-radius: 8px; background: #fff; }
 .cta h2 { border: 0; padding: 0; margin: 0 0 var(--sp-1); font-size: 20px; }
 .cta p { margin-bottom: var(--sp-2); }
+/* CTAのボタンは .tools（flex + gap）で並べる。ここだけ主要導線なので少し大きめ・スマホでは横幅いっぱい */
+.cta .btn { padding: 12px 20px; font-size: 15px; }
+@media (max-width: 480px) { .cta .btn { width: 100%; justify-content: center; } }
 
 /* 埋め込み */
 .embed-box textarea { width: 100%; font-family: ui-monospace, Menlo, monospace; font-size: 13px; padding: 10px; border: 1px solid var(--gray-200); border-radius: 6px; min-height: 84px; }

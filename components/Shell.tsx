@@ -97,8 +97,10 @@ export function Cta({ muni, topic }: { muni?: string; topic?: string }) {
     <section className="cta" aria-label="お問い合わせ">
       <h2>{where}集客・開業・出店を考えている事業者の方へ</h2>
       <p>このページの{topic ? topic + 'などの' : ''}数字をもとに、商圏の見立てからWeb集客（ホームページ・広告・MEO・AI検索対策）までを、盛岡のビークプロモーションが引き受けます。初回の相談とデータの読み解きは無料です。</p>
-      <a className="btn primary" href={`${SITE.publisherUrl}contact/?ref=iwate-data`} rel="noopener">データをもとに相談する（無料）</a>
-      <a className="btn" href={SITE.publisherUrl} rel="noopener">ビークプロモーションについて</a>
+      <div className="tools">
+        <a className="btn primary" href={`${SITE.publisherUrl}contact/?ref=iwate-data`} rel="noopener">データをもとに相談する（無料）</a>
+        <a className="btn" href={SITE.publisherUrl} rel="noopener">ビークプロモーションについて</a>
+      </div>
     </section>
   );
 }
