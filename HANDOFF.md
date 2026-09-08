@@ -156,7 +156,7 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 - 経済の2024年は課税対象所得・耕地面積・製造業事業所はあるが**製造品出荷額等が未公表**。`lib/data.ts` の `LATEST_MFG`（出荷額が33市町村すべて揃う最新年）で経済ページの出荷額系だけ年をずらしている。**2024年（令和6年度）は所得割の納税義務者数が前年比約7%減**（定額減税の年）で、1人当たり所得が不連続になりうる旨をページに注記済み
 - 旧 `raw/*_2010_2023.csv` 等は削除した。`raw/` 直下に残るのは SSDS 以外（歯科・住基・経済センサス・国勢調査・建築着工・財政）だけ
 
-**更新パイプライン（n8n、月1回）**: `scripts/update.sh` → `n8n/README.md` に VPS 側の手順。流れは pull → `fetch_estat.py`（差分なしなら終了）→ `build_data.py` の assert → `next build`（sitemap ≥1086）→ raw と dataset.json を commit/push（Pages が自動ビルド）→ `wrangler deploy`。**cron を有効にする前に VPS で `fetch_estat.py --check` が10系列すべて unchanged になることを確認する**（API から今の raw を完全再現できる＝取得ロジックが正しい証明。コンテナからは e-stat に届かないので未実施）。appId は環境変数 `ESTAT_APP_ID` のみ。
+**更新パイプライン（ホストcron、毎月3日04:00）**: `scripts/update.sh`。n8n は Docker 常駐でホストの /opt も python3 も見えないため Execute Command は使わず、VPS(rocky@os3-306) のホスト cron から直接叩く（`0 4 3 * * . $HOME/.iwate.env && bash /opt/iwate-data/scripts/update.sh >> $HOME/iwate-update.log 2>&1`）。流れは pull → `fetch_estat.py`（差分なしなら終了）→ `build_data.py` の assert → `next build`（sitemap ≥1086）→ raw と dataset.json を commit/push → Cloudflare Pages と MCP Worker が自動ビルド。認証は SSH デプロイキー `~/.ssh/iwate_deploy`、appId は `~/.iwate.env` の `ESTAT_APP_ID`（600、リポにもログにも書かない）。**2026-09-07 稼働開始**: `--check` で10系列 unchanged を実測確認済み、実データ更新（vital 2025 / household 年次）の commit/push も成功済み。
 
 **この統計表シリーズが今後の展開の本命**。分野ごとに市区町村データの表が分かれていて、岩手33市町村 × 1980〜2024年がまとめて取れる:
 
@@ -261,7 +261,7 @@ npx serve out    # 静的出力の確認
 
 **B. データ拡張（公開後）**
 
-5. ~~e-Stat API の appId を取得~~ **完了**。~~`scripts/fetch_estat.py` は未作成~~ **作成済み（2026-09-05）**。月次更新は `scripts/update.sh` ＋ `n8n/`。**残作業は VPS 側**: clone → `fetch_estat.py --check` で10系列 unchanged を確認 → n8n にワークフローをインポート → 環境変数 `ESTAT_APP_ID` / `CLOUDFLARE_API_TOKEN` をn8nプロセスに設定 → 有効化
+5. ~~e-Stat API の appId 取得・fetch_estat.py 作成・VPS での月次自動化~~ **完了（2026-09-07）**: VPS に git/python3/node を導入、`/opt/iwate-data` に clone、`~/.iwate.env`（ESTAT_APP_ID）と SSH デプロイキーを設定、ホスト cron（毎月3日04:00）を登録。n8n は使わない。
 6. 産業中分類（約95業種）へ展開。同じ `/industry/[ind]/` の型を使う
 7. **社会・人口統計体系は2026-09-05に全11分野（Ａ〜Ｋ）を洗い直した**。採用できるものは取り切ってあり、残る候補は次の3つだけ:
    - (a) **Ｄ行政基盤＝市町村財政** — 県計との5〜6%差の理由を確認できたら入れる。raw CSV は `raw/finance_2010_2022.csv` に取得済みで、`build_data.py` には未接続
@@ -296,7 +296,7 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 8. **`NEXT_PUBLIC_BUY_URL` を Cloudflare Pages の環境変数に設定**（Stripe Payment Link が最短。BOOTH/noteでも可）。設定して再デプロイするまで /data/ の購入ボタンは問い合わせフォームに向く
 9. 販売用Excelは `npm run build && npm run xlsx` で `dist/` に出る。**リポジトリには入れない**（`.gitignore` 済み）。決済サービス側にファイルを置く
 10. beak-promo.jp 側で `?ref=iwate-data` の流入をGA4のイベント／探索で追えるようにする
-11. **n8n 月次更新を VPS で有効化**（上記 B-5）。初回は `--check` で raw 再現を確認してから
+11. ~~月次更新を VPS で有効化~~ **完了（2026-09-07）**。ホスト cron で稼働中。ログは `~/iwate-update.log`
 12. PC-2 のローカルLLMで各ページに「地元の一言」（2〜3文）をバッチ生成 → `data/notes/*.md` として差し込み（大規模テンプレ判定を避ける意味でも、主要5市から）
 
 マネタイズの考え方（決定事項）:
