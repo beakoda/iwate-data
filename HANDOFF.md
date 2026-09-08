@@ -25,6 +25,7 @@
 - デプロイ: **稼働中** → https://iwate-data.pages.dev （Cloudflare Pages プロジェクト `iwate-data`、`main` への push で自動デプロイ。理由は下記）
 - 環境変数 `NEXT_PUBLIC_SITE_URL` は現在 `https://iwate-data.pages.dev`（**暫定**）。独自ドメイン取得後に差し替えること
 - ドメイン: **`iwate-data.com`（本番・取得済み。お名前.com）**。2026-09-07 に Cloudflare ゾーン追加・NS を mimi/noah.ns.cloudflare.com に変更・Pages カスタムドメイン（apex＋www、www→apex 301）・`NEXT_PUBLIC_SITE_URL=https://iwate-data.com` まで完了。canonical と sitemap(1086件) が iwate-data.com になっていることを実測確認済み。※綴りミスで一時取得した別ドメイン（data ではなく deta の方）は Pages・Cloudflare ゾーンとも削除済み
+- 公開URLは `https://iwate-data.com` の1本だけ。Pages の既定サブドメイン `iwate-data.pages.dev` は `functions/_middleware.js`（Pages Functions）で apex へ 301。除外パスは `public/_routes.json`（→ `out/_routes.json`）で指定し、`/_next/*` `/csv/*` などは関数を通さないので実行回数は実質HTMLのページビュー分だけ。Vercel は使っていない（アカウントにプロジェクト0件）
 
 ### デプロイ先を Cloudflare Pages にした理由（2026-09-04 決定）
 

@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": ["/_next/*", "/csv/*", "/embed/*", "/robots.txt", "/sitemap.xml", "/favicon.ico"]
+}
