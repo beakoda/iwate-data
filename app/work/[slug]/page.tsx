@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MUNIS, PREF, muniBySlug, censusAt, CENSUS_IND, CENSUS_IND_TO_SLUG, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS } from '@/lib/data';
+import { MUNIS, PREF, muniBySlug, censusAt, CENSUS_IND, CENSUS_IND_TO_SLUG, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS, industryBySlug, econAt } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
 import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
@@ -24,6 +24,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const me = rows.find(r => r.m.code === m.code)!;
   const inds = CENSUS_IND.map(ci => ({ ci, now: (c[ci.key] as number | null) ?? null, prev: (c0[ci.key] as number | null) ?? null }))
     .filter(x => x.ci.code !== 'T' || (x.now ?? 0) > 0 || (x.prev ?? 0) > 0);
+  /** クロスページ /industry/<ind>/<muni>/ が生成される条件（2021年の事業所数が公表されている）と同じ判定 */
+  const hasEstab = (indSlug: string) => {
+    const i = industryBySlug(indSlug); if (!i) return false;
+    return econAt(m.code, i.code)?.['2021']?.estab != null;
+  };
   const byW = [...inds].sort((a, b) => (b.now ?? -1) - (a.now ?? -1));
   const dn = c.dn_ratio != null ? Math.round(c.dn_ratio * 10) / 10 : null;
   const title = `${m.name}の就業者・産業別就業者数（${LATEST_CENSUS}年国勢調査）`;
@@ -57,7 +62,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
           <tbody>
             {byW.map(x => { const ch = pct(x.now, x.prev); const pv = (p[x.ci.key] as number | null) ?? null; const sl = CENSUS_IND_TO_SLUG[x.ci.key];
               return (<tr key={x.ci.key}>
-                <td>{sl ? <Link href={`/industry/${sl}/${m.slug}/`}>{x.ci.code} {x.ci.name}</Link> : `${x.ci.code} ${x.ci.name}`}</td>
+                <td>{sl && hasEstab(sl) ? <Link href={`/industry/${sl}/${m.slug}/`}>{x.ci.code} {x.ci.name}</Link> : sl ? <Link href={`/industry/${sl}/`}>{x.ci.code} {x.ci.name}</Link> : `${x.ci.code} ${x.ci.name}`}</td>
                 <td>{fmt(x.now)}</td><td>{fmt(x.prev)}</td>
                 <td className={x.now != null && x.prev != null && x.now - x.prev < 0 ? 'neg' : x.now != null && x.prev != null && x.now - x.prev > 0 ? 'pos' : ''}>{x.now != null && x.prev != null ? fmtSigned(x.now - x.prev) : '—'}</td>
                 <td className={ch != null && ch < 0 ? 'neg' : ch != null ? 'pos' : ''}>{fmtSigned(ch, '%')}</td>

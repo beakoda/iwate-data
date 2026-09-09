@@ -7,7 +7,8 @@
     "xlsx": "python3 scripts/build_xlsx.py",
     "dev": "next dev",
     "build": "next build",
-    "start": "npx serve out"
+    "start": "npx serve out",
+    "links": "python3 scripts/check_links.py"
   },
   "dependencies": {
     "next": "15.5.25",

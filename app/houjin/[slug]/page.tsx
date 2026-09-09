@@ -50,7 +50,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="stat"><div className="stat-label">有限会社の割合</div><div className="stat-value">{yug == null ? '—' : `${fmt(yug)}%`}</div><div className="stat-sub">{fmt(houjinAt(m.code, '有限会社'))}社・県平均 {fmt(prefYug)}%</div></div>
         <div className="stat"><div className="stat-label">{FIRST_HOUJIN_YEAR}年以降の新規</div><div className="stat-value">{fmt(recent)}</div><div className="stat-sub">社・閉鎖 {fmt(closed)}社</div></div>
         {pop && <div className="stat"><div className="stat-label">人口（{LATEST_POP}年1月1日）</div><div className="stat-value">{fmt(pop.total)}</div><div className="stat-sub">人 → <Link href={`/population/${m.slug}/`}>人口の推移を見る</Link></div></div>}
-        {estab != null && <div className="stat"><div className="stat-label">事業所数（2021年経済センサス）</div><div className="stat-value">{fmt(estab)}</div><div className="stat-sub">所 → <Link href={`/industry/all/${m.slug}/`}>産業別を見る</Link></div></div>}
+        {estab != null && <div className="stat"><div className="stat-label">事業所数（2021年経済センサス）</div><div className="stat-value">{fmt(estab)}</div><div className="stat-sub">所 → <Link href={`/city/${m.slug}/`}>産業別の内訳を見る</Link></div></div>}
       </div>
       <LineChart title={`${m.name}で新しく法人番号が指定された法人の数（${FIRST_HOUJIN_YEAR}〜${LATEST_HOUJIN_YEAR}年、社）`} unit="社" zero
         series={[{ label: '新規指定', points: HOUJIN_YEARS.map(y => ({ x: y, y: houjinNewAt(m.code, y) })) }]} />
@@ -76,7 +76,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       </div>
       <h2>{m.name}の他の統計</h2>
       <ul className="grid-links">
-        <li><Link href={`/industry/all/${m.slug}/`}>{m.name}の産業別事業所・従業者</Link></li>
+        <li><Link href="/industry/">産業大分類別の市町村ランキング</Link></li>
         <li><Link href={`/economy/${m.slug}/`}>{m.name}の所得・製造業</Link></li>
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>

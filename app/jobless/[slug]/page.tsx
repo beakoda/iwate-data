@@ -69,7 +69,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <ul className="grid-links">
         <li><Link href={`/work/${m.slug}/`}>{m.name}の産業別就業者・昼夜間人口</Link></li>
         <li><Link href={`/education/${m.slug}/`}>{m.name}の最終学歴</Link></li>
-        <li><Link href={`/industry/${m.slug}/`}>{m.name}の産業・事業所</Link></li>
+        <li><Link href="/industry/">産業大分類別の市町村ランキング</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
       <Cta muni={m.name} topic="完全失業率" />

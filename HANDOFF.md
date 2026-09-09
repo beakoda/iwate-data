@@ -276,6 +276,7 @@ npm run data     # raw/ → data/dataset.json（rawを更新したときだけ�
 ESTAT_APP_ID=xxxx bash scripts/update.sh --check   # e-Stat の新着確認（VPS/ローカル。コンテナからは不可）
 # crime / kaigo は update.sh の対象外。更新は §3「非 e-Stat データの取り方」を見て手作業
 npm run build    # next build → out/（Cloudflare Pagesが叩くのはこれ。Python不要）
+npm run links    # out/ の内部リンク・sitemapの実体チェック（ページを足したら必ず）
 npm run dev
 npx serve out    # 静的出力の確認
 ```
@@ -342,7 +343,7 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - **`/crime/` `/kaigo/` `/iryou/` `/haikou/` `/shofuku/` `/jiko/` `/houjin/` は月次 cron の対象外**（e-Stat 由来ではないため `fetch_estat.py` が見ていない）。放っておくと静かに古くなる。更新手順は §3「非 e-Stat データの取り方」
 - **MCP のカタログは `crime` と `traffic` だけ追加済み、`kaigo` `iryou` `schoolcode` `shofuku` `houjin` は未対応**。`mcp/src/catalog.ts` は `key[code][year]` の形しか扱えないが、`kaigo` は `kaigo[code][時点][サービス種別]`、`iryou` は `iryou[code][施設種別]`（年の軸が無い）と形が違うため。MCPで出すならカタログ側に対応を足すこと
 - **国土地理院「指定緊急避難場所・指定避難所データ」は未取得**。ダウンロードサイト（https://hinanmap.gsi.go.jp/）に利用規約への同意ボタンがあり、**規約同意はユーザー本人の判断が要る**ため踏んでいない。第三者提供時に注意事項を正確に伝える義務があるので、サイトに載せるなら注記の設計とセットで判断すること
-- **sitemap に無い壊れた内部リンクが72本ある**（`/industry/fudai/` のように、産業スラッグの位置に市町村スラッグが入っている）。`/jobless/[slug]/` など複数のページから出ている。sitemap には載っていないので検索影響は小さいが、リンク切れとしては残っている。未修正
+- ~~壊れた内部リンク72本~~ **修正済み（2026-09-09）**。原因は2つ。`/jobless/[slug]/` が `/industry/${m.slug}/`（産業スラッグの位置に市町村スラッグ）を出していたのと、`/work/[slug]/` がクロスページの生成条件（2021年の事業所数が公表されている）を見ずに `/industry/<ind>/<muni>/` へリンクしていたこと。**再発防止に `scripts/check_links.py`（`npm run links`）を追加**した。out/ の全HTMLの内部リンクとsitemapの全URLに実体があるかを検査し、1本でも壊れていたら exit 1。**ページを追加したら必ず回すこと**
 
 ### e-Stat API の使い方（appId 取得済み・これが今の主力）
 
