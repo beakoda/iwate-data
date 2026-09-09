@@ -698,3 +698,43 @@ export function fatalRate(r: TrafficRec | undefined): number | null {
   if (!r || !r.accidents) return null;
   return Math.round((r.fatal_accidents / r.accidents) * 10000) / 100;
 }
+
+/* ===== 法人（国税庁 法人番号公表サイト 2026-08-31） ===== */
+const houjin = (ds as any).houjin as Record<string, Record<string, number>>;
+const houjinNew = (ds as any).houjinNew as Record<string, Record<string, number>>;
+const houjinClosed = (ds as any).houjinClosed as Record<string, number>;
+export const HOUJIN_KINDS: string[] = (ds as any).houjinKinds;
+export const HOUJIN_YEARS: number[] = (ds as any).houjinYears;
+export const HOUJIN_ASOF: string = (ds as any).houjinAsOf;
+export const HOUJIN_ASOF_LABEL = (() => {
+  const [y, m, d] = HOUJIN_ASOF.split('-');
+  return `${y}年${Number(m)}月${Number(d)}日`;
+})();
+export const FIRST_HOUJIN_YEAR = HOUJIN_YEARS[0];
+export const LATEST_HOUJIN_YEAR = HOUJIN_YEARS[HOUJIN_YEARS.length - 1];
+
+/** 現存法人数。kind を省くと全種別の合計 */
+export function houjinAt(code: string, kind?: string): number {
+  const d = houjin[code]; if (!d) return 0;
+  return kind ? (d[kind] ?? 0) : (d['_total'] ?? 0);
+}
+/** 法人番号の指定年が year の法人数（2016年以降＝実質的な新設） */
+export function houjinNewAt(code: string, year: number): number { return houjinNew[code]?.[String(year)] ?? 0; }
+/** 登記記録が閉鎖された法人の数（累計） */
+export function houjinClosedAt(code: string): number { return houjinClosed[code] ?? 0; }
+/** 33市町村の合計 */
+export function houjinPref(kind?: string): number { return MUNIS.reduce((a, m) => a + houjinAt(m.code, kind), 0); }
+export function houjinNewPref(year: number): number { return MUNIS.reduce((a, m) => a + houjinNewAt(m.code, year), 0); }
+export function houjinClosedPref(): number { return MUNIS.reduce((a, m) => a + houjinClosedAt(m.code), 0); }
+/** 人口千人当たりの法人数 */
+export function corpsPerKpop(corps: number | null | undefined, code: string): number | null {
+  if (corps == null) return null;
+  const p = popAt(code, LATEST_POP);
+  if (!p || !p.total) return null;
+  return Math.round((corps / p.total) * 1000 * 10) / 10;
+}
+/** 有限会社が現存法人に占める割合（%、小数1桁）。会社構成の古さの目安 */
+export function yugenShare(code: string): number | null {
+  const t = houjinAt(code); if (!t) return null;
+  return Math.round((houjinAt(code, '有限会社') / t) * 1000) / 10;
+}

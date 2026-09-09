@@ -66,6 +66,7 @@ SOURCES = {
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
     'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
+    'houjin': {'name':'国税庁「法人番号公表サイト」基本3情報 全件データ（岩手県）', 'url':'https://www.houjin-bangou.nta.go.jp/download/zenken/', 'note':'国税庁が公表する法人1件ごとの基本3情報（商号・所在地・法人番号）2026年8月31日時点の岩手県分から、市町村×法人種別で集計したもの。「現存」は登記記録の閉鎖等年月日が入っていない法人。「新規」は法人番号の指定年月日が2016年以降の法人で、2015年の一斉付番を除いた実質的な新設分。旧滝沢村（03305）の1件は滝沢市に合算している。'},
     'traffic': {'name':'警察庁「交通事故統計情報のオープンデータ」本票', 'url':'https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html', 'note':'人身事故1件ごとの記録（発生地の市区町村コード・発生日時・死者数・負傷者数など）から、岩手県分を市町村×年で集計したもの。2019〜2024年。物損事故は含まない。警察庁のデータでは岩手県は都道府県コード21（JISの03ではない）。'},
     'shofuku': {'name':'WAM NET「障害福祉サービス等情報公表システム」オープンデータ', 'url':'https://www.wam.go.jp/content/wamnet/pcpub/top/sfkopendata/', 'note':'各自治体が登録した障害福祉サービス等事業所1件ごとの公表データ（2026年3月末時点）から、岩手県分を市町村×サービス種別で集計したもの。「HP公表」は事業所URLが登録されている事業所数。市町村は事業所住所の文字列から判定している。'},
     'schoolcode': {'name':'文部科学省「学校コード」一覧（現存校・廃止校）', 'url':'https://www.mext.go.jp/b_menu/toukei/mext_01087.html', 'note':'学校1校ごとに付番された学校コードの一覧（2026年5月20日更新）から、岩手県分を市町村×学校種で集計したもの。市町村は学校所在地の住所文字列から判定している。廃止校は学校コード制度が始まった2020年12月以降に廃止年月日が入った学校で、2021年以降の廃止分に限られる（それ以前の廃校は含まれない）。学校数は「学校基本調査」（本サイトの「学校」ページ）とは対象範囲も時点も異なるため一致しない。'},
@@ -220,6 +221,37 @@ SHOFUKU_ASOF = '2026-03'
 
 TRAFFIC_YEARS = list(range(2019, 2025))
 TRAFFIC_KEYS = ('accidents', 'deaths', 'injuries', 'fatal_accidents')
+
+
+HOUJIN_KINDS = ('株式会社', '有限会社', '合同会社', '合資会社', '合名会社',
+                'その他の設立登記法人', '地方公共団体', '国の機関', '外国会社等', 'その他')
+HOUJIN_YEARS = list(range(2016, 2027))
+HOUJIN_ASOF = '2026-08-31'
+
+
+def load_houjin():
+    """法人番号公表サイトの全件データ（岩手県）を市町村×法人種別／年で集計。e-Stat 由来ではない。"""
+    kind, new, closed = {}, {}, {}
+    for r in load_csvs('houjin_kind.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        assert r['kind'] in HOUJIN_KINDS, ('unknown houjin kind', r['kind'])
+        d = kind.setdefault(code, {k: 0 for k in HOUJIN_KINDS})
+        d[r['kind']] += int(r['corps'])
+    for d in kind.values():
+        d['_total'] = sum(d[k] for k in HOUJIN_KINDS)
+    for r in load_csvs('houjin_new.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        n = int(r['corps'])
+        if r['year'] == 'closed':
+            closed[code] = closed.get(code, 0) + n
+        else:
+            y = int(r['year'])
+            assert y in HOUJIN_YEARS, ('houjin year', y)
+            new.setdefault(code, {str(x): 0 for x in HOUJIN_YEARS})[str(y)] += n
+    for code in kind:
+        new.setdefault(code, {str(x): 0 for x in HOUJIN_YEARS})
+        closed.setdefault(code, 0)
+    return kind, new, closed
 
 
 def load_traffic():
@@ -379,6 +411,7 @@ def build():
     _kaigo, _kaigo_svc = load_kaigo()
     _sc_act, _sc_closed = load_schoolcode()
     _sf, _sf_svc = load_shofuku()
+    _hj, _hjn, _hjc = load_houjin()
     ssds = {f: load_ssds(f) for f in SSDS}   # family → (muni, pref, years)
     YEARS_KEY = {'vital':'vitalYears','household':'houseYears','medical':'medYears','welfare':'welYears','env':'envYears',
                  'economy':'econYears','school':'schoolYears','jobless':'joblessYears','education':'eduYears','farm':'farmYears'}
@@ -395,6 +428,8 @@ def build():
         'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
+        'houjin': _hj, 'houjinNew': _hjn, 'houjinClosed': _hjc,
+        'houjinKinds': list(HOUJIN_KINDS), 'houjinYears': HOUJIN_YEARS, 'houjinAsOf': HOUJIN_ASOF,
         'traffic': load_traffic(), 'trafficYears': TRAFFIC_YEARS,
         'shofuku': _sf, 'shofukuServices': _sf_svc, 'shofukuAsOf': SHOFUKU_ASOF,
         'schoolActive': _sc_act, 'schoolClosed': _sc_closed, 'schoolKinds': list(SCHOOL_KINDS),
@@ -424,6 +459,14 @@ def build():
                 r = cen[str(y)][m['code']]
                 tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+    # 法人: 33市町村が揃い、現存・新規・閉鎖の合計が原データと一致するか
+    hj, hjn, hjc = ds['houjin'], ds['houjinNew'], ds['houjinClosed']
+    assert set(hj) == {m['code'] for m in munis}, ('houjin munis', len(hj))
+    gt = sum(hj[m['code']]['_total'] for m in munis)
+    gn = sum(v for m in munis for v in hjn[m['code']].values())
+    gc = sum(hjc[m['code']] for m in munis)
+    assert (gt, gn, gc) == (29574, 5729, 4923), ('houjin', (gt, gn, gc), (29574, 5729, 4923))
+
     # 交通事故: 33市町村×6年が揃い、県計が原データと一致するか
     tra = ds['traffic']
     assert set(tra) == {m['code'] for m in munis}, ('traffic munis', len(tra))

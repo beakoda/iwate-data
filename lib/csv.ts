@@ -7,6 +7,7 @@ import {
   joblessAt, JOBLESS_YEARS, eduAt, EDU_YEARS, farmAt, FARM_YEARS,
   crimeAt, CRIME_YEARS,
   trafficAt, TRAFFIC_YEARS,
+  houjinAt, houjinNewAt, houjinClosedAt, HOUJIN_KINDS, HOUJIN_YEARS, HOUJIN_ASOF,
   kaigoAt, KAIGO_SNAPS, KAIGO_SERVICES,
   iryouAt, IRYOU_TYPES, IRYOU_ASOF,
   shofukuAt, SHOFUKU_SERVICES, SHOFUKU_ASOF,
@@ -83,6 +84,17 @@ export const FAMILIES: Record<string, Family> = {
       return row;
     },
     cols: [['時点', '時点'], ...KAIGO_SERVICES.flatMap(s => [[s, s] as [string, string], [s + '_定員', s + '_定員'] as [string, string]]), ['合計', '合計（延べ）']] },
+  houjin: { label: '法人数（法人番号公表サイト）', years: [Number(HOUJIN_ASOF.slice(0, 4))], yearLabel: '年',
+    at: (code: string) => {
+      const row: Record<string, any> = { 時点: HOUJIN_ASOF };
+      for (const k of HOUJIN_KINDS) row[k] = houjinAt(code, k);
+      row['合計'] = houjinAt(code);
+      for (const y of HOUJIN_YEARS) row['新規' + y] = houjinNewAt(code, y);
+      row['閉鎖累計'] = houjinClosedAt(code);
+      return row;
+    },
+    cols: [['時点', '時点'], ...HOUJIN_KINDS.map(k => [k, k] as [string, string]), ['合計', '合計'],
+      ...HOUJIN_YEARS.map(y => ['新規' + y, '新規指定' + y] as [string, string]), ['閉鎖累計', '閉鎖累計']] },
   jiko: { label: '交通事故（警察庁）', years: TRAFFIC_YEARS, at: trafficAt,
     cols: [['accidents', '人身事故件数'], ['fatal_accidents', '死亡事故件数'], ['deaths', '死者数'], ['injuries', '負傷者数']] },
   crime: { label: '街頭犯罪（岩手県警）', years: CRIME_YEARS, at: crimeAt,

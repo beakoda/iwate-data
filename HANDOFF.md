@@ -20,7 +20,7 @@
 
 - リモート: `https://github.com/beakoda/iwate-data.git`（Public、**全33ファイル反映済み**）。`main` が正。作業前に必ず `git pull`
 - ローカルにクローンが無ければ `git clone https://github.com/beakoda/iwate-data.git`
-- ビルド: **2042ページ**生成成功（国勢調査＋建築着工＋人口動態＋世帯＋病院・医師＋介護施設＋学校＋所得製造業＋ごみ＋完全失業率＋最終学歴＋農家＋街頭犯罪＋介護サービス事業所＋医療機関・薬局＋廃校＋障害福祉サービス事業所＋交通事故）。主要数値は raw CSV と突き合わせ検算済み
+- ビルド: **2110ページ**生成成功（国勢調査＋建築着工＋人口動態＋世帯＋病院・医師＋介護施設＋学校＋所得製造業＋ごみ＋完全失業率＋最終学歴＋農家＋街頭犯罪＋介護サービス事業所＋医療機関・薬局＋廃校＋障害福祉サービス事業所＋交通事故＋法人数）。主要数値は raw CSV と突き合わせ検算済み
 - **e-Stat API の appId 取得済み**（アプリ名 `iwate-data` / URL `https://iwate-data.pages.dev`）。キーは会話にもリポジトリにも書いていない。§7 の「e-Stat API の使い方」を読むこと
 - デプロイ: **稼働中** → https://iwate-data.pages.dev （Cloudflare Pages プロジェクト `iwate-data`、`main` への push で自動デプロイ。理由は下記）
 - 環境変数 `NEXT_PUBLIC_SITE_URL` は現在 `https://iwate-data.pages.dev`（**暫定**）。独自ドメイン取得後に差し替えること
@@ -48,7 +48,7 @@ Cloudflare Pages の設定値:
 - `public/_headers` — Cloudflare Pages のヘッダー設定。`public/` の中身は `out/` にそのままコピーされる。`/_next/static/*` は immutable で1年キャッシュ、HTMLは毎回再検証。**`X-Frame-Options` は意図的に設定していない**（§6-C の埋め込みウィジェット構想を潰すため）
 - 静的出力は `out/dental/morioka/index.html` の形（`trailingSlash: true`）。Cloudflare Pages がそのまま `/dental/morioka/` で配信する。`404.html` も出力済み
 
-### ページ構成（sitemap 1290件＋CSV＋埋め込み33本）
+### ページ構成（sitemap 1324件＋CSV＋埋め込み33本）
 
 | パス | 数 | 内容 |
 |---|---|---|
@@ -79,6 +79,7 @@ Cloudflare Pages の設定値:
 | `/haikou/` `/haikou/[slug]/` | 1+33 | 2021年以降に廃止された学校128校の一覧（校名・廃止年・学校種）と現存校数（文科省 学校コード）。**e-Stat 由来ではない** |
 | `/shofuku/` `/shofuku/[slug]/` | 1+33 | 障害福祉サービス事業所1,881をサービス種別×市町村で＋HP公表率（WAM 2026-03末）。**e-Stat 由来ではない** |
 | `/jiko/` `/jiko/[slug]/` | 1+33 | 人身交通事故の件数・死者・負傷者（警察庁 2019–2024）。**e-Stat 由来ではない** |
+| `/houjin/` `/houjin/[slug]/` | 1+33 | 登記法人29,574社を法人種別×市町村で＋2016年以降の新規指定・閉鎖累計（国税庁 法人番号 2026-08-31）。**e-Stat 由来ではない** |
 | `/embed/city/{slug}/` | 33 | iframe埋め込み用の主要6指標カード。`X-Robots-Tag: noindex` |
 
 クロスページは 17産業 × 33市町村 = 561通りのうち、**2021年の事業所数が公表されている522通りだけ**を生成する（`generateStaticParams` が `estab != null` で絞る）。空ページを作らないための意図的な設計なので、勝手に全通り生成するように変えないこと。
@@ -138,6 +139,7 @@ mcp/                   MCPサーバー（Cloudflare Worker）。data/dataset.jso
 | `schoolcode` | **文科省 学校コード一覧**。現存校を市町村×学校種に集計＋廃止年月日のある学校を校名つきで収録 | 2026-05-20更新（廃校は2021年以降） |
 | `shofuku` | **WAM NET 障害福祉サービス等情報公表システム** オープンデータ（29サービスのZIP）。岩手県分を市町村×サービス種別＋事業所URL有無に集計 | 2026-03末 |
 | `traffic` | **警察庁 交通事故統計オープンデータ**（本票）。人身事故1件ごとの記録を市町村×年に集計 | 2019–2024 |
+| `houjin` | **国税庁 法人番号公表サイト** 全件データ（岩手県ZIP）。法人1件ごとを市町村×法人種別／指定年に集計 | 2026-08-31 |
 | `building` | 国交省 建築着工統計調査 建築物着工統計 市区町村別・用途別（大分類） | 2011–2024（年計） |
 | `vital` | 総務省統計局 社会・人口統計体系 市区町村データ Ａ人口・世帯（出生・死亡・婚姻・離婚・転入・転出） | 2010–2023（年計） |
 | `household` | 総務省統計局 社会・人口統計体系 市区町村データ Ａ人口・世帯（世帯・高齢世帯・外国人・DID） | 2010・2015・2020 |
@@ -198,7 +200,7 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 
 ### 非 e-Stat データの取り方（2026-09-09 追加。crime / kaigo）
 
-`raw/crime_2016_2025.csv` `raw/kaigo_offices.csv` `raw/iryou_facilities.csv` `raw/school_active.csv` `raw/school_closed.csv` `raw/shofuku_offices.csv` `raw/traffic_accidents.csv` は e-Stat API ではなく、配布元のCSV/ZIPを直接落として集計したもの。**`scripts/fetch_estat.py` も月次 cron（`scripts/update.sh`）もこの2つを更新しない。** 更新は手作業。
+`raw/crime_2016_2025.csv` `raw/kaigo_offices.csv` `raw/iryou_facilities.csv` `raw/school_active.csv` `raw/school_closed.csv` `raw/shofuku_offices.csv` `raw/traffic_accidents.csv` `raw/houjin_kind.csv` `raw/houjin_new.csv` は e-Stat API ではなく、配布元のCSV/ZIPを直接落として集計したもの。**`scripts/fetch_estat.py` も月次 cron（`scripts/update.sh`）もこの2つを更新しない。** 更新は手作業。
 
 - **crime**: https://www.pref.iwate.jp/kenkei/koho/opendata/3000711.html のページ内 `.csv` リンク（2018年以降は年ごとにサブディレクトリ）。文字コードは **Shift_JIS**。列は「罪名／手口／管轄警察署／市区町村コード（発生地）／市区町村（発生地）／町丁目／発生年月日（始期）／発生時／発生場所／被害者の性別／年齢／現金被害の有無」。市区町村コードは**年によって6桁（検査数字つき）と5桁が混在**するので `zfill(6)[:5]` で JIS コードに正規化する。年ごとに1手口1ファイル、2026-09 時点で55本・総計4,885件
 - **kaigo**: https://www.mhlw.go.jp/stf/kaigo-kouhyou_opendata.html の `jigyosho_{サービス番号}_all_{タイムスタンプ}.csv`。**同じサービス名のファイルが時点ごとに複数並んでいる**ので、ファイル名の日付スタンプで時点を切り分けること（混ぜると二重計上する）。文字コードは Shift_JIS、全国データなので「都道府県名」＝岩手県で絞る。定員列は訪問系・居宅介護支援では常に空
@@ -206,8 +208,9 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 - **schoolcode**: https://www.mext.go.jp/b_menu/toukei/mext_01087.html の `..._2-1.csv`（都道府県01〜21）`_2-2.csv`（22〜24）`_4.csv`（25〜47）。**この3本で全国を分割している**ので岩手は `_2-1` だけ見ればよい（`_4` に岩手は入っていない。ここを間違えると0件になる）。`_6.csv` は全国の差分。**ヘッダーが2行目**にあり、セル内改行を含むので引用符対応のCSVパーサが要る。**市区町村コードの列が無い**ので学校所在地の住所から市町村を判定する。そのとき `岩手県胆沢郡金ケ崎町…` のように**郡が挟まる**のと、**ヶ/ケ の表記ゆれ**（三ケ尻 と 三ヶ尻）の両方を吸収しないと町村が全部落ちる（対処前は14市町村・603校しか取れなかった。正しくは33市町村・866校＝現存738＋廃校128）
 - **shofuku**: https://www.wam.go.jp/content/wamnet/pcpub/top/sfkopendata/ の `sfkopendata_{YYYYMM}_{サービス番号}.zip` を29本（1ZIP＝1CSV）。**同じページに過去時点のZIPも並んでいる**のでファイル名の年月で時点を切ること。Shift_JIS。**市区町村コードの列は「都道府県コード又は市区町村コード」で指定機関の番号（岩手なら03000）が入っており市町村の判別に使えない**。事業所住所（市区町村）の文字列から判定する（学校コードと同じく郡とヶ/ケの吸収が要る）。事業所URL列があるのでHP公表率が出せる
 - **traffic**: https://www.npa.go.jp/publications/statistics/koutsuu/opendata/{年}/honhyo_{年}.csv（1年60MB前後、Shift_JIS、Rangeリクエスト可）。**警察庁の「都道府県コード」はJISではなく警察独自の体系で、岩手は 21**（北海道が方面本部で01〜10を占めるためズレる）。誤ると別県を集計する。判定方法は市区町村コードの集合がJISの岩手33市町村と完全一致するコードを探すこと（21だけが33/33で一致）。市区町村コードは県内3桁なので `'03'+zfill(3)` でJIS5にする。物損事故は含まれない
+- **houjin**: https://www.houjin-bangou.nta.go.jp/download/zenken/ の岩手県ZIP（1.45MB）。**リンクは直URLではなくPOST**で、ページ内フォームに `selDlFileNo`（岩手県のアンカーの `onclick="return doDownload(NNNNN)"` から取る）とCSRFトークンを載せて送る。**ファイル番号は毎月変わる**ので固定できない。Shift_JIS・ヘッダー行なしの30列。0起点で 6=商号 8=法人種別 14=市区町村コード(3桁) 18=登記記録の閉鎖等年月日 22=法人番号指定年月日 23=最新履歴。**最新履歴=1 だけを見る**こと。法人番号は2015年10月に既存法人へ一斉付番されたので、新設分は2016年以降で見る。**旧滝沢村(03305)の閉鎖法人が1件あり LEGACY で滝沢市に合算**している（未対応だと県計が1件ずれる）
 - **取得できる環境**: 日本の政府・自治体サイトはコンテナからも Cowork の Linux VM からも egress で 403 になる。**VPS（rocky@os3-306）と、ユーザーPCのChromeだけが到達できる**。Chrome から取る場合は「ページ内で fetch → Shift_JIS デコード → 集計 → 結果を DOM に書き出して読み取る」方式が有効（全国22万件のような巨大CSVを持ち出さずに済む）。ZIPも中央ディレクトリを自前で読んで `DecompressionStream('deflate-raw')` で展開すればページ内で完結する
-- **検算**: `build_data.py` の assert に総件数をハードコードしてある（crime 4,885件／kaigo 2,581・2,535事業所／iryou 病院84・診療所747・歯科512・薬局625・助産所17とそれぞれのHP公表数／schoolcode 現存738校・廃校128校と廃止年ごとの内訳／shofuku 1,881事業所・HP公表1,086／traffic 年ごとの事故件数と死者数6年分）。**データを更新したらこの数字も更新すること。** 数字を消して assert を無効化しないこと
+- **検算**: `build_data.py` の assert に総件数をハードコードしてある（crime 4,885件／kaigo 2,581・2,535事業所／iryou 病院84・診療所747・歯科512・薬局625・助産所17とそれぞれのHP公表数／schoolcode 現存738校・廃校128校と廃止年ごとの内訳／shofuku 1,881事業所・HP公表1,086／traffic 年ごとの事故件数と死者数6年分／houjin 現存29,574・新規5,729・閉鎖4,923）。**データを更新したらこの数字も更新すること。** 数字を消して assert を無効化しないこと
 
 ### 取得を検討して見送ったデータ（同じ検討を繰り返さないため）
 
@@ -336,8 +339,9 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - クラウド上のClaudeセッションからは `git push` できない（gitプロキシがセッション許可リポ外にcredentialを出さず403）。初回投入はGitHubのWebアップロードで行ったため、コミット履歴は `Add files via upload` が並んでいる（内容は検証済みで正）。**以降の push はローカルのCLIから行う**
 - `public/_headers` はマッチするルールが**すべて**適用され、同名ヘッダーは連結される。`/*` に `Cache-Control` を書くと `/_next/static/*` の immutable 指定と二重になって壊れる（一度やらかして修正済み）。Cache-Control は個別ルールにだけ置くこと
 - **クラウドコンテナから e-stat.go.jp へは到達できない**（egressポリシーで拒否）。データ取得はChrome経由の in-page fetch で行う。取得後は必ず「市町村合計＝県計」で検算してから raw に保存する
-- **`/crime/` `/kaigo/` `/iryou/` `/haikou/` `/shofuku/` `/jiko/` は月次 cron の対象外**（e-Stat 由来ではないため `fetch_estat.py` が見ていない）。放っておくと静かに古くなる。更新手順は §3「非 e-Stat データの取り方」
-- **MCP のカタログは `crime` と `traffic` だけ追加済み、`kaigo` `iryou` `schoolcode` `shofuku` は未対応**。`mcp/src/catalog.ts` は `key[code][year]` の形しか扱えないが、`kaigo` は `kaigo[code][時点][サービス種別]`、`iryou` は `iryou[code][施設種別]`（年の軸が無い）と形が違うため。MCPで出すならカタログ側に対応を足すこと
+- **`/crime/` `/kaigo/` `/iryou/` `/haikou/` `/shofuku/` `/jiko/` `/houjin/` は月次 cron の対象外**（e-Stat 由来ではないため `fetch_estat.py` が見ていない）。放っておくと静かに古くなる。更新手順は §3「非 e-Stat データの取り方」
+- **MCP のカタログは `crime` と `traffic` だけ追加済み、`kaigo` `iryou` `schoolcode` `shofuku` `houjin` は未対応**。`mcp/src/catalog.ts` は `key[code][year]` の形しか扱えないが、`kaigo` は `kaigo[code][時点][サービス種別]`、`iryou` は `iryou[code][施設種別]`（年の軸が無い）と形が違うため。MCPで出すならカタログ側に対応を足すこと
+- **国土地理院「指定緊急避難場所・指定避難所データ」は未取得**。ダウンロードサイト（https://hinanmap.gsi.go.jp/）に利用規約への同意ボタンがあり、**規約同意はユーザー本人の判断が要る**ため踏んでいない。第三者提供時に注意事項を正確に伝える義務があるので、サイトに載せるなら注記の設計とセットで判断すること
 - **sitemap に無い壊れた内部リンクが72本ある**（`/industry/fudai/` のように、産業スラッグの位置に市町村スラッグが入っている）。`/jobless/[slug]/` など複数のページから出ている。sitemap には載っていないので検索影響は小さいが、リンク切れとしては残っている。未修正
 
 ### e-Stat API の使い方（appId 取得済み・これが今の主力）
