@@ -665,3 +665,36 @@ export function shofukuPer10k(offices: number | null | undefined, code: string):
   if (!p || !p.total) return null;
   return Math.round((offices / p.total) * 10000 * 100) / 100;
 }
+
+/* ===== 交通事故（警察庁オープンデータ 2019〜2024） ===== */
+export type TrafficRec = { accidents: number; deaths: number; injuries: number; fatal_accidents: number };
+const traffic = (ds as any).traffic as Record<string, Record<string, TrafficRec>>;
+export const TRAFFIC_YEARS: number[] = (ds as any).trafficYears;
+export const LATEST_TRAFFIC = TRAFFIC_YEARS[TRAFFIC_YEARS.length - 1];
+export const FIRST_TRAFFIC = TRAFFIC_YEARS[0];
+
+export function trafficAt(code: string, year: number): TrafficRec | undefined { return traffic[code]?.[String(year)]; }
+export function trafficSeries(code: string) {
+  return TRAFFIC_YEARS.map(y => ({ year: y, ...(traffic[code]?.[String(y)] as TrafficRec) })).filter(r => r.accidents != null);
+}
+/** 33市町村の合計（県計が原データと一致することを build_data.py で検算済み） */
+export function trafficPrefAt(year: number): TrafficRec {
+  const acc: any = { accidents: 0, deaths: 0, injuries: 0, fatal_accidents: 0 };
+  for (const m of MUNIS) {
+    const r = trafficAt(m.code, year); if (!r) continue;
+    for (const k of ['accidents', 'deaths', 'injuries', 'fatal_accidents'] as const) acc[k] += r[k];
+  }
+  return acc as TrafficRec;
+}
+/** 人口1万人当たりの事故件数（分母はその年の翌年1月1日の住民基本台帳人口） */
+export function accPer10k(accidents: number | null | undefined, code: string, year: number): number | null {
+  if (accidents == null) return null;
+  const p = popAt(code, Math.min(year + 1, LATEST_POP));
+  if (!p || !p.total) return null;
+  return Math.round((accidents / p.total) * 10000 * 10) / 10;
+}
+/** 死亡事故率（死亡事故 ÷ 人身事故、%、小数2桁） */
+export function fatalRate(r: TrafficRec | undefined): number | null {
+  if (!r || !r.accidents) return null;
+  return Math.round((r.fatal_accidents / r.accidents) * 10000) / 100;
+}

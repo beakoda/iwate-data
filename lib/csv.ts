@@ -6,6 +6,7 @@ import {
   welAt, WEL_YEARS, envAt, ENV_YEARS, econAt2, ECON_YEARS, schoolAt, SCHOOL_YEARS,
   joblessAt, JOBLESS_YEARS, eduAt, EDU_YEARS, farmAt, FARM_YEARS,
   crimeAt, CRIME_YEARS,
+  trafficAt, TRAFFIC_YEARS,
   kaigoAt, KAIGO_SNAPS, KAIGO_SERVICES,
   iryouAt, IRYOU_TYPES, IRYOU_ASOF,
   shofukuAt, SHOFUKU_SERVICES, SHOFUKU_ASOF,
@@ -82,6 +83,8 @@ export const FAMILIES: Record<string, Family> = {
       return row;
     },
     cols: [['時点', '時点'], ...KAIGO_SERVICES.flatMap(s => [[s, s] as [string, string], [s + '_定員', s + '_定員'] as [string, string]]), ['合計', '合計（延べ）']] },
+  jiko: { label: '交通事故（警察庁）', years: TRAFFIC_YEARS, at: trafficAt,
+    cols: [['accidents', '人身事故件数'], ['fatal_accidents', '死亡事故件数'], ['deaths', '死者数'], ['injuries', '負傷者数']] },
   crime: { label: '街頭犯罪（岩手県警）', years: CRIME_YEARS, at: crimeAt,
     cols: [['ひったくり', 'ひったくり'], ['オートバイ盗', 'オートバイ盗'], ['自動販売機ねらい', '自動販売機ねらい'], ['自動車盗', '自動車盗'], ['自転車盗', '自転車盗'], ['車上ねらい', '車上ねらい'], ['部品ねらい', '部品ねらい'], ['total', '7手口合計']] },
   garbage: { label: 'ごみ', years: ENV_YEARS, at: envAt, yearLabel: '年度',

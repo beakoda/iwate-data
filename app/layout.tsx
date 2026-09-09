@@ -38,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/kaigo/">介護事業所</Link>
               <Link href="/shofuku/">障害福祉事業所</Link>
               <Link href="/crime/">街頭犯罪</Link>
+              <Link href="/jiko/">交通事故</Link>
               <Link href="/vital/">出生・死亡</Link>
               <Link href="/household/">世帯</Link>
               <Link href="/city/">市町村別</Link>

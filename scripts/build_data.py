@@ -66,6 +66,7 @@ SOURCES = {
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
     'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
+    'traffic': {'name':'警察庁「交通事故統計情報のオープンデータ」本票', 'url':'https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html', 'note':'人身事故1件ごとの記録（発生地の市区町村コード・発生日時・死者数・負傷者数など）から、岩手県分を市町村×年で集計したもの。2019〜2024年。物損事故は含まない。警察庁のデータでは岩手県は都道府県コード21（JISの03ではない）。'},
     'shofuku': {'name':'WAM NET「障害福祉サービス等情報公表システム」オープンデータ', 'url':'https://www.wam.go.jp/content/wamnet/pcpub/top/sfkopendata/', 'note':'各自治体が登録した障害福祉サービス等事業所1件ごとの公表データ（2026年3月末時点）から、岩手県分を市町村×サービス種別で集計したもの。「HP公表」は事業所URLが登録されている事業所数。市町村は事業所住所の文字列から判定している。'},
     'schoolcode': {'name':'文部科学省「学校コード」一覧（現存校・廃止校）', 'url':'https://www.mext.go.jp/b_menu/toukei/mext_01087.html', 'note':'学校1校ごとに付番された学校コードの一覧（2026年5月20日更新）から、岩手県分を市町村×学校種で集計したもの。市町村は学校所在地の住所文字列から判定している。廃止校は学校コード制度が始まった2020年12月以降に廃止年月日が入った学校で、2021年以降の廃止分に限られる（それ以前の廃校は含まれない）。学校数は「学校基本調査」（本サイトの「学校」ページ）とは対象範囲も時点も異なるため一致しない。'},
     'iryou': {'name':'厚生労働省「医療情報ネット（ナビイ）」全国データ（医療機能情報提供制度・薬局機能情報提供制度）', 'url':'https://data.e-gov.go.jp/data/dataset/iryou_teikyouseido_mhlw', 'note':'各都道府県が集約した医療機関・薬局1施設ごとの届出情報（2025年12月1日版）から、岩手県分を市町村×施設種別で集計したもの。「HP公表」は施設が案内用ホームページアドレス（薬局は薬局のホームページアドレス）を届け出ている施設数。この制度に届出のある施設が対象で、厚労省「医療施設調査」の施設数とは定義も時点も異なるため一致しない。'},
@@ -215,6 +216,24 @@ CLOSED_YEARS = list(range(2021, 2027))
 
 
 SHOFUKU_ASOF = '2026-03'
+
+
+TRAFFIC_YEARS = list(range(2019, 2025))
+TRAFFIC_KEYS = ('accidents', 'deaths', 'injuries', 'fatal_accidents')
+
+
+def load_traffic():
+    """警察庁 交通事故統計オープンデータ（本票）を市町村×年で集計。e-Stat 由来ではない。"""
+    out = {}
+    for r in load_csvs('traffic_accidents.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        y = int(r['year'])
+        assert y in TRAFFIC_YEARS, ('traffic year', y)
+        d = out.setdefault(code, {}).setdefault(str(y), {k: 0 for k in TRAFFIC_KEYS})
+        for k in TRAFFIC_KEYS:
+            d[k] += int(r[k])
+        assert d['fatal_accidents'] <= d['accidents'], ('fatal > accidents', code, y)
+    return out
 
 
 def load_shofuku():
@@ -376,6 +395,7 @@ def build():
         'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
+        'traffic': load_traffic(), 'trafficYears': TRAFFIC_YEARS,
         'shofuku': _sf, 'shofukuServices': _sf_svc, 'shofukuAsOf': SHOFUKU_ASOF,
         'schoolActive': _sc_act, 'schoolClosed': _sc_closed, 'schoolKinds': list(SCHOOL_KINDS),
         'schoolAsOf': SCHOOL_ASOF, 'closedYears': CLOSED_YEARS,
@@ -404,6 +424,16 @@ def build():
                 r = cen[str(y)][m['code']]
                 tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+    # 交通事故: 33市町村×6年が揃い、県計が原データと一致するか
+    tra = ds['traffic']
+    assert set(tra) == {m['code'] for m in munis}, ('traffic munis', len(tra))
+    TRAFFIC_PREF = {2019: (1968, 45), 2020: (1658, 46), 2021: (1566, 35),
+                    2022: (1511, 37), 2023: (1503, 35), 2024: (1391, 28)}
+    for y in TRAFFIC_YEARS:
+        gn = sum(tra[m['code']].get(str(y), {}).get('accidents', 0) for m in munis)
+        gd = sum(tra[m['code']].get(str(y), {}).get('deaths', 0) for m in munis)
+        assert (gn, gd) == TRAFFIC_PREF[y], ('traffic', y, (gn, gd), TRAFFIC_PREF[y])
+
     # 障害福祉サービス事業所: 33市町村が揃い、県計が原データと一致するか
     sf = ds['shofuku']
     assert set(sf) == {m['code'] for m in munis}, ('shofuku munis', len(sf))
