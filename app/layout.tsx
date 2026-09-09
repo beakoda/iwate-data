@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/farm/">農家</Link>
               <Link href="/economy/">所得・製造業</Link>
               <Link href="/garbage/">ごみ</Link>
+              <Link href="/kaigo/">介護事業所</Link>
               <Link href="/crime/">街頭犯罪</Link>
               <Link href="/vital/">出生・死亡</Link>
               <Link href="/household/">世帯</Link>

@@ -6,6 +6,7 @@ import {
   welAt, WEL_YEARS, envAt, ENV_YEARS, econAt2, ECON_YEARS, schoolAt, SCHOOL_YEARS,
   joblessAt, JOBLESS_YEARS, eduAt, EDU_YEARS, farmAt, FARM_YEARS,
   crimeAt, CRIME_YEARS,
+  kaigoAt, KAIGO_SNAPS, KAIGO_SERVICES,
 } from '@/lib/data';
 
 type Col = [key: string, label: string];
@@ -34,6 +35,18 @@ export const FAMILIES: Record<string, Family> = {
     cols: [['hospitals', '病院数'], ['gen_hospitals', '一般病院数'], ['clinics', '一般診療所数'], ['dental_clinics', '歯科診療所数'], ['hosp_beds', '病院病床数'], ['clinic_beds', '一般診療所病床数'], ['doctors', '医師数'], ['dentists', '歯科医師数'], ['pharmacists', '薬剤師数']] },
   welfare: { label: '介護施設・国保', years: WEL_YEARS, at: welAt,
     cols: [['tokuyo', '特別養護老人ホーム数'], ['tokuyo_cap', '特養定員'], ['yuryo', '有料老人ホーム数'], ['yuryo_cap', '有料定員'], ['kokuho', '国民健康保険被保険者数']] },
+  kaigo: { label: '介護サービス事業所', years: KAIGO_SNAPS.map(s => Number(s.slice(0, 4))), yearLabel: '年',
+    at: (code: string, y: number) => {
+      const snap = KAIGO_SNAPS.find(s => Number(s.slice(0, 4)) === y); if (!snap) return undefined;
+      const row: Record<string, any> = { 時点: snap };
+      for (const s of KAIGO_SERVICES) {
+        const c = kaigoAt(code, snap, s);
+        row[s] = c?.offices ?? 0; row[s + '_定員'] = c?.capacity ?? 0;
+      }
+      row['合計'] = kaigoAt(code, snap)?.offices ?? 0;
+      return row;
+    },
+    cols: [['時点', '時点'], ...KAIGO_SERVICES.flatMap(s => [[s, s] as [string, string], [s + '_定員', s + '_定員'] as [string, string]]), ['合計', '合計（延べ）']] },
   crime: { label: '街頭犯罪（岩手県警）', years: CRIME_YEARS, at: crimeAt,
     cols: [['ひったくり', 'ひったくり'], ['オートバイ盗', 'オートバイ盗'], ['自動販売機ねらい', '自動販売機ねらい'], ['自動車盗', '自動車盗'], ['自転車盗', '自転車盗'], ['車上ねらい', '車上ねらい'], ['部品ねらい', '部品ねらい'], ['total', '7手口合計']] },
   garbage: { label: 'ごみ', years: ENV_YEARS, at: envAt, yearLabel: '年度',

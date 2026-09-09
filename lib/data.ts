@@ -509,3 +509,44 @@ export function crimePrefPerKpop(year: number): number | null {
   const t = MUNIS.reduce((a, m) => a + (popAt(m.code, Math.min(year + 1, LATEST_POP))?.total ?? 0), 0);
   return t ? Math.round((crimePrefAt(year).total / t) * 1000 * 100) / 100 : null;
 }
+
+/* ===== 介護サービス事業所（介護サービス情報公表システム 2024-12 / 2026-06） ===== */
+export type KaigoCell = { offices: number; capacity: number };
+const kaigo = (ds as any).kaigo as Record<string, Record<string, Record<string, KaigoCell>>>;
+export const KAIGO_SNAPS: string[] = (ds as any).kaigoSnaps;
+export const KAIGO_SERVICES: string[] = (ds as any).kaigoServices;
+export const LATEST_KAIGO = KAIGO_SNAPS[KAIGO_SNAPS.length - 1];
+export const FIRST_KAIGO = KAIGO_SNAPS[0];
+/** 時点ラベル（"2026-06" → "2026年6月末"） */
+export function kaigoLabel(snap: string): string {
+  const [y, m] = snap.split('-');
+  return `${y}年${Number(m)}月末`;
+}
+/** サービス種別ごとの事業所数・定員。service を省くと全種別の合計 */
+export function kaigoAt(code: string, snap: string, service?: string): KaigoCell | undefined {
+  const d = kaigo[code]?.[snap]; if (!d) return undefined;
+  return service ? d[service] : d['_total'];
+}
+/** 33市町村の合計 */
+export function kaigoPrefAt(snap: string, service?: string): KaigoCell {
+  const acc = { offices: 0, capacity: 0 };
+  for (const m of MUNIS) {
+    const r = kaigoAt(m.code, snap, service); if (!r) continue;
+    acc.offices += r.offices; acc.capacity += r.capacity;
+  }
+  return acc;
+}
+/** その市町村に1件以上ある種別だけを、事業所数の多い順で返す */
+export function kaigoServicesOf(code: string, snap: string): { service: string; cell: KaigoCell }[] {
+  const d = kaigo[code]?.[snap] ?? {};
+  return Object.entries(d).filter(([k]) => !k.startsWith('_'))
+    .map(([service, cell]) => ({ service, cell: cell as KaigoCell }))
+    .sort((a, b) => b.cell.offices - a.cell.offices);
+}
+/** 65歳以上人口千人当たりの事業所数（分母は国勢調査の65歳以上人口） */
+export function officesPerElderly(offices: number | null | undefined, code: string, censusYear: number): number | null {
+  if (offices == null) return null;
+  const c = censusAt(code, censusYear);
+  if (!c || !c.age_65_) return null;
+  return Math.round((offices / c.age_65_) * 1000 * 100) / 100;
+}
