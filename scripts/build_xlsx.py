@@ -22,7 +22,21 @@ ts = io.open(os.path.join(ROOT, 'lib', 'csv.ts'), encoding='utf-8').read()
 FAM = re.findall(r"^  (\w+): \{ label: '([^']+)'", ts, re.M)
 SRC_KEY = {'dental': 'dental', 'population': 'population', 'aging': 'census', 'work': 'census', 'building': 'building',
            'vital': 'vital', 'household': 'household', 'medical': 'medical', 'welfare': 'welfare', 'garbage': 'env',
-           'economy': 'economy', 'school': 'school', 'jobless': 'jobless', 'education': 'education', 'farm': 'farm'}
+           'economy': 'economy', 'school': 'school', 'jobless': 'jobless', 'education': 'education', 'farm': 'farm',
+           # 非 e-Stat 系（2026-09 追加）
+           'crime': 'crime', 'jiko': 'traffic', 'kaigo': 'kaigo', 'iryou': 'iryou', 'shofuku': 'shofuku',
+           'school_code': 'schoolcode', 'houjin': 'houjin', 'hoiku': 'hoiku'}
+
+# lib/csv.ts にファミリーを足したらここにも出典キーを足すこと。
+# 足し忘れるとExcelデータ集（有料商品）のビルドが落ちる。何が足りないかを先に出す。
+_missing = [k for k, _label in FAM if k not in SRC_KEY]
+if _missing:
+    raise SystemExit(f'SRC_KEY に出典キーが無いファミリー: {_missing}\n'
+                     f'  scripts/build_xlsx.py の SRC_KEY に追記すること'
+                     f'（dataset.json の sources のキーを指定する）')
+_bad = [(k, v) for k, v in SRC_KEY.items() if v not in SOURCES]
+if _bad:
+    raise SystemExit(f'sources に存在しない出典キーを指している: {_bad}')
 
 FONT = 'Meiryo'
 head_font = Font(name=FONT, bold=True, color='FFFFFF', size=10)

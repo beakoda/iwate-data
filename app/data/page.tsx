@@ -21,7 +21,7 @@ export default function Page() {
     <>
       <Breadcrumb items={[{ name: 'データ集（Excel）' }]} />
       <h1>{TITLE}</h1>
-      <p className="key-fact">本サイトに載っている<strong>{fams.length}分野・33市町村・約{Math.round(rowCount / 1000)}千行</strong>のデータを、分野ごとのシートに分けた1つのExcelファイル。すべて政府統計・自治体公開データの公表値で、<strong>市町村合計が県公表値と一致することを機械的に検算済み</strong>。出典・注記シート付き。</p>
+      <p className="key-fact">本サイトに載っている<strong>{fams.length}分野・33市町村・約{Math.round(rowCount / 1000)}千行</strong>のデータを、分野ごとのシートに分けた1つのExcelファイル。すべて政府統計・自治体公開データの公表値。<strong>e-Stat由来の分野は市町村合計が県公表値と一致することを、配布元のCSV/ZIPから作った分野は総数が原データと一致することを、それぞれ機械的に検算済み</strong>。出典・注記シート付き。</p>
 
       <div className="stats">
         <div className="stat"><div className="stat-label">価格（税込・買い切り）</div><div className="stat-value">¥{PRICE}</div><div className="stat-sub">{GENERATED}版・xlsx形式</div></div>
@@ -58,6 +58,7 @@ export default function Page() {
         <li>1分野＝1シート。列は「市町村コード・市町村・年・各指標」の縦持ち（ロング形式）。ピボットテーブルにそのまま掛けられます</li>
         <li>数値はすべて出典統計の公表値。推計・按分・補完はしていません。秘匿・非公表は空欄</li>
         <li>合併前の旧町村（滝沢村・藤沢町・川井村）は現在の市に合算し、注記シートに明記</li>
+        <li>e-Stat以外の分野（街頭犯罪・交通事故・介護事業所・障害福祉事業所・医療機関/薬局・廃校・法人数・保育所等）は、時点が1〜2点のスナップショットです。年次の時系列があるのはe-Stat由来の分野です</li>
         <li>各ページの「CSVで保存」と同じ内容です。Excel版は全分野を1ファイルにまとめ、出典シートを付けたもの</li>
       </ul>
 

@@ -344,6 +344,7 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - `public/_headers` はマッチするルールが**すべて**適用され、同名ヘッダーは連結される。`/*` に `Cache-Control` を書くと `/_next/static/*` の immutable 指定と二重になって壊れる（一度やらかして修正済み）。Cache-Control は個別ルールにだけ置くこと
 - **クラウドコンテナから e-stat.go.jp へは到達できない**（egressポリシーで拒否）。データ取得はChrome経由の in-page fetch で行う。取得後は必ず「市町村合計＝県計」で検算してから raw に保存する
 - **`/crime/` `/kaigo/` `/iryou/` `/haikou/` `/shofuku/` `/jiko/` `/houjin/` `/hoiku/` は月次 cron の対象外**（e-Stat 由来ではないため `fetch_estat.py` が見ていない）。放っておくと静かに古くなる。更新手順は §3「非 e-Stat データの取り方」
+- **`lib/csv.ts` にファミリーを足したら `scripts/build_xlsx.py` の `SRC_KEY` にも出典キーを足すこと**。足し忘れると有料のExcelデータ集のビルドが KeyError で落ちる（2026-09-09に実際に落とした）。いまは足りない場合に何が足りないかを名指しして止まるようにしてある
 - **MCP のカタログは `crime` と `traffic` だけ追加済み、`kaigo` `iryou` `schoolcode` `shofuku` `houjin` `hoiku` は未対応**。`mcp/src/catalog.ts` は `key[code][year]` の形しか扱えないが、`kaigo` は `kaigo[code][時点][サービス種別]`、`iryou` は `iryou[code][施設種別]`（年の軸が無い）と形が違うため。MCPで出すならカタログ側に対応を足すこと
 - **国土地理院「指定緊急避難場所・指定避難所データ」は未取得**。ダウンロードサイト（https://hinanmap.gsi.go.jp/）に利用規約への同意ボタンがあり、**規約同意はユーザー本人の判断が要る**ため踏んでいない。第三者提供時に注意事項を正確に伝える義務があるので、サイトに載せるなら注記の設計とセットで判断すること
 - ~~壊れた内部リンク72本~~ **修正済み（2026-09-09）**。原因は2つ。`/jobless/[slug]/` が `/industry/${m.slug}/`（産業スラッグの位置に市町村スラッグ）を出していたのと、`/work/[slug]/` がクロスページの生成条件（2021年の事業所数が公表されている）を見ずに `/industry/<ind>/<muni>/` へリンクしていたこと。**再発防止に `scripts/check_links.py`（`npm run links`）を追加**した。out/ の全HTMLの内部リンクとsitemapの全URLに実体があるかを検査し、1本でも壊れていたら exit 1。**ページを追加したら必ず回すこと**
