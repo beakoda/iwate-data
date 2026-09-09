@@ -621,3 +621,47 @@ export function closedShare(code: string): number | null {
   if (!(a + c)) return null;
   return Math.round((c / (a + c)) * 1000) / 10;
 }
+
+/* ===== 障害福祉サービス事業所（WAM 障害福祉サービス等情報公表 2026-03） ===== */
+export type ShofukuCell = { offices: number; with_url: number };
+const shofuku = (ds as any).shofuku as Record<string, Record<string, ShofukuCell>>;
+export const SHOFUKU_SERVICES: string[] = (ds as any).shofukuServices;
+export const SHOFUKU_ASOF: string = (ds as any).shofukuAsOf;
+export const SHOFUKU_ASOF_LABEL = (() => {
+  const [y, m] = SHOFUKU_ASOF.split('-');
+  return `${y}年${Number(m)}月末`;
+})();
+
+/** サービス種別ごとの事業所数・HP公表数。service を省くと全種別の合計 */
+export function shofukuAt(code: string, service?: string): ShofukuCell | undefined {
+  const d = shofuku[code]; if (!d) return undefined;
+  return service ? d[service] : d['_total'];
+}
+/** 33市町村の合計 */
+export function shofukuPref(service?: string): ShofukuCell {
+  const acc = { offices: 0, with_url: 0 };
+  for (const m of MUNIS) {
+    const r = shofukuAt(m.code, service); if (!r) continue;
+    acc.offices += r.offices; acc.with_url += r.with_url;
+  }
+  return acc;
+}
+/** その市町村に1件以上ある種別を、事業所数の多い順で返す */
+export function shofukuServicesOf(code: string): { service: string; cell: ShofukuCell }[] {
+  const d = shofuku[code] ?? {};
+  return Object.entries(d).filter(([k]) => !k.startsWith('_'))
+    .map(([service, cell]) => ({ service, cell: cell as ShofukuCell }))
+    .sort((a, b) => b.cell.offices - a.cell.offices);
+}
+/** HP公表率（%、小数1桁） */
+export function shofukuUrlRate(c: ShofukuCell | undefined): number | null {
+  if (!c || !c.offices) return null;
+  return Math.round((c.with_url / c.offices) * 1000) / 10;
+}
+/** 人口1万人当たりの事業所数 */
+export function shofukuPer10k(offices: number | null | undefined, code: string): number | null {
+  if (offices == null) return null;
+  const p = popAt(code, LATEST_POP);
+  if (!p || !p.total) return null;
+  return Math.round((offices / p.total) * 10000 * 100) / 100;
+}
