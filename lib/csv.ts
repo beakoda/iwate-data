@@ -5,6 +5,7 @@ import {
   buildAt, BUILD_YEARS, vitalAt, VITAL_YEARS, houseAt, HOUSE_YEARS, medAt, MED_YEARS,
   welAt, WEL_YEARS, envAt, ENV_YEARS, econAt2, ECON_YEARS, schoolAt, SCHOOL_YEARS,
   joblessAt, JOBLESS_YEARS, eduAt, EDU_YEARS, farmAt, FARM_YEARS,
+  crimeAt, CRIME_YEARS,
 } from '@/lib/data';
 
 type Col = [key: string, label: string];
@@ -33,6 +34,8 @@ export const FAMILIES: Record<string, Family> = {
     cols: [['hospitals', '病院数'], ['gen_hospitals', '一般病院数'], ['clinics', '一般診療所数'], ['dental_clinics', '歯科診療所数'], ['hosp_beds', '病院病床数'], ['clinic_beds', '一般診療所病床数'], ['doctors', '医師数'], ['dentists', '歯科医師数'], ['pharmacists', '薬剤師数']] },
   welfare: { label: '介護施設・国保', years: WEL_YEARS, at: welAt,
     cols: [['tokuyo', '特別養護老人ホーム数'], ['tokuyo_cap', '特養定員'], ['yuryo', '有料老人ホーム数'], ['yuryo_cap', '有料定員'], ['kokuho', '国民健康保険被保険者数']] },
+  crime: { label: '街頭犯罪（岩手県警）', years: CRIME_YEARS, at: crimeAt,
+    cols: [['ひったくり', 'ひったくり'], ['オートバイ盗', 'オートバイ盗'], ['自動販売機ねらい', '自動販売機ねらい'], ['自動車盗', '自動車盗'], ['自転車盗', '自転車盗'], ['車上ねらい', '車上ねらい'], ['部品ねらい', '部品ねらい'], ['total', '7手口合計']] },
   garbage: { label: 'ごみ', years: ENV_YEARS, at: envAt, yearLabel: '年度',
     cols: [['gomi_collect_pop', '計画収集人口'], ['gomi_total', 'ごみ総排出量t'], ['gomi_per_day', '1人1日当たりg'], ['recycle_rate', 'リサイクル率%'], ['landfill', '最終処分量t'], ['flush_rate', '水洗化率%'], ['nonflush_pop', '非水洗化人口']] },
   economy: { label: '所得・製造業・耕地', years: ECON_YEARS, at: econAt2,

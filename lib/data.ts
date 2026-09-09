@@ -12,7 +12,7 @@ export const SITE = {
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://iwate-data.com',
   publisher: 'ビークプロモーション株式会社',
   publisherUrl: 'https://beak-promo.jp/',
-  description: '岩手県33市町村の公的統計を、市町村×業種の粒度で整理して公開するデータサイト。出典はすべて政府統計（e-Stat）。',
+  description: '岩手県33市町村の公開データを、市町村×業種の粒度で整理して公開するデータサイト。政府統計（e-Stat）に加え、岩手県警のオープンデータなど岩手固有の一次資料も収録。',
 };
 
 export const PREF = ds.pref;
@@ -470,4 +470,42 @@ export function farmPrefAt(year: number): FarmRec {
 export function totalFarms(r: { sales_farms: number | null; self_farms: number | null } | undefined): number | null {
   if (!r || r.sales_farms == null || r.self_farms == null) return null;
   return r.sales_farms + r.self_farms;
+}
+
+/* ===== 街頭犯罪（岩手県警オープンデータ 2016〜2025） ===== */
+export type CrimeRec = { total: number } & Record<string, number>;
+const crime = (ds as any).crime as Record<string, Record<string, CrimeRec>>;
+export const CRIME_YEARS: number[] = (ds as any).crimeYears;
+export const CRIME_TYPES: string[] = (ds as any).crimeTypes;
+export const LATEST_CRIME = CRIME_YEARS[CRIME_YEARS.length - 1];
+export const FIRST_CRIME = CRIME_YEARS[0];
+/** 県警が7手口すべてを通年で公開している最初の年。2016・2017年は一部手口・一部期間しかない */
+export const CRIME_FULL_FROM = 2018;
+
+export function crimeAt(code: string, year: number): CrimeRec | undefined { return crime[code]?.[String(year)]; }
+export function crimeSeries(code: string): ({ year: number } & CrimeRec)[] {
+  return CRIME_YEARS.map(y => ({ year: y, ...(crime[code]?.[String(y)] as CrimeRec) }));
+}
+/** 33市町村の合計（総件数が原データと一致することを build_data.py で検算済み） */
+export function crimePrefAt(year: number): CrimeRec {
+  const acc: any = { total: 0 };
+  for (const t of CRIME_TYPES) acc[t] = 0;
+  for (const m of MUNIS) {
+    const r = crimeAt(m.code, year); if (!r) continue;
+    for (const t of CRIME_TYPES) acc[t] += r[t] ?? 0;
+    acc.total += r.total;
+  }
+  return acc as CrimeRec;
+}
+/** 人口千人当たりの件数。分母は翌年1月1日の住民基本台帳人口（その年の発生に最も近い確定人口） */
+export function crimePerKpop(count: number | null | undefined, code: string, year: number): number | null {
+  if (count == null) return null;
+  const p = popAt(code, Math.min(year + 1, LATEST_POP));
+  if (!p || !p.total) return null;
+  return Math.round((count / p.total) * 1000 * 100) / 100;
+}
+/** 33市町村の人口合計を分母にした県平均（千人当たり） */
+export function crimePrefPerKpop(year: number): number | null {
+  const t = MUNIS.reduce((a, m) => a + (popAt(m.code, Math.min(year + 1, LATEST_POP))?.total ?? 0), 0);
+  return t ? Math.round((crimePrefAt(year).total / t) * 1000 * 100) / 100 : null;
 }

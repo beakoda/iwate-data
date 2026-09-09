@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/farm/">農家</Link>
               <Link href="/economy/">所得・製造業</Link>
               <Link href="/garbage/">ごみ</Link>
+              <Link href="/crime/">街頭犯罪</Link>
               <Link href="/vital/">出生・死亡</Link>
               <Link href="/household/">世帯</Link>
               <Link href="/city/">市町村別</Link>
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="container">{children}</main>
         <footer className="site-footer">
           <div className="container">
-            <p>{SITE.name}は、政府統計（e-Stat）の公表データを岩手県33市町村の粒度で再集計して公開しています。運営: <a href={SITE.publisherUrl}>{SITE.publisher}</a>（盛岡市）</p>
+            <p>{SITE.name}は、政府統計（e-Stat）と岩手県内の公開データを、岩手県33市町村の粒度で再集計して公開しています。運営: <a href={SITE.publisherUrl}>{SITE.publisher}</a>（盛岡市）</p>
             <p><small>本サイトの図表・数値は出典明記のうえ自由に利用できます（CC BY 4.0）。原データの著作権は各統計の作成機関に帰属します。</small></p>
           </div>
         </footer>

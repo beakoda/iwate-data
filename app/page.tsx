@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { IwateMap } from '@/components/Map';
-import { MUNIS, INDUSTRIES, PREF, dentalAt, popAt, econAt, fmt, fmtSigned, LATEST_DENTAL, LATEST_POP, SITE, censusAt, agingRate, LATEST_CENSUS, buildPrefAt, LATEST_BUILD, FIRST_BUILD, vitalPrefAt, LATEST_VITAL, FIRST_VITAL, naturalChange, housePrefAt, LATEST_HOUSE, FIRST_HOUSE, hhShare, medPrefAt, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR, welPrefAt, LATEST_WEL, FIRST_WEL, schoolPrefAt, LATEST_SCHOOL, FIRST_SCHOOL, econPrefAt, LATEST_ECON, FIRST_ECON, incomePerTaxpayer, envPrefAt, envPrefPerDay, LATEST_ENV, FIRST_ENV, joblessPrefAt, joblessRate, LATEST_JOBLESS, FIRST_JOBLESS, eduPrefAt, eduShare, LATEST_EDU, FIRST_EDU, farmPrefAt, totalFarms, LATEST_FARM, FIRST_FARM, LAST_ABANDONED_YEAR } from '@/lib/data';
+import { MUNIS, INDUSTRIES, PREF, dentalAt, popAt, econAt, fmt, fmtSigned, LATEST_DENTAL, LATEST_POP, SITE, censusAt, agingRate, LATEST_CENSUS, buildPrefAt, LATEST_BUILD, FIRST_BUILD, vitalPrefAt, LATEST_VITAL, FIRST_VITAL, naturalChange, housePrefAt, LATEST_HOUSE, FIRST_HOUSE, hhShare, medPrefAt, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR, welPrefAt, LATEST_WEL, FIRST_WEL, schoolPrefAt, LATEST_SCHOOL, FIRST_SCHOOL, econPrefAt, LATEST_ECON, FIRST_ECON, incomePerTaxpayer, envPrefAt, envPrefPerDay, LATEST_ENV, FIRST_ENV, joblessPrefAt, joblessRate, LATEST_JOBLESS, FIRST_JOBLESS, eduPrefAt, eduShare, LATEST_EDU, FIRST_EDU, farmPrefAt, totalFarms, LATEST_FARM, FIRST_FARM, LAST_ABANDONED_YEAR, CRIME_FULL_FROM, LATEST_CRIME } from '@/lib/data';
 
 export default function Home() {
   const d = dentalAt(PREF.code, LATEST_DENTAL)!; const d0 = dentalAt(PREF.code, 2009)!;
@@ -14,7 +14,7 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />
       <section className="hero">
         <h1>岩手県の統計を、市町村×業種の粒度で。</h1>
-        <p className="lead">{SITE.name}は、政府統計（e-Stat）に散らばる岩手県33市町村のデータを、一つの数字・一つのグラフ・一つの出典にまとめて公開するデータサイトです。記者・行政・研究・事業者の方が、そのまま引用できる形にしています。</p>
+        <p className="lead">{SITE.name}は、岩手県33市町村について公開されているデータを、一つの数字・一つのグラフ・一つの出典にまとめて公開するデータサイトです。政府統計（e-Stat）に加え、岩手県警のオープンデータのように県内でしか出ていない一次資料も収録しています。記者・行政・研究・事業者の方が、そのまま引用できる形にしています。</p>
         <div className="tools">
           <Link className="btn primary" href="/city/">市町村を選んで見る</Link>
           <Link className="btn" href="/data/">全データをExcelで入手する</Link>
@@ -52,6 +52,7 @@ export default function Home() {
         <div className="card"><h2>所得・製造業・農地</h2><p>市町村税課税状況等の調・工業統計・耕地面積統計から、市町村別の課税対象所得と納税義務者、製造品出荷額等、耕地面積を{FIRST_ECON}〜{LATEST_ECON}年で。</p><Link className="more" href="/economy/">市町村別の所得と産業を見る →</Link></div>
         <div className="card"><h2>ごみ・生活インフラ</h2><p>一般廃棄物処理事業実態調査から、市町村別のごみ総排出量・1人1日当たり排出量・リサイクル率・最終処分量・水洗化率を{FIRST_ENV}〜{LATEST_ENV}年度で。</p><Link className="more" href="/garbage/">市町村別のごみを見る →</Link></div>
         <div className="card"><h2>介護施設・国民健康保険</h2><p>社会福祉施設等調査から、市町村別の特別養護老人ホーム・有料老人ホームの施設数と定員、国民健康保険被保険者数を{FIRST_WEL}〜{LATEST_WEL}年で。高齢者千人当たりつき。</p><Link className="more" href="/welfare/">市町村別の介護施設を見る →</Link></div>
+        <div className="card"><h2>街頭犯罪（岩手県警）</h2><p>岩手県警が公開する事件1件ごとの発生記録から、市町村別の自転車盗・車上ねらいなど7手口の件数を{CRIME_FULL_FROM}〜{LATEST_CRIME}年で。人口千人当たりと県内順位つき。e-Stat以外の岩手県独自データ。</p><Link className="more" href="/crime/">市町村別の街頭犯罪を見る →</Link></div>
         <div className="card"><h2>出生・死亡・婚姻・離婚</h2><p>人口動態調査から、市町村別の出生数・死亡数・自然増減・婚姻件数・離婚件数を{FIRST_VITAL}〜{LATEST_VITAL}年で。人口千人当たりと県内順位つき。</p><Link className="more" href="/vital/">市町村別の人口動態を見る →</Link></div>
         <div className="card"><h2>全データを一括で（Excel）</h2><p>上の全ファミリーを1つのExcelにまとめたデータ集。33市町村×全年・出典シート付き。各ページからはCSVを無料でダウンロードできます。</p><Link className="more" href="/data/">データ集について →</Link></div>
         <div className="card"><h2>世帯・高齢者単身世帯</h2><p>国勢調査から、市町村別の一般世帯数・単独世帯・65歳以上の単独世帯・高齢夫婦のみの世帯・核家族世帯を{FIRST_HOUSE}〜{LATEST_HOUSE}年で。</p><Link className="more" href="/household/">世帯の内訳を見る →</Link></div>

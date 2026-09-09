@@ -50,7 +50,7 @@ export function CiteBox({ title, path, sentence }: { title: string; path: string
         <dt>リンク</dt>
         <dd><code>{`<a href="${url}">${title}</a>`}</code></dd>
       </dl>
-      <p><small>本ページの図表・数値は出典を明記のうえ自由に引用・転載できます。元データは政府統計です。</small></p>
+      <p><small>本ページの図表・数値は出典を明記のうえ自由に引用・転載できます。元データは各ページの「出典・注記」に記載した公的統計・公開データです。</small></p>
     </section>
   );
 }

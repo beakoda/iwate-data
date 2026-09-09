@@ -66,6 +66,7 @@ SOURCES = {
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
     'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
+    'crime': {'name':'岩手県警察「オープンデータ（街頭犯罪等の発生状況）」', 'url':'https://www.pref.iwate.jp/kenkei/koho/opendata/3000711.html', 'note':'岩手県警が公開する事件1件ごとの発生記録（発生地の市区町村コード・町丁目、発生年月日、発生場所、被害者属性）を、本サイトが市町村×年×手口で集計したもの。対象は自転車盗・車上ねらい・部品ねらい・自動販売機ねらい・自動車盗・オートバイ盗・ひったくりの7手口。年は発生年月日（始期）の年。刑法犯認知件数の全体ではなく、この7手口に限った件数である点に注意。'},
     'census': {'name':'総務省統計局「国勢調査」都道府県・市区町村別の主な結果（第１面事項・第２面事項）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001049104&tclass1=000001049105', 'note':'各回10月1日現在。2015年（平成27年）・2020年（令和2年）。2020年の年齢・就業関係の数値は不詳補完結果。「-」は該当者なし。'},
 }
 
@@ -193,6 +194,25 @@ def check_ssds(family, munis, data, pref, years):
     return n
 
 
+CRIME_YEARS = list(range(2016, 2026))
+CRIME_TYPES = ('ひったくり', 'オートバイ盗', '自動販売機ねらい', '自動車盗', '自転車盗', '車上ねらい', '部品ねらい')
+
+
+def load_crime():
+    """岩手県警オープンデータ（手口別CSV 55本）を市町村×年×手口に集計したもの。e-Stat 由来ではない。"""
+    out = {}
+    for r in load_csvs('crime_2016_2025.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        t = r['type']
+        assert t in CRIME_TYPES, ('unknown crime type', t)
+        d = out.setdefault(code, {}).setdefault(r['year'], {k: 0 for k in CRIME_TYPES})
+        d[t] += int(r['count'])
+    for ys in out.values():
+        for d in ys.values():
+            d['total'] = sum(d[k] for k in CRIME_TYPES)
+    return out
+
+
 def load_census():
     out = {}
     for y in CENSUS_YEARS:
@@ -262,6 +282,9 @@ def build():
         'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
+        'crime': load_crime(),
+        'crimeYears': CRIME_YEARS,
+        'crimeTypes': list(CRIME_TYPES),
         'censusInd': [{'key':k,'code':c,'name':n} for k,c,n in CENSUS_IND],
     }
     for f, (d, _p, ys) in ssds.items():
@@ -282,6 +305,19 @@ def build():
                 r = cen[str(y)][m['code']]
                 tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+    # 犯罪: 33市町村×10年が欠けなく揃い、総件数が原データ（岩手県警CSV 55本）と一致するか
+    cri = ds['crime']
+    assert set(cri) == {m['code'] for m in munis}, ('crime munis', len(cri))
+    CRIME_TOTAL = 4885
+    got = 0
+    for m in munis:
+        assert set(cri[m['code']]) == {str(y) for y in CRIME_YEARS}, ('crime years', m['code'])
+        for y in CRIME_YEARS:
+            r = cri[m['code']][str(y)]
+            assert r['total'] == sum(r[k] for k in CRIME_TYPES), ('crime total', m['code'], y)
+            got += r['total']
+    assert got == CRIME_TOTAL, ('crime', got, CRIME_TOTAL)
+
     # 建築着工: 市町村合計が県公表値と一致するか（居住専用住宅の棟数、2011-2024）
     bld = ds['building']
     PREF_HOUSE = {2011:4396,2012:6276,2013:6963,2014:6549,2015:6437,2016:6388,2017:6155,2018:6504,2019:6163,

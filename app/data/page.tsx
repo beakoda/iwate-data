@@ -21,7 +21,7 @@ export default function Page() {
     <>
       <Breadcrumb items={[{ name: 'データ集（Excel）' }]} />
       <h1>{TITLE}</h1>
-      <p className="key-fact">本サイトに載っている<strong>{fams.length}分野・33市町村・約{Math.round(rowCount / 1000)}千行</strong>のデータを、分野ごとのシートに分けた1つのExcelファイル。すべて政府統計の公表値で、<strong>市町村合計が県公表値と一致することを機械的に検算済み</strong>。出典・注記シート付き。</p>
+      <p className="key-fact">本サイトに載っている<strong>{fams.length}分野・33市町村・約{Math.round(rowCount / 1000)}千行</strong>のデータを、分野ごとのシートに分けた1つのExcelファイル。すべて政府統計・自治体公開データの公表値で、<strong>市町村合計が県公表値と一致することを機械的に検算済み</strong>。出典・注記シート付き。</p>
 
       <div className="stats">
         <div className="stat"><div className="stat-label">価格（税込・買い切り）</div><div className="stat-value">¥{PRICE}</div><div className="stat-sub">{GENERATED}版・xlsx形式</div></div>
@@ -62,7 +62,7 @@ export default function Page() {
       </ul>
 
       <h2>正直な注意</h2>
-      <p>元データはすべて政府統計（e-Stat）で、誰でも無料で取得できます。お金をいただいているのは、<strong>33市町村×{fams.length}分野×十数年分を集めて、市町村合計が県の公表値と一致することを検算し、1ファイルに整えた手間</strong>に対してです。ご自身でe-Statから取れる方は、そちらをお使いください。</p>
+      <p>元データはすべて政府統計（e-Stat）や自治体・県警が公開しているもので、誰でも無料で取得できます。お金をいただいているのは、<strong>33市町村×{fams.length}分野×十数年分を集めて、市町村合計が県の公表値と一致することを検算し、1ファイルに整えた手間</strong>に対してです。ご自身で各配布元から取れる方は、そちらをお使いください。</p>
       <p>利用条件は本サイトと同じ<a href="https://creativecommons.org/licenses/by/4.0/deed.ja" rel="noopener">CC BY 4.0</a>（出典として「{SITE.name}」を明記すれば、商用を含め自由に利用できます）。</p>
 
       <h2>更新</h2>
