@@ -28,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/building/">住宅着工</Link>
               <Link href="/medical/">病院・医師</Link>
               <Link href="/welfare/">介護施設</Link>
+              <Link href="/hoiku/">保育所等</Link>
               <Link href="/school/">学校</Link>
               <Link href="/haikou/">廃校</Link>
               <Link href="/jobless/">失業率</Link>

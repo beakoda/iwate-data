@@ -738,3 +738,41 @@ export function yugenShare(code: string): number | null {
   const t = houjinAt(code); if (!t) return null;
   return Math.round((houjinAt(code, '有限会社') / t) * 1000) / 10;
 }
+
+/* ===== 保育所等の定員・申込者・待機児童（こども家庭庁 2026-04-01） ===== */
+export type HoikuRec = {
+  capacity: number; applicants: number; waiting: number;
+  on_leave: number; specific_only: number; job_paused: number;
+};
+const hoiku = (ds as any).hoiku as Record<string, HoikuRec>;
+export const HOIKU_ASOF: string = (ds as any).hoikuAsOf;
+export const HOIKU_ASOF_LABEL = (() => {
+  const [y, m, d] = HOIKU_ASOF.split('-');
+  return `${y}年${Number(m)}月${Number(d)}日`;
+})();
+
+export function hoikuAt(code: string): HoikuRec | undefined { return hoiku[code]; }
+/** 33市町村の合計 */
+export function hoikuPref(): HoikuRec {
+  const acc: any = { capacity: 0, applicants: 0, waiting: 0, on_leave: 0, specific_only: 0, job_paused: 0 };
+  for (const m of MUNIS) {
+    const r = hoikuAt(m.code); if (!r) continue;
+    for (const k of Object.keys(acc)) acc[k] += (r as any)[k];
+  }
+  return acc as HoikuRec;
+}
+/** 申込者 ÷ 定員（%、小数1桁）。100%を超えると定員より申込のほうが多い */
+export function hoikuFillRate(r: HoikuRec | undefined): number | null {
+  if (!r || !r.capacity) return null;
+  return Math.round((r.applicants / r.capacity) * 1000) / 10;
+}
+/** 定員の空き（定員 − 申込者）。マイナスなら申込が定員を超えている */
+export function hoikuSlack(r: HoikuRec | undefined): number | null {
+  if (!r) return null;
+  return r.capacity - r.applicants;
+}
+/** 待機児童に数えないが預けられていない子ども（育休中＋特定園のみ希望＋求職活動休止） */
+export function hoikuHidden(r: HoikuRec | undefined): number | null {
+  if (!r) return null;
+  return r.on_leave + r.specific_only + r.job_paused;
+}

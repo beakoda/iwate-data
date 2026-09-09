@@ -8,6 +8,7 @@ import {
   crimeAt, CRIME_YEARS,
   trafficAt, TRAFFIC_YEARS,
   houjinAt, houjinNewAt, houjinClosedAt, HOUJIN_KINDS, HOUJIN_YEARS, HOUJIN_ASOF,
+  hoikuAt, HOIKU_ASOF,
   kaigoAt, KAIGO_SNAPS, KAIGO_SERVICES,
   iryouAt, IRYOU_TYPES, IRYOU_ASOF,
   shofukuAt, SHOFUKU_SERVICES, SHOFUKU_ASOF,
@@ -84,6 +85,10 @@ export const FAMILIES: Record<string, Family> = {
       return row;
     },
     cols: [['時点', '時点'], ...KAIGO_SERVICES.flatMap(s => [[s, s] as [string, string], [s + '_定員', s + '_定員'] as [string, string]]), ['合計', '合計（延べ）']] },
+  hoiku: { label: '保育所等の定員・待機児童', years: [Number(HOIKU_ASOF.slice(0, 4))], yearLabel: '年',
+    at: (code: string) => { const r = hoikuAt(code); return r ? { 時点: HOIKU_ASOF, ...r } : undefined; },
+    cols: [['時点', '時点'], ['capacity', '利用定員'], ['applicants', '申込者'], ['waiting', '待機児童'],
+      ['on_leave', '育児休業中'], ['specific_only', '特定園のみ希望'], ['job_paused', '求職活動休止']] },
   houjin: { label: '法人数（法人番号公表サイト）', years: [Number(HOUJIN_ASOF.slice(0, 4))], yearLabel: '年',
     at: (code: string) => {
       const row: Record<string, any> = { 時点: HOUJIN_ASOF };

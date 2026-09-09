@@ -66,6 +66,7 @@ SOURCES = {
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
     'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
+    'hoiku': {'name':'こども家庭庁「保育所等関連状況取りまとめ（令和8年4月1日）」（参考）定員・申込者の状況', 'url':'https://www.cfa.go.jp/policies/hoiku/torimatome/r8', 'note':'市区町村が報告した保育所等の利用定員と申込者数を積み上げた表（2026年4月1日時点）から、岩手県分を抜き出したもの。定員は保育所・幼保連携型認定こども園・幼稚園型認定こども園等・地域型保育事業・特例保育等・企業主導型保育事業・地方単独事業の合計。「待機児童」は国の定義によるもので、育児休業中・特定の園のみ希望・求職活動を休止している場合は待機児童に数えない。'},
     'houjin': {'name':'国税庁「法人番号公表サイト」基本3情報 全件データ（岩手県）', 'url':'https://www.houjin-bangou.nta.go.jp/download/zenken/', 'note':'国税庁が公表する法人1件ごとの基本3情報（商号・所在地・法人番号）2026年8月31日時点の岩手県分から、市町村×法人種別で集計したもの。「現存」は登記記録の閉鎖等年月日が入っていない法人。「新規」は法人番号の指定年月日が2016年以降の法人で、2015年の一斉付番を除いた実質的な新設分。旧滝沢村（03305）の1件は滝沢市に合算している。'},
     'traffic': {'name':'警察庁「交通事故統計情報のオープンデータ」本票', 'url':'https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html', 'note':'人身事故1件ごとの記録（発生地の市区町村コード・発生日時・死者数・負傷者数など）から、岩手県分を市町村×年で集計したもの。2019〜2024年。物損事故は含まない。警察庁のデータでは岩手県は都道府県コード21（JISの03ではない）。'},
     'shofuku': {'name':'WAM NET「障害福祉サービス等情報公表システム」オープンデータ', 'url':'https://www.wam.go.jp/content/wamnet/pcpub/top/sfkopendata/', 'note':'各自治体が登録した障害福祉サービス等事業所1件ごとの公表データ（2026年3月末時点）から、岩手県分を市町村×サービス種別で集計したもの。「HP公表」は事業所URLが登録されている事業所数。市町村は事業所住所の文字列から判定している。'},
@@ -227,6 +228,21 @@ HOUJIN_KINDS = ('株式会社', '有限会社', '合同会社', '合資会社', 
                 'その他の設立登記法人', '地方公共団体', '国の機関', '外国会社等', 'その他')
 HOUJIN_YEARS = list(range(2016, 2027))
 HOUJIN_ASOF = '2026-08-31'
+
+
+HOIKU_ASOF = '2026-04-01'
+HOIKU_KEYS = ('capacity', 'applicants', 'waiting', 'on_leave', 'specific_only', 'job_paused')
+
+
+def load_hoiku():
+    """保育所等の定員・申込者・待機児童（岩手県分）。e-Stat 由来ではない。"""
+    out = {}
+    for r in load_csvs('hoiku.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        d = out.setdefault(code, {k: 0 for k in HOIKU_KEYS})
+        for k in HOIKU_KEYS:
+            d[k] += int(r[k])
+    return out
 
 
 def load_houjin():
@@ -428,6 +444,7 @@ def build():
         'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
+        'hoiku': load_hoiku(), 'hoikuAsOf': HOIKU_ASOF,
         'houjin': _hj, 'houjinNew': _hjn, 'houjinClosed': _hjc,
         'houjinKinds': list(HOUJIN_KINDS), 'houjinYears': HOUJIN_YEARS, 'houjinAsOf': HOUJIN_ASOF,
         'traffic': load_traffic(), 'trafficYears': TRAFFIC_YEARS,
@@ -459,6 +476,15 @@ def build():
                 r = cen[str(y)][m['code']]
                 tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+    # 保育所等: 33市町村が揃い、県計が原データと一致するか
+    hk = ds['hoiku']
+    assert set(hk) == {m['code'] for m in munis}, ('hoiku munis', len(hk))
+    HOIKU_PREF = {'capacity': 30259, 'applicants': 24691, 'waiting': 0,
+                  'on_leave': 0, 'specific_only': 89, 'job_paused': 2}
+    for k, exp in HOIKU_PREF.items():
+        got = sum(hk[m['code']][k] for m in munis)
+        assert got == exp, ('hoiku', k, got, exp)
+
     # 法人: 33市町村が揃い、現存・新規・閉鎖の合計が原データと一致するか
     hj, hjn, hjc = ds['houjin'], ds['houjinNew'], ds['houjinClosed']
     assert set(hj) == {m['code'] for m in munis}, ('houjin munis', len(hj))
