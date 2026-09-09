@@ -7,6 +7,7 @@ import {
   joblessAt, JOBLESS_YEARS, eduAt, EDU_YEARS, farmAt, FARM_YEARS,
   crimeAt, CRIME_YEARS,
   kaigoAt, KAIGO_SNAPS, KAIGO_SERVICES,
+  iryouAt, IRYOU_TYPES, IRYOU_ASOF,
 } from '@/lib/data';
 
 type Col = [key: string, label: string];
@@ -35,6 +36,18 @@ export const FAMILIES: Record<string, Family> = {
     cols: [['hospitals', '病院数'], ['gen_hospitals', '一般病院数'], ['clinics', '一般診療所数'], ['dental_clinics', '歯科診療所数'], ['hosp_beds', '病院病床数'], ['clinic_beds', '一般診療所病床数'], ['doctors', '医師数'], ['dentists', '歯科医師数'], ['pharmacists', '薬剤師数']] },
   welfare: { label: '介護施設・国保', years: WEL_YEARS, at: welAt,
     cols: [['tokuyo', '特別養護老人ホーム数'], ['tokuyo_cap', '特養定員'], ['yuryo', '有料老人ホーム数'], ['yuryo_cap', '有料定員'], ['kokuho', '国民健康保険被保険者数']] },
+  iryou: { label: '医療機関・薬局（医療情報ネット）', years: [Number(IRYOU_ASOF.slice(0, 4))], yearLabel: '年',
+    at: (code: string) => {
+      const row: Record<string, any> = { 時点: IRYOU_ASOF };
+      for (const t of IRYOU_TYPES) {
+        const c = iryouAt(code, t);
+        row[t] = c?.facilities ?? 0; row[t + '_HP公表'] = c?.with_url ?? 0;
+      }
+      const all = iryouAt(code);
+      row['合計'] = all?.facilities ?? 0; row['合計_HP公表'] = all?.with_url ?? 0;
+      return row;
+    },
+    cols: [['時点', '時点'], ...IRYOU_TYPES.flatMap(t => [[t, t] as [string, string], [t + '_HP公表', t + '_HP公表'] as [string, string]]), ['合計', '合計'], ['合計_HP公表', '合計_HP公表']] },
   kaigo: { label: '介護サービス事業所', years: KAIGO_SNAPS.map(s => Number(s.slice(0, 4))), yearLabel: '年',
     at: (code: string, y: number) => {
       const snap = KAIGO_SNAPS.find(s => Number(s.slice(0, 4)) === y); if (!snap) return undefined;

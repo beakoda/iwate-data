@@ -550,3 +550,42 @@ export function officesPerElderly(offices: number | null | undefined, code: stri
   if (!c || !c.age_65_) return null;
   return Math.round((offices / c.age_65_) * 1000 * 100) / 100;
 }
+
+/* ===== 医療機関・薬局の届出情報（医療情報ネット 2025-12-01） ===== */
+export type IryouCell = { facilities: number; with_url: number };
+const iryou = (ds as any).iryou as Record<string, Record<string, IryouCell>>;
+export const IRYOU_TYPES: string[] = (ds as any).iryouTypes;
+export const IRYOU_ASOF: string = (ds as any).iryouAsOf;
+/** 表示用の時点ラベル（"2025-12-01" → "2025年12月1日"） */
+export const IRYOU_ASOF_LABEL = (() => {
+  const [y, m, d] = IRYOU_ASOF.split('-');
+  return `${y}年${Number(m)}月${Number(d)}日`;
+})();
+
+/** 施設種別ごとの施設数・HP公表数。type を省くと全種別の合計 */
+export function iryouAt(code: string, type?: string): IryouCell | undefined {
+  const d = iryou[code]; if (!d) return undefined;
+  return type ? d[type] : d['_total'];
+}
+/** 33市町村の合計 */
+export function iryouPref(type?: string): IryouCell {
+  const acc = { facilities: 0, with_url: 0 };
+  for (const m of MUNIS) {
+    const r = iryouAt(m.code, type); if (!r) continue;
+    acc.facilities += r.facilities; acc.with_url += r.with_url;
+  }
+  return acc;
+}
+/** ホームページを届け出ている施設の割合（%、小数1桁）。施設が0なら null */
+export function urlRate(c: IryouCell | undefined): number | null {
+  if (!c || !c.facilities) return null;
+  return Math.round((c.with_url / c.facilities) * 1000) / 10;
+}
+/** 人口1万人当たりの施設数（住民基本台帳。医療情報ネットの時点に最も近い年を分母にする） */
+export function facPer10k(facilities: number | null | undefined, code: string): number | null {
+  if (facilities == null) return null;
+  const y = Math.min(Number(IRYOU_ASOF.slice(0, 4)) + 1, LATEST_POP);
+  const p = popAt(code, y);
+  if (!p || !p.total) return null;
+  return Math.round((facilities / p.total) * 10000 * 100) / 100;
+}
