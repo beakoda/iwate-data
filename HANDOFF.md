@@ -20,7 +20,7 @@
 
 - リモート: `https://github.com/beakoda/iwate-data.git`（Public、**全33ファイル反映済み**）。`main` が正。作業前に必ず `git pull`
 - ローカルにクローンが無ければ `git clone https://github.com/beakoda/iwate-data.git`
-- ビルド: **1838ページ**生成成功（国勢調査＋建築着工＋人口動態＋世帯＋病院・医師＋介護施設＋学校＋所得製造業＋ごみ＋完全失業率＋最終学歴＋農家＋街頭犯罪＋介護サービス事業所＋医療機関・薬局）。主要数値は raw CSV と突き合わせ検算済み
+- ビルド: **1872ページ**生成成功（国勢調査＋建築着工＋人口動態＋世帯＋病院・医師＋介護施設＋学校＋所得製造業＋ごみ＋完全失業率＋最終学歴＋農家＋街頭犯罪＋介護サービス事業所＋医療機関・薬局＋廃校）。主要数値は raw CSV と突き合わせ検算済み
 - **e-Stat API の appId 取得済み**（アプリ名 `iwate-data` / URL `https://iwate-data.pages.dev`）。キーは会話にもリポジトリにも書いていない。§7 の「e-Stat API の使い方」を読むこと
 - デプロイ: **稼働中** → https://iwate-data.pages.dev （Cloudflare Pages プロジェクト `iwate-data`、`main` への push で自動デプロイ。理由は下記）
 - 環境変数 `NEXT_PUBLIC_SITE_URL` は現在 `https://iwate-data.pages.dev`（**暫定**）。独自ドメイン取得後に差し替えること
@@ -48,7 +48,7 @@ Cloudflare Pages の設定値:
 - `public/_headers` — Cloudflare Pages のヘッダー設定。`public/` の中身は `out/` にそのままコピーされる。`/_next/static/*` は immutable で1年キャッシュ、HTMLは毎回再検証。**`X-Frame-Options` は意図的に設定していない**（§6-C の埋め込みウィジェット構想を潰すため）
 - 静的出力は `out/dental/morioka/index.html` の形（`trailingSlash: true`）。Cloudflare Pages がそのまま `/dental/morioka/` で配信する。`404.html` も出力済み
 
-### ページ構成（sitemap 1188件＋CSV＋埋め込み33本）
+### ページ構成（sitemap 1222件＋CSV＋埋め込み33本）
 
 | パス | 数 | 内容 |
 |---|---|---|
@@ -76,6 +76,7 @@ Cloudflare Pages の設定値:
 | `/crime/` `/crime/[slug]/` | 1+33 | 街頭犯罪7手口の発生件数（岩手県警オープンデータ 2016–2025）。**e-Stat 由来ではない** |
 | `/kaigo/` `/kaigo/[slug]/` | 1+33 | 介護サービス事業所数・定員をサービス種別×市町村で（介護サービス情報公表システム 2024-12／2026-06）。**e-Stat 由来ではない** |
 | `/iryou/` `/iryou/[slug]/` | 1+33 | 病院・診療所・歯科・薬局・助産所の施設数と**ホームページ公表率**（医療情報ネット 2025-12-01）。**e-Stat 由来ではない** |
+| `/haikou/` `/haikou/[slug]/` | 1+33 | 2021年以降に廃止された学校128校の一覧（校名・廃止年・学校種）と現存校数（文科省 学校コード）。**e-Stat 由来ではない** |
 | `/embed/city/{slug}/` | 33 | iframe埋め込み用の主要6指標カード。`X-Robots-Tag: noindex` |
 
 クロスページは 17産業 × 33市町村 = 561通りのうち、**2021年の事業所数が公表されている522通りだけ**を生成する（`generateStaticParams` が `estab != null` で絞る）。空ページを作らないための意図的な設計なので、勝手に全通り生成するように変えないこと。
@@ -132,6 +133,7 @@ mcp/                   MCPサーバー（Cloudflare Worker）。data/dataset.jso
 | `crime` | **岩手県警**「オープンデータ（街頭犯罪等の発生状況）」手口別CSV 55本。事件1件ごとの個票を市町村×年×手口に集計 | 2016–2025（発生年月日の年） |
 | `kaigo` | **厚労省 介護サービス情報公表システム** 事業所個票CSV（全国35サービス×2時点）。岩手県分を市町村×サービス種別に集計 | 2024-12末・2026-06末 |
 | `iryou` | **厚労省 医療情報ネット（ナビイ）** 全国データZIP。医療機関・薬局の施設個票を市町村×施設種別＋HP公表有無に集計 | 2025-12-01 |
+| `schoolcode` | **文科省 学校コード一覧**。現存校を市町村×学校種に集計＋廃止年月日のある学校を校名つきで収録 | 2026-05-20更新（廃校は2021年以降） |
 | `building` | 国交省 建築着工統計調査 建築物着工統計 市区町村別・用途別（大分類） | 2011–2024（年計） |
 | `vital` | 総務省統計局 社会・人口統計体系 市区町村データ Ａ人口・世帯（出生・死亡・婚姻・離婚・転入・転出） | 2010–2023（年計） |
 | `household` | 総務省統計局 社会・人口統計体系 市区町村データ Ａ人口・世帯（世帯・高齢世帯・外国人・DID） | 2010・2015・2020 |
@@ -192,13 +194,14 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 
 ### 非 e-Stat データの取り方（2026-09-09 追加。crime / kaigo）
 
-`raw/crime_2016_2025.csv` `raw/kaigo_offices.csv` `raw/iryou_facilities.csv` は e-Stat API ではなく、配布元のCSV/ZIPを直接落として集計したもの。**`scripts/fetch_estat.py` も月次 cron（`scripts/update.sh`）もこの2つを更新しない。** 更新は手作業。
+`raw/crime_2016_2025.csv` `raw/kaigo_offices.csv` `raw/iryou_facilities.csv` `raw/school_active.csv` `raw/school_closed.csv` は e-Stat API ではなく、配布元のCSV/ZIPを直接落として集計したもの。**`scripts/fetch_estat.py` も月次 cron（`scripts/update.sh`）もこの2つを更新しない。** 更新は手作業。
 
 - **crime**: https://www.pref.iwate.jp/kenkei/koho/opendata/3000711.html のページ内 `.csv` リンク（2018年以降は年ごとにサブディレクトリ）。文字コードは **Shift_JIS**。列は「罪名／手口／管轄警察署／市区町村コード（発生地）／市区町村（発生地）／町丁目／発生年月日（始期）／発生時／発生場所／被害者の性別／年齢／現金被害の有無」。市区町村コードは**年によって6桁（検査数字つき）と5桁が混在**するので `zfill(6)[:5]` で JIS コードに正規化する。年ごとに1手口1ファイル、2026-09 時点で55本・総計4,885件
 - **kaigo**: https://www.mhlw.go.jp/stf/kaigo-kouhyou_opendata.html の `jigyosho_{サービス番号}_all_{タイムスタンプ}.csv`。**同じサービス名のファイルが時点ごとに複数並んでいる**ので、ファイル名の日付スタンプで時点を切り分けること（混ぜると二重計上する）。文字コードは Shift_JIS、全国データなので「都道府県名」＝岩手県で絞る。定員列は訪問系・居宅介護支援では常に空
 - **iryou**: https://data.e-gov.go.jp/data/dataset/iryou_teikyouseido_mhlw の `e-gov{YYYYMMDD}.zip`（26MB）。中身は8CSV（病院／診療所／歯科の facility_info と speciality_hours、助産所、薬局）で、使うのは `*_facility_info` と `04_maternity_home` `05_pharmacy` の5本。**市区町村コードは都道府県内3桁**なので `都道府県コード + zfill(3)` で JIS5 にする。URL列名は薬局だけ「薬局のホームページアドレス」で他は「案内用ホームページアドレス」。**市区町村コードが空欄の施設が1件（久慈市の歯科）あり、所在地の文字列から市町村を判定して算入している**（未対応だと32市町村になる）。`*_speciality_hours`（診療科目・診療時間）は未使用。診療科目別ページを作るならここ
+- **schoolcode**: https://www.mext.go.jp/b_menu/toukei/mext_01087.html の `..._2-1.csv`（都道府県01〜21）`_2-2.csv`（22〜24）`_4.csv`（25〜47）。**この3本で全国を分割している**ので岩手は `_2-1` だけ見ればよい（`_4` に岩手は入っていない。ここを間違えると0件になる）。`_6.csv` は全国の差分。**ヘッダーが2行目**にあり、セル内改行を含むので引用符対応のCSVパーサが要る。**市区町村コードの列が無い**ので学校所在地の住所から市町村を判定する。そのとき `岩手県胆沢郡金ケ崎町…` のように**郡が挟まる**のと、**ヶ/ケ の表記ゆれ**（三ケ尻 と 三ヶ尻）の両方を吸収しないと町村が全部落ちる（対処前は14市町村・603校しか取れなかった。正しくは33市町村・866校＝現存738＋廃校128）
 - **取得できる環境**: 日本の政府・自治体サイトはコンテナからも Cowork の Linux VM からも egress で 403 になる。**VPS（rocky@os3-306）と、ユーザーPCのChromeだけが到達できる**。Chrome から取る場合は「ページ内で fetch → Shift_JIS デコード → 集計 → 結果を DOM に書き出して読み取る」方式が有効（全国22万件のような巨大CSVを持ち出さずに済む）。ZIPも中央ディレクトリを自前で読んで `DecompressionStream('deflate-raw')` で展開すればページ内で完結する
-- **検算**: `build_data.py` の assert に総件数をハードコードしてある（crime 4,885件／kaigo 2,581・2,535事業所／iryou 病院84・診療所747・歯科512・薬局625・助産所17とそれぞれのHP公表数）。**データを更新したらこの数字も更新すること。** 数字を消して assert を無効化しないこと
+- **検算**: `build_data.py` の assert に総件数をハードコードしてある（crime 4,885件／kaigo 2,581・2,535事業所／iryou 病院84・診療所747・歯科512・薬局625・助産所17とそれぞれのHP公表数／schoolcode 現存738校・廃校128校と廃止年ごとの内訳）。**データを更新したらこの数字も更新すること。** 数字を消して assert を無効化しないこと
 
 ### 取得を検討して見送ったデータ（同じ検討を繰り返さないため）
 
@@ -327,8 +330,8 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - クラウド上のClaudeセッションからは `git push` できない（gitプロキシがセッション許可リポ外にcredentialを出さず403）。初回投入はGitHubのWebアップロードで行ったため、コミット履歴は `Add files via upload` が並んでいる（内容は検証済みで正）。**以降の push はローカルのCLIから行う**
 - `public/_headers` はマッチするルールが**すべて**適用され、同名ヘッダーは連結される。`/*` に `Cache-Control` を書くと `/_next/static/*` の immutable 指定と二重になって壊れる（一度やらかして修正済み）。Cache-Control は個別ルールにだけ置くこと
 - **クラウドコンテナから e-stat.go.jp へは到達できない**（egressポリシーで拒否）。データ取得はChrome経由の in-page fetch で行う。取得後は必ず「市町村合計＝県計」で検算してから raw に保存する
-- **`/crime/` `/kaigo/` `/iryou/` は月次 cron の対象外**（e-Stat 由来ではないため `fetch_estat.py` が見ていない）。放っておくと静かに古くなる。更新手順は §3「非 e-Stat データの取り方」
-- **MCP のカタログは `crime` だけ追加済み、`kaigo` と `iryou` は未対応**。`mcp/src/catalog.ts` は `key[code][year]` の形しか扱えないが、`kaigo` は `kaigo[code][時点][サービス種別]`、`iryou` は `iryou[code][施設種別]`（年の軸が無い）と形が違うため。MCPで出すならカタログ側に対応を足すこと
+- **`/crime/` `/kaigo/` `/iryou/` `/haikou/` は月次 cron の対象外**（e-Stat 由来ではないため `fetch_estat.py` が見ていない）。放っておくと静かに古くなる。更新手順は §3「非 e-Stat データの取り方」
+- **MCP のカタログは `crime` だけ追加済み、`kaigo` `iryou` `schoolcode` は未対応**。`mcp/src/catalog.ts` は `key[code][year]` の形しか扱えないが、`kaigo` は `kaigo[code][時点][サービス種別]`、`iryou` は `iryou[code][施設種別]`（年の軸が無い）と形が違うため。MCPで出すならカタログ側に対応を足すこと
 - **sitemap に無い壊れた内部リンクが72本ある**（`/industry/fudai/` のように、産業スラッグの位置に市町村スラッグが入っている）。`/jobless/[slug]/` など複数のページから出ている。sitemap には載っていないので検索影響は小さいが、リンク切れとしては残っている。未修正
 
 ### e-Stat API の使い方（appId 取得済み・これが今の主力）

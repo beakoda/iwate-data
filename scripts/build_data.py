@@ -66,6 +66,7 @@ SOURCES = {
     'medical': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ｉ　健康・医療）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020109', 'note':'病院数・一般病院数・病床数・一般診療所数・歯科診療所数は厚生労働省「医療施設調査」（各年10月1日現在）。医師数・歯科医師数・薬剤師数は厚生労働省「医師・歯科医師・薬剤師統計」で、隔年（偶数年12月31日現在）の従業地別。e-Stat APIで取得。'},
     'vital': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'出生数・死亡数（人口動態調査）、婚姻件数・離婚件数（人口動態調査）は各年1〜12月。転入者数・転出者数（住民基本台帳人口移動報告）は2018年以降のみ市区町村別が収録され、市町村間の県内移動を含む。e-Stat APIで取得。'},
     'household': {'name':'総務省統計局「社会・人口統計体系」市区町村データ 基礎データ（Ａ　人口・世帯）', 'url':'https://www.e-stat.go.jp/stat-search/database?statdisp_id=0000020101', 'note':'国勢調査を出典とする指標。2010年（平成22年）・2015年（平成27年）・2020年（令和2年）各10月1日現在。75歳以上人口は2015年以降のみ収録。人口集中地区（DID）人口は該当地区のない市町村では空欄。e-Stat APIで取得。'},
+    'schoolcode': {'name':'文部科学省「学校コード」一覧（現存校・廃止校）', 'url':'https://www.mext.go.jp/b_menu/toukei/mext_01087.html', 'note':'学校1校ごとに付番された学校コードの一覧（2026年5月20日更新）から、岩手県分を市町村×学校種で集計したもの。市町村は学校所在地の住所文字列から判定している。廃止校は学校コード制度が始まった2020年12月以降に廃止年月日が入った学校で、2021年以降の廃止分に限られる（それ以前の廃校は含まれない）。学校数は「学校基本調査」（本サイトの「学校」ページ）とは対象範囲も時点も異なるため一致しない。'},
     'iryou': {'name':'厚生労働省「医療情報ネット（ナビイ）」全国データ（医療機能情報提供制度・薬局機能情報提供制度）', 'url':'https://data.e-gov.go.jp/data/dataset/iryou_teikyouseido_mhlw', 'note':'各都道府県が集約した医療機関・薬局1施設ごとの届出情報（2025年12月1日版）から、岩手県分を市町村×施設種別で集計したもの。「HP公表」は施設が案内用ホームページアドレス（薬局は薬局のホームページアドレス）を届け出ている施設数。この制度に届出のある施設が対象で、厚労省「医療施設調査」の施設数とは定義も時点も異なるため一致しない。'},
     'kaigo': {'name':'厚生労働省「介護サービス情報公表システム」オープンデータ（事業所一覧）', 'url':'https://www.mhlw.go.jp/stf/kaigo-kouhyou_opendata.html', 'note':'全国の介護サービス事業所1件ごとの公表データ（事業所名・所在地・定員など）から、岩手県分を市町村×サービス種別で集計したもの。2024年12月末時点と2026年6月末時点の2時点。「定員」は公表されている事業所の合計で、定員の概念がないサービス（訪問系・居宅介護支援など）や未記入の事業所は0として扱っているため、定員は施設系サービスでのみ意味を持つ。'},
     'crime': {'name':'岩手県警察「オープンデータ（街頭犯罪等の発生状況）」', 'url':'https://www.pref.iwate.jp/kenkei/koho/opendata/3000711.html', 'note':'岩手県警が公開する事件1件ごとの発生記録（発生地の市区町村コード・町丁目、発生年月日、発生場所、被害者属性）を、本サイトが市町村×年×手口で集計したもの。対象は自転車盗・車上ねらい・部品ねらい・自動販売機ねらい・自動車盗・オートバイ盗・ひったくりの7手口。年は発生年月日（始期）の年。刑法犯認知件数の全体ではなく、この7手口に限った件数である点に注意。'},
@@ -207,6 +208,33 @@ IRYOU_TYPES = ('病院', '診療所', '歯科', '薬局', '助産所')
 IRYOU_ASOF = '2025-12-01'
 
 
+SCHOOL_KINDS = ('幼稚園', '認定こども園', '小学校', '中学校', '義務教育学校', '高校', '特別支援学校', '専修学校', '各種学校')
+SCHOOL_ASOF = '2026-05-20'
+CLOSED_YEARS = list(range(2021, 2027))
+
+
+def load_schoolcode():
+    """文科省 学校コード一覧の現存校・廃止校。e-Stat 由来ではない。"""
+    act = {}
+    for r in load_csvs('school_active.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        assert r['kind'] in SCHOOL_KINDS, ('unknown school kind', r['kind'])
+        d = act.setdefault(code, {k: 0 for k in SCHOOL_KINDS})
+        d[r['kind']] += int(r['schools'])
+    for d in act.values():
+        d['_total'] = sum(d[k] for k in SCHOOL_KINDS)
+    closed = {}
+    for r in load_csvs('school_closed.csv'):
+        code = LEGACY.get(r['code'], r['code'])
+        assert r['kind'] in SCHOOL_KINDS, ('unknown school kind', r['kind'])
+        y = int(r['closed_year'])
+        assert y in CLOSED_YEARS, ('closed year out of range', y)
+        closed.setdefault(code, []).append({'kind': r['kind'], 'year': y, 'name': r['name']})
+    for v in closed.values():
+        v.sort(key=lambda x: (x['year'], x['kind'], x['name']))
+    return act, closed
+
+
 def load_iryou():
     """医療情報ネットの施設個票を市町村×施設種別で集計したもの。e-Stat 由来ではない。"""
     out = {}
@@ -310,6 +338,7 @@ def build():
 
     munis = [{'code':c,'name':n,'slug':s,'kind':k,'gun':g} for c,n,s,k,g in MUNI]
     _kaigo, _kaigo_svc = load_kaigo()
+    _sc_act, _sc_closed = load_schoolcode()
     ssds = {f: load_ssds(f) for f in SSDS}   # family → (muni, pref, years)
     YEARS_KEY = {'vital':'vitalYears','household':'houseYears','medical':'medYears','welfare':'welYears','env':'envYears',
                  'economy':'econYears','school':'schoolYears','jobless':'joblessYears','education':'eduYears','farm':'farmYears'}
@@ -326,6 +355,8 @@ def build():
         'buildYears': BUILD_YEARS,
         'censusYears': CENSUS_YEARS,
         'censusFullYears': CENSUS_FULL_YEARS,
+        'schoolActive': _sc_act, 'schoolClosed': _sc_closed, 'schoolKinds': list(SCHOOL_KINDS),
+        'schoolAsOf': SCHOOL_ASOF, 'closedYears': CLOSED_YEARS,
         'iryou': load_iryou(), 'iryouTypes': list(IRYOU_TYPES), 'iryouAsOf': IRYOU_ASOF,
         'kaigo': _kaigo, 'kaigoSnaps': list(KAIGO_SNAPS), 'kaigoServices': _kaigo_svc,
         'crime': load_crime(),
@@ -351,6 +382,18 @@ def build():
                 r = cen[str(y)][m['code']]
                 tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+    # 学校コード: 33市町村が揃い、現存校・廃止校の総数が原データと一致するか
+    sa, sc = ds['schoolActive'], ds['schoolClosed']
+    assert set(sa) == {m['code'] for m in munis}, ('schoolActive munis', len(sa))
+    got_a = sum(sa[m['code']]['_total'] for m in munis)
+    assert got_a == 738, ('school active', got_a, 738)
+    got_c = sum(len(sc.get(m['code'], [])) for m in munis)
+    assert got_c == 128, ('school closed', got_c, 128)
+    CLOSED_BY_YEAR = {2021: 22, 2022: 18, 2023: 36, 2024: 16, 2025: 20, 2026: 16}
+    for y, exp in CLOSED_BY_YEAR.items():
+        n = sum(1 for m in munis for x in sc.get(m['code'], []) if x['year'] == y)
+        assert n == exp, ('school closed', y, n, exp)
+
     # 医療機関・薬局: 33市町村が揃い、県計が原データと一致するか
     iry = ds['iryou']
     assert set(iry) == {m['code'] for m in munis}, ('iryou munis', len(iry))

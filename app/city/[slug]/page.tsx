@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { INDUSTRIES, MUNIS, PREF, muniBySlug, econAt, popAt, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, LATEST_POP, censusAt, agingRate, LATEST_CENSUS, FIRST_BUILD, LATEST_BUILD, FIRST_MED, LATEST_MED, FIRST_WEL, LATEST_WEL, FIRST_SCHOOL, LATEST_SCHOOL, FIRST_JOBLESS, LATEST_JOBLESS, EDU_YEARS, FIRST_FARM, LATEST_FARM, FIRST_ECON, LATEST_ECON, FIRST_ENV, LATEST_ENV, FIRST_VITAL, LATEST_VITAL, CRIME_FULL_FROM, LATEST_CRIME, kaigoLabel, LATEST_KAIGO, IRYOU_ASOF_LABEL } from '@/lib/data';
+import { INDUSTRIES, MUNIS, PREF, muniBySlug, econAt, popAt, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, LATEST_POP, censusAt, agingRate, LATEST_CENSUS, FIRST_BUILD, LATEST_BUILD, FIRST_MED, LATEST_MED, FIRST_WEL, LATEST_WEL, FIRST_SCHOOL, LATEST_SCHOOL, FIRST_JOBLESS, LATEST_JOBLESS, EDU_YEARS, FIRST_FARM, LATEST_FARM, FIRST_ECON, LATEST_ECON, FIRST_ENV, LATEST_ENV, FIRST_VITAL, LATEST_VITAL, CRIME_FULL_FROM, LATEST_CRIME, kaigoLabel, LATEST_KAIGO, IRYOU_ASOF_LABEL, FIRST_CLOSED } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
 import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Cta, EmbedBox } from '@/components/Shell';
 
@@ -70,6 +70,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/farm/${m.slug}/`}>{m.name}の農家数<small>販売農家・自給的農家・耕作放棄地 {FIRST_FARM}〜{LATEST_FARM}年</small></Link></li>
         <li><Link href={`/economy/${m.slug}/`}>{m.name}の所得・製造業・農地<small>課税対象所得・製造品出荷額・耕地面積 {FIRST_ECON}〜{LATEST_ECON}年</small></Link></li>
         <li><Link href={`/garbage/${m.slug}/`}>{m.name}のごみ・生活インフラ<small>ごみ排出量・リサイクル率・水洗化率 {FIRST_ENV}〜{LATEST_ENV}年度</small></Link></li>
+        <li><Link href={`/haikou/${m.slug}/`}>{m.name}の廃校<small>{FIRST_CLOSED}年以降に廃止された学校の一覧（文科省 学校コード）</small></Link></li>
         <li><Link href={`/iryou/${m.slug}/`}>{m.name}の病院・歯科・薬局<small>施設数とホームページ公表率（{IRYOU_ASOF_LABEL}時点）</small></Link></li>
         <li><Link href={`/kaigo/${m.slug}/`}>{m.name}の介護サービス事業所<small>訪問介護・通所介護など種別ごとの事業所数（{kaigoLabel(LATEST_KAIGO)}時点）</small></Link></li>
         <li><Link href={`/crime/${m.slug}/`}>{m.name}の街頭犯罪<small>自転車盗・車上ねらいほか7手口 {CRIME_FULL_FROM}〜{LATEST_CRIME}年（岩手県警）</small></Link></li>

@@ -589,3 +589,35 @@ export function facPer10k(facilities: number | null | undefined, code: string): 
   if (!p || !p.total) return null;
   return Math.round((facilities / p.total) * 10000 * 100) / 100;
 }
+
+/* ===== 学校コード（現存校・2021年以降の廃校／文科省 2026-05-20） ===== */
+export type ClosedSchool = { kind: string; year: number; name: string };
+const schoolActive = (ds as any).schoolActive as Record<string, Record<string, number>>;
+const schoolClosed = (ds as any).schoolClosed as Record<string, ClosedSchool[]>;
+export const SCHOOL_KINDS: string[] = (ds as any).schoolKinds;
+export const SCHOOL_ASOF: string = (ds as any).schoolAsOf;
+export const CLOSED_YEARS: number[] = (ds as any).closedYears;
+export const FIRST_CLOSED = CLOSED_YEARS[0];
+export const LATEST_CLOSED = CLOSED_YEARS[CLOSED_YEARS.length - 1];
+
+/** 現存校数。kind を省くと全種別の合計 */
+export function schoolCodeAt(code: string, kind?: string): number {
+  const d = schoolActive[code]; if (!d) return 0;
+  return kind ? (d[kind] ?? 0) : (d['_total'] ?? 0);
+}
+/** その市町村で2021年以降に廃止された学校（年→種別→名前の順） */
+export function closedAt(code: string): ClosedSchool[] { return schoolClosed[code] ?? []; }
+/** 33市町村の現存校合計 */
+export function schoolCodePref(kind?: string): number {
+  return MUNIS.reduce((a, m) => a + schoolCodeAt(m.code, kind), 0);
+}
+/** 33市町村の廃校をまとめて返す */
+export function closedPref(): (ClosedSchool & { code: string })[] {
+  return MUNIS.flatMap(m => closedAt(m.code).map(x => ({ ...x, code: m.code })));
+}
+/** 廃校数 ÷（現存校＋廃校）。この5年でどれだけ減ったかの目安（%、小数1桁） */
+export function closedShare(code: string): number | null {
+  const c = closedAt(code).length, a = schoolCodeAt(code);
+  if (!(a + c)) return null;
+  return Math.round((c / (a + c)) * 1000) / 10;
+}
