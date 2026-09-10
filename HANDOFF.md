@@ -20,7 +20,7 @@
 
 - リモート: `https://github.com/beakoda/iwate-data.git`（Public、**全33ファイル反映済み**）。`main` が正。作業前に必ず `git pull`
 - ローカルにクローンが無ければ `git clone https://github.com/beakoda/iwate-data.git`
-- ビルド: **2178ページ**生成成功（国勢調査＋建築着工＋人口動態＋世帯＋病院・医師＋介護施設＋学校＋所得製造業＋ごみ＋完全失業率＋最終学歴＋農家＋街頭犯罪＋介護サービス事業所＋医療機関・薬局＋廃校＋障害福祉サービス事業所＋交通事故＋法人数＋保育所等）。主要数値は raw CSV と突き合わせ検算済み
+- ビルド: **2179ページ**生成成功（国勢調査＋建築着工＋人口動態＋世帯＋病院・医師＋介護施設＋学校＋所得製造業＋ごみ＋完全失業率＋最終学歴＋農家＋街頭犯罪＋介護サービス事業所＋医療機関・薬局＋廃校＋障害福祉サービス事業所＋交通事故＋法人数＋保育所等）。主要数値は raw CSV と突き合わせ検算済み
 - **e-Stat API の appId 取得済み**（アプリ名 `iwate-data` / URL `https://iwate-data.pages.dev`）。キーは会話にもリポジトリにも書いていない。§7 の「e-Stat API の使い方」を読むこと
 - デプロイ: **稼働中** → https://iwate-data.pages.dev （Cloudflare Pages プロジェクト `iwate-data`、`main` への push で自動デプロイ。理由は下記）
 - 環境変数 `NEXT_PUBLIC_SITE_URL` は現在 `https://iwate-data.pages.dev`（**暫定**）。独自ドメイン取得後に差し替えること
@@ -48,7 +48,7 @@ Cloudflare Pages の設定値:
 - `public/_headers` — Cloudflare Pages のヘッダー設定。`public/` の中身は `out/` にそのままコピーされる。`/_next/static/*` は immutable で1年キャッシュ、HTMLは毎回再検証。**`X-Frame-Options` は意図的に設定していない**（§6-C の埋め込みウィジェット構想を潰すため）
 - 静的出力は `out/dental/morioka/index.html` の形（`trailingSlash: true`）。Cloudflare Pages がそのまま `/dental/morioka/` で配信する。`404.html` も出力済み
 
-### ページ構成（sitemap 1358件＋CSV＋埋め込み33本）
+### ページ構成（sitemap 1359件＋CSV＋埋め込み33本）
 
 | パス | 数 | 内容 |
 |---|---|---|
@@ -81,6 +81,7 @@ Cloudflare Pages の設定値:
 | `/jiko/` `/jiko/[slug]/` | 1+33 | 人身交通事故の件数・死者・負傷者（警察庁 2019–2024）。**e-Stat 由来ではない** |
 | `/houjin/` `/houjin/[slug]/` | 1+33 | 登記法人29,574社を法人種別×市町村で＋2016年以降の新規指定・閉鎖累計（国税庁 法人番号 2026-08-31）。**e-Stat 由来ではない** |
 | `/hoiku/` `/hoiku/[slug]/` | 1+33 | 保育所等の利用定員・申込者・待機児童（こども家庭庁 2026-04-01）。**e-Stat 由来ではない** |
+| `/mcp/` | 1 | MCPサーバーの案内（接続URL・ツール一覧・収録分野）。`mcp/src/catalog.ts` を import しているので分野を足せば自動で増える |
 | `/embed/city/{slug}/` | 33 | iframe埋め込み用の主要6指標カード。`X-Robots-Tag: noindex` |
 
 クロスページは 17産業 × 33市町村 = 561通りのうち、**2021年の事業所数が公表されている522通りだけ**を生成する（`generateStaticParams` が `estab != null` で絞る）。空ページを作らないための意図的な設計なので、勝手に全通り生成するように変えないこと。
@@ -323,10 +324,10 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - **埋め込みウィジェット** `/embed/city/{slug}/` と、cityページの埋め込みコード表示
 - モバイルのヘッダーナビを横スクロール1行に（5行→1行）。印刷CSS
 
-**MCPサーバー（2026-09-05 追加、`mcp/`）**: 同じ dataset.json を Cloudflare Worker に同梱し、ステートレスな MCP Streamable HTTP（POST /mcp）で6ツール＋15リソースを出す。公式SDKクライアント（`mcp/test/client.mjs`）で全ツールの実通信テスト済み。バンドルは gzip 後 122KB で無料枠（3MB）内。**本番稼働中（2026-09-07）→ https://mcp.iwate-data.com/mcp** （Cloudflare Worker `iwate-data-mcp`。GitHub 連携の Workers Builds で main への push ごとに自動再デプロイ。ビルド設定は root=/・build `cd mcp && npm install --no-audit --no-fund`・deploy `cd mcp && npx wrangler deploy`。workers.dev は https://iwate-data-mcp.oda-2ba.workers.dev/mcp）。手順は `mcp/README.md`。列定義 `mcp/src/catalog.ts` は `lib/csv.ts` と手で同期している（列を足したら両方）
+**MCPサーバー（2026-09-05 追加、`mcp/`）**: 同じ dataset.json を Cloudflare Worker に同梱し、ステートレスな MCP Streamable HTTP（POST /mcp）で6ツール＋24リソースを出す（24分野・193指標）。公式SDKクライアント（`mcp/test/client.mjs`）で全ツールの実通信テスト済み。バンドルは gzip 後 147KB で無料枠（3MB）内。**本番稼働中（2026-09-07）→ https://mcp.iwate-data.com/mcp** （Cloudflare Worker `iwate-data-mcp`。GitHub 連携の Workers Builds で main への push ごとに自動再デプロイ。ビルド設定は root=/・build `cd mcp && npm install --no-audit --no-fund`・deploy `cd mcp && npx wrangler deploy`。workers.dev は https://iwate-data-mcp.oda-2ba.workers.dev/mcp）。手順は `mcp/README.md`。列定義 `mcp/src/catalog.ts` は `lib/csv.ts` と手で同期している（列を足したら両方）。**`dataset.json` の形が `key[code][year]` でない分野は `Dataset.pick(ds, code, year)` で1行を組み立てる**（年の軸が無いスナップショットは `years` に時点の年を1つ入れる）。介護・障害福祉は種別が多いので主要8種別＋合計だけを列にしてある（全種別はCSVを見る）
 
 残っている手作業（コードでは出来ない）:
-7. ~~MCPのデプロイとカスタムドメイン~~ **完了（2026-09-07）**: https://mcp.iwate-data.com/mcp が稼働（tools/list で6ツール応答を実測確認）。main への push で自動再デプロイされるので、月次のデータ更新がそのまま MCP にも反映される。残り: Claude.ai のコネクタに登録して動作確認 → サイトのフッターか `/data/` に MCP の案内を足す
+7. ~~MCPのデプロイとカスタムドメイン~~ **完了（2026-09-07）**: https://mcp.iwate-data.com/mcp が稼働（tools/list で6ツール応答を実測確認）。main への push で自動再デプロイされるので、月次のデータ更新がそのまま MCP にも反映される。~~残り: サイトに MCP の案内を足す~~ **完了（2026-09-10）**: `/mcp/` ページを追加し、ヘッダーナビとフッターから導線を張った。残り: Claude.ai のコネクタに登録して動作確認（ユーザー本人の操作が要る）
 8. **`NEXT_PUBLIC_BUY_URL` を Cloudflare Pages の環境変数に設定**（Stripe Payment Link が最短。BOOTH/noteでも可）。設定して再デプロイするまで /data/ の購入ボタンは問い合わせフォームに向く
 9. 販売用Excelは `npm run build && npm run xlsx` で `dist/` に出る。**リポジトリには入れない**（`.gitignore` 済み）。決済サービス側にファイルを置く
 10. beak-promo.jp 側で `?ref=iwate-data` の流入をGA4のイベント／探索で追えるようにする
@@ -345,7 +346,7 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - **クラウドコンテナから e-stat.go.jp へは到達できない**（egressポリシーで拒否）。データ取得はChrome経由の in-page fetch で行う。取得後は必ず「市町村合計＝県計」で検算してから raw に保存する
 - **`/crime/` `/kaigo/` `/iryou/` `/haikou/` `/shofuku/` `/jiko/` `/houjin/` `/hoiku/` は月次 cron の対象外**（e-Stat 由来ではないため `fetch_estat.py` が見ていない）。放っておくと静かに古くなる。更新手順は §3「非 e-Stat データの取り方」
 - **`lib/csv.ts` にファミリーを足したら `scripts/build_xlsx.py` の `SRC_KEY` にも出典キーを足すこと**。足し忘れると有料のExcelデータ集のビルドが KeyError で落ちる（2026-09-09に実際に落とした）。いまは足りない場合に何が足りないかを名指しして止まるようにしてある
-- **MCP のカタログは `crime` と `traffic` だけ追加済み、`kaigo` `iryou` `schoolcode` `shofuku` `houjin` `hoiku` は未対応**。`mcp/src/catalog.ts` は `key[code][year]` の形しか扱えないが、`kaigo` は `kaigo[code][時点][サービス種別]`、`iryou` は `iryou[code][施設種別]`（年の軸が無い）と形が違うため。MCPで出すならカタログ側に対応を足すこと
+- ~~MCPのカタログが新分野に未対応~~ **解消（2026-09-10）**。`Dataset.pick` を足して全24分野を出せるようにし、公式SDKクライアントで実通信テスト済み
 - **国土地理院「指定緊急避難場所・指定避難所データ」は未取得**。ダウンロードサイト（https://hinanmap.gsi.go.jp/）に利用規約への同意ボタンがあり、**規約同意はユーザー本人の判断が要る**ため踏んでいない。第三者提供時に注意事項を正確に伝える義務があるので、サイトに載せるなら注記の設計とセットで判断すること
 - ~~壊れた内部リンク72本~~ **修正済み（2026-09-09）**。原因は2つ。`/jobless/[slug]/` が `/industry/${m.slug}/`（産業スラッグの位置に市町村スラッグ）を出していたのと、`/work/[slug]/` がクロスページの生成条件（2021年の事業所数が公表されている）を見ずに `/industry/<ind>/<muni>/` へリンクしていたこと。**再発防止に `scripts/check_links.py`（`npm run links`）を追加**した。out/ の全HTMLの内部リンクとsitemapの全URLに実体があるかを検査し、1本でも壊れていたら exit 1。**ページを追加したら必ず回すこと**
 

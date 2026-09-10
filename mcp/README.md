@@ -12,7 +12,7 @@
 | ツール | 用途 |
 |---|---|
 | `list_municipalities` | 33市町村（コード・名前・slug） |
-| `list_datasets` | 15分野・112指標（派生指標含む）・収録年・出典 |
+| `list_datasets` | 24分野・193指標（派生指標含む）・収録年・出典 |
 | `search_indicators` | 「大卒」「歯医者」などから指標IDを探す |
 | `get_municipality_stats` | 1市町村の値（県内順位・県値つき。dataset省略で全分野、all_yearsで時系列） |
 | `rank_municipalities` | 指標で33市町村をランキング |
@@ -20,7 +20,11 @@
 
 リソース: `iwate-data://csv/{dataset}`（サイトの `/csv/{dataset}/all.csv` と同内容）。
 
-派生指標（高齢化率・完全失業率・大卒率・1人当たり所得など）は `src/catalog.ts` の `DERIVED`。列定義 `DATASETS` は `lib/csv.ts` の `FAMILIES` と揃えること。
+派生指標（高齢化率・完全失業率・大卒率・1人当たり所得・歯科のHP公表率・保育所の充足率など）は `src/catalog.ts` の `DERIVED`。列定義 `DATASETS` は `lib/csv.ts` の `FAMILIES` と揃えること。
+
+`dataset.json` の形が `key[code][year]` でない分野（施設一覧のスナップショットなど）は、`Dataset.pick(ds, code, year)` で1行分を組み立てる。年の軸が無い分野は `years` に時点の年を1つだけ入れる。介護・障害福祉は種別が多すぎるので主要8種別＋合計だけを列にしており、全種別は `/csv/{分野}/all.csv` を見る。
+
+サイト側の `/mcp/` ページはこの `catalog.ts` を直接 import して分野一覧を出しているので、分野を足せばページも自動で増える。
 
 ## 開発・デプロイ
 

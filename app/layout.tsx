@@ -45,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/household/">世帯</Link>
               <Link href="/city/">市町村別</Link>
               <Link href="/data/">データ集</Link>
+              <Link href="/mcp/">MCP</Link>
             </nav>
           </div>
         </header>
@@ -52,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="site-footer">
           <div className="container">
             <p>{SITE.name}は、政府統計（e-Stat）と岩手県内の公開データを、岩手県33市町村の粒度で再集計して公開しています。運営: <a href={SITE.publisherUrl}>{SITE.publisher}</a>（盛岡市）</p>
-            <p><small>本サイトの図表・数値は出典明記のうえ自由に利用できます（CC BY 4.0）。原データの著作権は各統計の作成機関に帰属します。</small></p>
+            <p><small>本サイトの図表・数値は出典明記のうえ自由に利用できます（CC BY 4.0）。原データの著作権は各統計の作成機関に帰属します。AIから直接引ける<a href="/mcp/">MCPサーバー</a>も無料で公開しています。</small></p>
           </div>
         </footer>
       </body>

@@ -16,10 +16,12 @@ const SOURCES = (ds as any).sources as Record<string, { name: string; url: strin
 /* ---------- データアクセス ---------- */
 function yearsOf(d: Dataset): number[] {
   if (d.yearsKey) return (ds as any)[d.yearsKey] as number[];
+  if (d.years) return d.years;
   const table = (ds as any)[d.dsKey]; const any = table[MUNIS[0].code] || {};
   return Object.keys(any).map(Number).sort((a, b) => a - b);
 }
 function recAt(d: Dataset, code: string, year: number): Record<string, any> | undefined {
+  if (d.pick) return d.pick(ds as any, code, year);
   const t = (ds as any)[d.dsKey];
   return d.byYear ? t?.[String(year)]?.[code] : t?.[code]?.[String(year)];
 }
@@ -60,9 +62,9 @@ function cite(d: Dataset, m?: Muni) {
 const TOOLS = [
   { name: 'list_municipalities', description: '岩手県33市町村の一覧（コード・名前・slug・市町村の別・郡）。他のツールの municipality 引数にはコード（03201）・slug（morioka）・日本語名（盛岡市／盛岡）のどれでも渡せる。',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
-  { name: 'list_datasets', description: 'このサーバーが持つ15分野のデータセットと、各分野の指標（列）・派生指標（率）・収録年・出典を返す。まずこれで指標IDを確認する。',
+  { name: 'list_datasets', description: 'このサーバーが持つ全分野のデータセットと、各分野の指標（列）・派生指標（率）・収録年・出典を返す。まずこれで指標IDを確認する。',
     inputSchema: { type: 'object', properties: { dataset: { type: 'string', description: '1分野だけ見たいときにID（例: jobless）' } }, additionalProperties: false } },
-  { name: 'get_municipality_stats', description: '1つの市町村の統計を返す。dataset を省略すると全15分野の最新年をまとめて返す（市町村の全体像を知りたいとき）。year を省略すると最新年。全年欲しいときは all_years=true。',
+  { name: 'get_municipality_stats', description: '1つの市町村の統計を返す。dataset を省略すると全分野の最新年をまとめて返す（市町村の全体像を知りたいとき）。year を省略すると最新年。全年欲しいときは all_years=true。',
     inputSchema: { type: 'object', required: ['municipality'], properties: { municipality: { type: 'string', description: 'コード・slug・日本語名のいずれか' }, dataset: { type: 'string', description: 'list_datasets のID' }, year: { type: 'integer' }, all_years: { type: 'boolean', description: '時系列を全部返す（dataset 指定時のみ）' } }, additionalProperties: false } },
   { name: 'rank_municipalities', description: 'ある指標で33市町村をランキングする。県計（33市町村合計または合計から計算した率）も添える。indicator は列ID（jobless）でも派生指標ID（jobless_rate）でもよい。',
     inputSchema: { type: 'object', required: ['dataset', 'indicator'], properties: { dataset: { type: 'string' }, indicator: { type: 'string' }, year: { type: 'integer', description: '省略時は最新年' }, order: { type: 'string', enum: ['desc', 'asc'], description: '既定は降順' }, limit: { type: 'integer', description: '上位N件だけ（省略時は33全部）' } }, additionalProperties: false } },
@@ -77,6 +79,12 @@ const SYN: Record<string, string[]> = {
   '農家': ['農家'], '空き家': [], '出生': ['出生'], '死亡': ['死亡'], '結婚': ['婚姻'], '世帯': ['世帯'], '一人暮らし': ['単独世帯'], '病院': ['病院'], '医者': ['医師'],
   '介護': ['老人ホーム', '特養'], '学校': ['学校'], '子ども': ['児童', '生徒', '0〜14'], 'ごみ': ['ごみ', '排出'], '所得': ['所得'], '年収': ['所得'], '工場': ['製造'],
   '住宅': ['住宅', '着工'], '新築': ['着工'], '面積': ['面積'], '密度': ['密度'], '昼間': ['昼間', '昼夜間'], '通勤': ['昼夜間'],
+  '犯罪': ['自転車盗', '車上ねらい', '手口'], '治安': ['自転車盗', '車上ねらい'], '事故': ['事故', '死者'], '交通事故': ['事故', '死者'],
+  '待機児童': ['待機児童', '定員'], '保育': ['保育', '定員', '申込'], '保育園': ['保育', '定員'], '廃校': ['廃止', '現存校'], '統廃合': ['廃止'],
+  '会社': ['法人', '株式会社'], '法人': ['法人', '株式会社'], '起業': ['新しく法人番号'], '創業': ['新しく法人番号'],
+  'ホームページ': ['ホームページ'], 'HP': ['ホームページ'], 'ウェブサイト': ['ホームページ'],
+  '薬局': ['薬局'], '障害': ['障害', '就労継続支援'], '障がい': ['障害', '就労継続支援'], 'デイサービス': ['通所介護', '放課後等デイ'],
+  'グループホーム': ['認知症対応型共同生活介護', '共同生活援助'], '特養': ['介護老人福祉施設', '特養'],
 };
 function searchIndicators(q: string) {
   const terms = new Set<string>([q]);
