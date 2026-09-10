@@ -74,6 +74,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <CiteBox title={title} path={`/crime/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['crime']} extra={[
         '対象は岩手県警がオープンデータとして公開している7手口のみで、刑法犯認知件数の全体ではない。',
+        'このページの数値は「犯罪オープンデータ」（岩手県警察）を本サイトが市町村×年×手口に集計して作成したもので、岩手県警察が作成・公表した表ではない。原データの利用条件は公共データ利用規約（第1.0版・PDL1.0）。',
         `${FIRST_CRIME}〜${CRIME_FULL_FROM - 1}年は一部の手口・一部の期間しか公開されていない。年次データの表には公開値をそのまま載せているが、この2年と${CRIME_FULL_FROM}年以降を単純比較しないこと。`,
         '年は「発生年月日（始期）」の年。市町村は「発生地」であり、被害者の居住地ではない。',
         `人口千人当たりは、${LATEST_CRIME}年の件数を${Math.min(LATEST_CRIME + 1, LATEST_POP)}年1月1日の住民基本台帳人口で割った本サイトの計算値。`,
