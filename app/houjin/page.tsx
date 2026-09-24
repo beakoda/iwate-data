@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, houjinAt, houjinNewAt, houjinClosedAt, houjinPref, houjinNewPref, houjinClosedPref, corpsPerKpop, yugenShare, fmt, rank, HOUJIN_KINDS, HOUJIN_YEARS, HOUJIN_ASOF_LABEL, FIRST_HOUJIN_YEAR, LATEST_HOUJIN_YEAR, LATEST_POP } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県33市町村の法人数（${HOUJIN_ASOF_LABEL}時点・株式会社／有限会社／合同会社）`;
 const T = houjinPref();
@@ -58,6 +58,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => <li key={m.code}><Link href={`/houjin/${m.slug}/`}>{m.name}の法人数<small>{fmt(houjinAt(m.code))}社・株式会社{fmt(houjinAt(m.code, '株式会社'))}</small></Link></li>)}</ul>
+      <Cta topic="法人数" />
       <CiteBox title={TITLE} path="/houjin/" sentence={sentence} />
       <SourceBox keys={['houjin']} extra={[
         '登記されている法人の数であり、事業所の数でも「営業している会社」の数でもない。休眠会社や本店だけを置く法人も含まれる。事業所ベースの数字は「産業・事業所」（経済センサス）のページを参照。',

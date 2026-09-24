@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { INDUSTRIES, MUNIS, PREF, industryBySlug, muniBySlug, econAt, popAt, fmt, fmtSigned, pct, rank, censusWorkers, LATEST_CENSUS, PREV_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 /** 2021年の事業所数が公表されている「産業×市町村」の組み合わせだけページ化する（空ページを作らない）。 */
 function pairs() {
@@ -127,6 +127,7 @@ export default async function Page({ params }: { params: Promise<{ ind: string; 
       <p>他の市町村の{i.name}：{rows.filter(r => r.estab != null && r.m.code !== m.code).map((r, k) => <span key={r.m.code}>{k ? '・' : ''}<Link href={`/industry/${i.slug}/${r.m.slug}/`}>{r.m.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口動態</Link>・<Link href={`/industry/${i.slug}/`}>岩手県の{i.name}ランキング</Link></p>
 
+      <Cta muni={m.name} topic="事業所数" />
       <CiteBox title={title} path={`/industry/${i.slug}/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['econ2021', 'econ2016', 'census']} extra={[
         '「従業者数」（経済センサス）はその市町村に所在する事業所で働く人の数、「就業者数」（国勢調査）はその市町村に住んでいてその産業で働く人の数。集計の立場が違うため一致しない。',

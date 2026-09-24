@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, houjinAt, houjinNewAt, houjinClosedAt, houjinPref, houjinNewPref, houjinClosedPref, corpsPerKpop, yugenShare, popAt, econAt, fmt, rank, HOUJIN_KINDS, HOUJIN_YEARS, HOUJIN_ASOF_LABEL, FIRST_HOUJIN_YEAR, LATEST_HOUJIN_YEAR, LATEST_POP } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -81,6 +81,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Cta muni={m.name} topic="法人数" />
       <CiteBox title={title} path={`/houjin/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['houjin']} extra={[
         '登記されている法人の数であり、事業所の数でも「営業している会社」の数でもない。休眠会社や本店だけを置く法人も含まれる。',

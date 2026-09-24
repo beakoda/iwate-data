@@ -38,6 +38,7 @@ export default function Home() {
         <div className="stat"><div className="stat-label">住宅着工（{LATEST_BUILD}年）</div><div className="stat-value">{fmt(buildPrefAt(LATEST_BUILD).bldg_house, '棟')}</div><div className="stat-sub">居住専用住宅・床面積 {fmt(buildPrefAt(LATEST_BUILD).floor_house)}m²</div></div>
       </div>
       <div className="cards">
+        <div className="card"><h2>AIは岩手の事業者をどう推薦しているか</h2><p>ChatGPTに「盛岡市でおすすめの◯◯」を8業種で、歯科を8市で実際に質問し、AIが何を根拠に事業者を選んでいるかを集計した独自調査。自社サイトが1件も読まれていない業種もありました。</p><Link className="more" href="/ai/">調査結果を見る →</Link></div>
         <div className="card"><h2>歯科診療所数の推移</h2><p>医療施設調査（厚労省）から、市町村別の歯科診療所数・一般診療所数を2009〜{LATEST_DENTAL}年で。人口10万人当たりと県内順位つき。</p><Link className="more" href="/dental/">県全体と市町村ランキングを見る →</Link></div>
         <div className="card"><h2>人口・世帯・自然増減・社会増減</h2><p>住民基本台帳（総務省）から、各市町村の人口・世帯数、出生・死亡、転入・転出を2013〜{LATEST_POP}年で。</p><Link className="more" href="/population/">市町村別の人口動態を見る →</Link></div>
         <div className="card"><h2>産業別の事業所数・従業者数・売上</h2><p>経済センサス（2016年・2021年）から、産業大分類×市町村の事業所数・従業者数・売上（収入）金額。</p><Link className="more" href="/industry/">業種別ランキングを見る →</Link></div>
