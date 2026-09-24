@@ -29,7 +29,9 @@ export default function Page() {
       <Breadcrumb items={[{ name: '街頭犯罪' }]} />
       <DatasetJsonLd name={TITLE} description={sentence} path="/crime/" keywords={['岩手県', '犯罪', 'street crime', '自転車盗', '車上ねらい', '治安', '市町村別', '岩手県警']} temporal={`${CRIME_FULL_FROM}/${LATEST_CRIME}`} sourceKeys={['crime']} />
       <h1>{TITLE}</h1>
-      <p className="key-fact">岩手県の街頭犯罪7手口は{LATEST_CRIME}年に<strong>{fmt(pNow.total)}件</strong>（{CRIME_FULL_FROM}年比{fmtSigned(pct(pNow.total, pFirst.total), '%')}）。うち<strong>自転車盗が{fmt(pNow['自転車盗'])}件</strong>で全体の{fmt(bikeShare)}%を占める。件数が最も多いのは<strong>{byTotal[0].m.name}（{fmt(byTotal[0].r.total)}件）</strong>だが、人口千人当たりでは<strong>{byPer[0].m.name}（{fmt(byPer[0].per)}件）</strong>が最も多い。{LATEST_CRIME}年に発生が1件もなかったのは<strong>{zero.length}市町村</strong>。</p>
+      <p className="key-fact">岩手県の街頭犯罪7手口は{LATEST_CRIME}年に<strong>{fmt(pNow.total)}件</strong>（{CRIME_FULL_FROM}年比{fmtSigned(pct(pNow.total, pFirst.total), '%')}）。うち<strong>自転車盗が{fmt(pNow['自転車盗'])}件</strong>で全体の{fmt(bikeShare)}%を占める。件数が最も多いのは<strong>{byTotal[0].m.name}（{fmt(byTotal[0].r.total)}件）</strong>{byTotal[0].m.code === byPer[0].m.code
+        ? <>で、人口千人当たりでも<strong>{byPer[0].m.name}（{fmt(byPer[0].per)}件）</strong>が最も多い。</>
+        : <>だが、人口千人当たりでは<strong>{byPer[0].m.name}（{fmt(byPer[0].per)}件）</strong>が最も多い。</>}{LATEST_CRIME}年に発生が1件もなかったのは<strong>{zero.length}市町村</strong>。</p>
       <LineChart title={`岩手県の街頭犯罪発生件数（${CRIME_FULL_FROM}〜${LATEST_CRIME}年、件）`} unit="件" zero
         series={[{ label: '7手口の合計', points: CRIME_YEARS.filter(y => y >= CRIME_FULL_FROM).map(y => ({ x: y, y: crimePrefAt(y).total })) }]} />
       <LineChart title={`手口別の発生件数（岩手県、${CRIME_FULL_FROM}〜${LATEST_CRIME}年、件）`} unit="件" zero

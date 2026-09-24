@@ -1,6 +1,9 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { IwateMap } from '@/components/Map';
 import { MUNIS, INDUSTRIES, PREF, dentalAt, popAt, econAt, fmt, fmtSigned, LATEST_DENTAL, LATEST_POP, SITE, censusAt, agingRate, LATEST_CENSUS, buildPrefAt, LATEST_BUILD, FIRST_BUILD, vitalPrefAt, LATEST_VITAL, FIRST_VITAL, naturalChange, housePrefAt, LATEST_HOUSE, FIRST_HOUSE, hhShare, medPrefAt, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR, welPrefAt, LATEST_WEL, FIRST_WEL, schoolPrefAt, LATEST_SCHOOL, FIRST_SCHOOL, econPrefAt, LATEST_ECON, FIRST_ECON, incomePerTaxpayer, envPrefAt, envPrefPerDay, LATEST_ENV, FIRST_ENV, joblessPrefAt, joblessRate, LATEST_JOBLESS, FIRST_JOBLESS, eduPrefAt, eduShare, LATEST_EDU, FIRST_EDU, farmPrefAt, totalFarms, LATEST_FARM, FIRST_FARM, LAST_ABANDONED_YEAR, CRIME_FULL_FROM, LATEST_CRIME, KAIGO_SERVICES, IRYOU_ASOF_LABEL, FIRST_CLOSED, SHOFUKU_SERVICES, SHOFUKU_ASOF_LABEL, FIRST_TRAFFIC, LATEST_TRAFFIC, HOUJIN_ASOF_LABEL, FIRST_HOUJIN_YEAR, HOIKU_ASOF_LABEL } from '@/lib/data';
+
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 
 export default function Home() {
   const d = dentalAt(PREF.code, LATEST_DENTAL)!; const d0 = dentalAt(PREF.code, 2009)!;

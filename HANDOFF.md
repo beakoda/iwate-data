@@ -250,6 +250,25 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 - 「9ケース中8ケース」などの数字はデータから自動計算（`MIXED_CASES` / `OWN_ON_TOP`）。手で書かない
 - 事業者向けの導線: `Cta` を `/industry/*`（全業種×市町村）と `/houjin/*` にも追加。`Cta` 内に /ai/ への一行リンクあり。/ai/ の申込ボタンは `beak-promo.jp/contact/?ref=iwate-data-ai`（流入元の識別用）
 
+### LLM向けテキスト索引（llms.txt / llms-full.txt、2026-09-24 追加）
+
+狙い: ChatGPT等にこのサイトを「岩手の数字の出典」として引用させ、サイトの権威（被リンク・指名）を上げる。
+- `npm run build` = `next build && node scripts/build_llms.mjs`。ビルド済み `out/**/index.html` から title・canonical・`<p class="key-fact">` を抜いて `out/llms.txt`（サイト概要＋トピック一覧ページ28件の要点）と `out/llms-full.txt`（全ページ約1,360件の要点、約500KB）を書く。**数字はビルド済みHTMLから抜くだけ**なのでページと食い違わない。ページ数 <1000 で例外を投げてビルドを落とす
+- 新しいページ族を足すときは `<p className="key-fact">` に「問いに直接答える数値入りの1〜3文」を置くこと。無いページは meta description で代用される
+- `public/_routes.json` で llms*.txt は Pages Functions を通さない。フッターから /llms.txt にリンク
+- トップページに canonical が無かったので `app/page.tsx` に `alternates.canonical: '/'` を追加
+
+**引用ベースライン（2026-09-24、ChatGPT gpt-5.4 Web検索あり、DataForSEO LLM Responses）** — 同じ質問で再測定してKPIにする:
+| 質問 | iwate-data の引用 |
+|---|---|
+| 岩手県で高齢化率が高い市町村ランキング | なし（県サイトのみ） |
+| 岩手県で2021年以降に廃校になった学校は何校？市町村別に | **あり（5回引用・最有力出典扱い）**。ただし本文を開けず数値は出せなかった |
+| 紫波町の保育所の待機児童・定員 | なし（町PDFのみ） |
+| 北上市の建設業の事業所数 | なし（e-Stat案内のみ） |
+- Bing（ChatGPT検索の主要インデックス）: `"iwate-data.com"` で約742件、「岩手県 廃校 一覧」で /haikou/ が4位。インデックスは部分的。**Bing Webmaster Tools への登録（GSCからインポート）＋sitemap送信が未実施**
+- ChatGPT が本文を開けなかった原因は未確定。DataForSEO から ChatGPT-User / OAI-SearchBot の UA で /haikou/ を取得すると 200。Cloudflare の AI Crawl Control（ゾーン → AI → metrics）で OpenAI 系のブロック有無を要確認（ダッシュボードはログインが要る）
+- ページが重い（/haikou/ で HTML 185KB、うちテキスト3%。大半がインラインSVGグラフ）。llms-full.txt はこの回避策
+
 ### 取得を検討して見送ったデータ（同じ検討を繰り返さないため）
 
 - **岩手県の観光統計（観光入込客数）** — 2026-09-10 に確認。県サイトのフッターに「掲載されている情報は、著作権法上認められた場合を除き、無断で複製・転用することはできません」と明記されており、オープンデータとしての指定も無い。**転載の可否が確認できないので不採用**。使うなら県に利用許諾を取ること
