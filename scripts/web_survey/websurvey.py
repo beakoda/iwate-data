@@ -607,7 +607,29 @@ def src_shofuku():
     yield {"_asof": "shofuku=" + ym}
 
 
-SOURCES = {"iryou": src_iryou, "kaigo": src_kaigo, "shofuku": src_shofuku}
+JSIC = {"A": "農林業", "B": "漁業", "C": "鉱業", "D": "建設業", "E": "製造業", "F": "電気・ガス・水道", "G": "情報通信業",
+        "H": "運輸業", "I": "卸売・小売業", "J": "金融・保険業", "K": "不動産業", "L": "専門・技術サービス業",
+        "M": "宿泊・飲食サービス業", "N": "生活関連サービス業", "O": "教育・学習支援業", "P": "医療・福祉（法人）",
+        "Q": "複合サービス事業", "R": "その他のサービス業", "S": "公務", "T": "分類不能"}
+
+
+def src_gbiz():
+    """gBizINFO 法人基本情報（経産省）の「WebサイトURL」。岩手県内の現存法人のうちURL登録があるもの。
+    一括DLにはアクセストークンが要るため、ブラウザで抽出した「ホスト 市町村コード 業種大分類」の
+    一覧（~/iwate-web-survey/extra_gbiz.txt、1行1社）を読む。"""
+    path = os.path.join(HOME, "extra_gbiz.txt")
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) < 3 or "." not in parts[0]:
+                continue
+            host, code, ind = parts[0], parts[1], parts[2]
+            yield {"source": "gbiz", "category": JSIC.get(ind, "その他の法人"), "url": "http://" + host + "/",
+                   "muni": code if code in MUNIS else "", "name": ""}
+    yield {"_asof": "gbiz=" + datetime.fromtimestamp(os.path.getmtime(path), timezone.utc).strftime("%Y%m%d")}
+
+
+SOURCES = {"iryou": src_iryou, "kaigo": src_kaigo, "shofuku": src_shofuku, "gbiz": src_gbiz}
 
 
 def cmd_collect(args):
@@ -753,7 +775,7 @@ def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd")
     c = sub.add_parser("collect")
-    c.add_argument("--sources", default="iryou,kaigo,shofuku")
+    c.add_argument("--sources", default="iryou,kaigo,shofuku,gbiz")
     a = sub.add_parser("audit")
     a.add_argument("--run")
     a.add_argument("--workers", type=int, default=12)
