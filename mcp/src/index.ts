@@ -55,7 +55,7 @@ function valueOf(d: Dataset, r: Record<string, any> | undefined, ind: string): n
 }
 function cite(d: Dataset, m?: Muni) {
   const s = SOURCES[d.source];
-  return { dataset_label: d.label, source: s?.name, source_url: s?.url, page: `${SITE}/${d.path}/${m ? m.slug + '/' : ''}`, note: s?.note, license: 'CC BY 4.0（出典「いわてデータ」を明記）' };
+  return { dataset_label: d.label, source: s?.name, source_url: s?.url, page: `${SITE}/${d.path}/${m && !d.noMuniPage ? m.slug + '/' : ''}`, note: s?.note, license: 'CC BY 4.0（出典「いわてデータ」を明記）' };
 }
 
 /* ---------- ツール ---------- */
@@ -130,7 +130,7 @@ function callTool(name: string, a: any) {
       const d = datasetById(a.dataset); if (!d) throw new Error(`unknown dataset: ${a.dataset}`);
       const ind = indicatorsOf(d).find(i => i.id === a.indicator); if (!ind) throw new Error(`unknown indicator: ${a.indicator} (use list_datasets)`);
       const y = a.year ?? latestYear(d);
-      let rows = MUNIS.map(m => ({ code: m.code, name: m.name, slug: m.slug, value: valueOf(d, recAt(d, m.code, y), ind.id), page: `${SITE}/${d.path}/${m.slug}/` }));
+      let rows = MUNIS.map(m => ({ code: m.code, name: m.name, slug: m.slug, value: valueOf(d, recAt(d, m.code, y), ind.id), page: `${SITE}/${d.path}/${d.noMuniPage ? '' : m.slug + '/'}` }));
       const has = rows.filter(r => r.value != null).sort((x, z) => a.order === 'asc' ? x.value! - z.value! : z.value! - x.value!);
       const none = rows.filter(r => r.value == null);
       let ranked = has.map((r, i) => ({ rank: i + 1, ...r }));
@@ -157,7 +157,7 @@ function csvOf(d: Dataset): string {
   for (const m of MUNIS) for (const y of yearsOf(d)) { const r = recAt(d, m.code, y); if (!r) continue; lines.push([m.code, m.name, y, ...d.cols.map(c => r[c.key] ?? '')].join(',')); }
   return '\uFEFF' + lines.join('\r\n') + '\r\n';
 }
-const RESOURCES = DATASETS.map(d => ({ uri: `iwate-data://csv/${d.id}`, name: `${d.label}（33市町村×全年、CSV）`, mimeType: 'text/csv', description: `${SOURCES[d.source]?.name}。${SITE}/csv/${d.id}/all.csv と同内容` }));
+const RESOURCES = DATASETS.map(d => ({ uri: `iwate-data://csv/${d.id}`, name: `${d.label}（33市町村×全年、CSV）`, mimeType: 'text/csv', description: d.noMuniPage ? `${SOURCES[d.source]?.name}。市町村別の集計（${SITE}/${d.path}/ の元データ）` : `${SOURCES[d.source]?.name}。${SITE}/csv/${d.id}/all.csv と同内容` }));
 
 /* ---------- JSON-RPC ---------- */
 const INSTRUCTIONS = `岩手県33市町村の公的統計（e-Stat）を市町村×年で返すサーバー。数値はすべて政府統計の公表値で、市町村合計が県公表値と一致することを検算済み。

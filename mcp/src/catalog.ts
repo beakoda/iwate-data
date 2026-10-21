@@ -10,6 +10,8 @@ export type Dataset = {
   pick?: (ds: any, code: string, year: number) => Record<string, any> | undefined;
   /** yearsKey が無く pick を使う分野の収録年 */
   years?: number[];
+  /** 市町村別ページが無い分野（ページURLは /path/ だけを返す） */
+  noMuniPage?: boolean;
 };
 
 const n = (v: any) => (typeof v === 'number' ? v : 0);
@@ -116,6 +118,24 @@ export const DATASETS: Dataset[] = [
     pick: (d, code) => d.hoiku?.[code],
     cols: [{ key: 'capacity', label: '利用定員', unit: '人', sum: true }, { key: 'applicants', label: '申込者', unit: '人', sum: true }, { key: 'waiting', label: '待機児童', unit: '人', sum: true }, { key: 'on_leave', label: '育児休業中で待機児童に数えない', unit: '人', sum: true }, { key: 'specific_only', label: '特定の園のみ希望で待機児童に数えない', unit: '人', sum: true }, { key: 'job_paused', label: '求職活動休止で待機児童に数えない', unit: '人', sum: true }],
     note: '2026年4月1日時点。待機児童は国の定義で、育児休業中・特定の園のみ希望・求職活動休止は数えない。' },
+  { id: 'web', label: 'Webサイト調査（SEO・AI検索対応度の実測、独自調査）', dsKey: 'web', yearsKey: '', yearLabel: '年', source: 'websurvey', path: 'web', noMuniPage: true,
+    years: [2026],
+    pick: (d, code) => {
+      const c = d.web?.['全業種']?.[code]; if (!c) return undefined;
+      const o: Record<string, any> = { sites: c.sites, audited: c.audited, avg_overall: c.avg_overall, avg_seo: c.avg_seo, avg_aeo: c.avg_aeo,
+        grade_SA: n(c.grade_S) + n(c.grade_A), seo_high_aeo_low: c.seo_high_aeo_low, wordpress: c.wordpress, ai_bots_blocked: c.ai_bots_blocked };
+      for (const k of ['https', 'viewport', 'jsonld', 'faq', 'eeat', 'llms-txt', 'nap', 'sitemap']) o['pass_' + k] = n(c['pass_' + k]);
+      return o;
+    },
+    cols: [{ key: 'sites', label: '調査対象サイト', unit: 'サイト', sum: true }, { key: 'audited', label: '取得できたサイト', unit: 'サイト', sum: true },
+      { key: 'avg_overall', label: '平均点（総合）', unit: '点' }, { key: 'avg_seo', label: '平均点（SEO）', unit: '点' }, { key: 'avg_aeo', label: '平均点（AI検索対応）', unit: '点' },
+      { key: 'grade_SA', label: 'S・A評価（総合75点以上）のサイト', unit: 'サイト', sum: true }, { key: 'seo_high_aeo_low', label: 'SEOは60点以上・AI検索は60点未満のサイト', unit: 'サイト', sum: true },
+      { key: 'wordpress', label: 'WordPressのサイト', unit: 'サイト', sum: true }, { key: 'ai_bots_blocked', label: 'AIクローラを1つ以上拒否しているサイト', unit: 'サイト', sum: true },
+      { key: 'pass_https', label: '常時SSL（https）のサイト', unit: 'サイト', sum: true }, { key: 'pass_viewport', label: 'スマホ表示設定のあるサイト', unit: 'サイト', sum: true },
+      { key: 'pass_jsonld', label: '構造化データ2種類以上のサイト', unit: 'サイト', sum: true }, { key: 'pass_faq', label: 'FAQ構造化データのあるサイト', unit: 'サイト', sum: true },
+      { key: 'pass_eeat', label: '運営者・専門性の記載があるサイト', unit: 'サイト', sum: true }, { key: 'pass_llms-txt', label: 'llms.txt を置いているサイト', unit: 'サイト', sum: true },
+      { key: 'pass_nap', label: '電話と住所を両方載せているサイト', unit: 'サイト', sum: true }, { key: 'pass_sitemap', label: 'XMLサイトマップのあるサイト', unit: 'サイト', sum: true }],
+    note: '2026年10月実測の独自調査。公的オープンデータ（医療情報ネット・介護/障害福祉の情報公表・gBizINFO）とGoogleマップに登録された県内事業所のWebサイトのトップページを取得し、SEO15項目・AI検索対応10項目で判定。市町村はURLを登録した事業所の所在地。平均点は市町村ごとの値で、県の合計行には出ない（県全体は総合61.9点・SEO76.4点・AI検索47.3点）。市町村を判定できなかった128サイトは市町村別に含まれないため、県計（合計行）は https://iwate-data.com/web/ の全体件数より少ない。取得できたサイトが少ない町村は平均点・割合が大きくぶれる（/web/ では取得10サイト未満の市町村は平均点を出していない）。業種別の集計は同ページを参照。' },
 ];
 
 /** 派生指標（率・原単位）。生の列から計算する。市町村合算はできないので県値は合計から計算する */
@@ -139,5 +159,11 @@ export const DERIVED: Derived[] = [
   { id: 'hoiku_slack', dataset: 'hoiku', label: '定員の空き（定員−申込）', unit: '人', decimals: 0, fn: r => (r.capacity == null || r.applicants == null) ? null : r.capacity - r.applicants },
   { id: 'yugen_share', dataset: 'houjin', label: '有限会社が現存法人に占める割合', unit: '%', decimals: 1, fn: r => div(r['有限会社'], r.corps, 100) },
   { id: 'closed_share', dataset: 'school_code', label: '廃校の割合（廃校÷現存＋廃校）', unit: '%', decimals: 1, fn: r => div(r.closed_since_2021, (r.schools ?? 0) + (r.closed_since_2021 ?? 0), 100) },
+  { id: 'web_gap_rate', dataset: 'web', label: 'SEOは60点以上なのにAI検索は60点未満のサイトの割合', unit: '%', decimals: 1, fn: r => div(r.seo_high_aeo_low, r.audited, 100) },
+  { id: 'web_sa_rate', dataset: 'web', label: 'S・A評価のサイトの割合', unit: '%', decimals: 1, fn: r => div(r.grade_SA, r.audited, 100) },
+  { id: 'web_https_rate', dataset: 'web', label: '常時SSL（https）の割合', unit: '%', decimals: 1, fn: r => div(r.pass_https, r.audited, 100) },
+  { id: 'web_jsonld_rate', dataset: 'web', label: '構造化データ2種類以上の割合', unit: '%', decimals: 1, fn: r => div(r.pass_jsonld, r.audited, 100) },
+  { id: 'web_llms_rate', dataset: 'web', label: 'llms.txt 設置率', unit: '%', decimals: 1, fn: r => div(r['pass_llms-txt'], r.audited, 100) },
+  { id: 'web_wordpress_rate', dataset: 'web', label: 'WordPress率', unit: '%', decimals: 1, fn: r => div(r.wordpress, r.audited, 100) },
   { id: 'natural_change', dataset: 'vital', label: '自然増減（出生−死亡）', unit: '人', decimals: 0, fn: r => (r.births == null || r.deaths == null) ? null : r.births - r.deaths },
 ];

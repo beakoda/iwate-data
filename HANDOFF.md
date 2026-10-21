@@ -267,6 +267,7 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 - 2026-10-21 拡張後（これが正）：母集団8,403サイト・取得7,402（医療891・介護福祉761・建設住宅不動産915・小売卸775・飲食宿泊646・教育361・専門サービス349・自動車235・美容生活110・製造55・その他3,299）。平均 総合61.9・SEO76.4・AI47.4。市町村不明128（`00000`）
   - 追加した母集団：gBizINFO 法人基本情報の「WebサイトURL」（岩手の現存法人29,570社中315社。一括DLはトークン必須＝oda@beak-promo.jp で取得済み。ブラウザで抽出した一覧を `~/iwate-web-survey/extra_gbiz.txt` に置く）、Googleマップの事業者（DataForSEO Business Listings、`~/.dataforseo.env` の認証で取得、region=Iwate かつ domain あり。offset 上限で10,388件まで、費用は約4ドル。`cache/gmap.jsonl` に保存し再課金しない）。同じホストを10件以上が登録するもの（チェーン・官公庁）は除外
   - 取り切り確認（2026-10-21）：郵便番号で区切った全件取得（$6.24）でも新規は6サイトだけ。DataForSEO の岩手×Webサイトあり（チェーン除外後）は約1万件・7,444ホストで頭打ち。郵便番号なしの登録はバス停・閉業などが中心。DataForSEO 累計は約10ドル
+  - MCP（mcp.iwate-data.com）：`mcp/src/catalog.ts` に dataset `web` を追加（全業種×市町村。派生指標 web_gap_rate / web_llms_rate など）。市町村別ページが無いので `noMuniPage: true`（page は /web/ を返す）。業種別は MCP では未対応
   - 業種は `export` で `GROUPS` の11グループにまとめて公開。Googleマップのカテゴリ振り分け（`GMAP_BUCKET`）が粗く「その他」が多い。精度を上げるなら `cache/gmap.jsonl` の生カテゴリを見て正規表現を足す
   - ConoHa 実行は `bash scripts/web_survey/run_all.sh`（nohup、ログ /root/websurvey.log、最後に ALLDONE）。サーバーのクローンは `git fetch && git reset --hard origin/main` で更新（export が raw/ を書き換えるため pull は衝突する）
 - 公開：`/web/`（`app/web/page.tsx`・`lib/web.ts`）、`build_data.py` の `load_websurvey()` と assert（`WEB_TOTAL=(8403,7402)`、市町村コード `00000`＝判定不能を許容）。**再調査したら** ConoHa で `audit --run YYYY-MM` → `export` → raw の2ファイルを差し替え → `WEB_TOTAL` を meta の (sites, audited) に更新 → `npm run data` → build
