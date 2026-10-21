@@ -250,6 +250,22 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 - 「9ケース中8ケース」などの数字はデータから自動計算（`MIXED_CASES` / `OWN_ON_TOP`）。手で書かない
 - 事業者向けの導線: `Cta` を `/industry/*`（全業種×市町村）と `/houjin/*` にも追加。`Cta` 内に /ai/ への一行リンクあり。/ai/ の申込ボタンは `beak-promo.jp/contact/?ref=iwate-data-ai`（流入元の識別用）
 
+### Webサイト調査（SEO / AI検索対応度の全県実測、2026-10-21 着手）
+
+目的：beak-promo.jp の診断ツール（beak-seo-aeo-checker）が掲げる「岩手県内79サイトの実測値」を、公的オープンデータ由来の数千件規模に置き換え、iwate-data の独自データ（市町村×業種）として公開する。費用0円（DataForSEO 等の有料APIは使わない）。
+
+- 本体: `scripts/web_survey/websurvey.py`（標準ライブラリのみ）。`collect`→`audit`→`export`→`stats`
+- **母集団**（公表URLのある県内事業所。2026-10-21 に Chrome 上で件数を実測）
+  - 医療情報ネット（e-Gov `e-gov{YYYYMMDD}.zip`）：病院84/81・診療所747/358・歯科512/217・助産所17/7・薬局625/369（事業所/URLあり）。ホスト重複除去で約720サイト
+  - 介護サービス情報公表（`jigyosho_*_all_{最新日付}.csv` 35本、**2026-07 時点は UTF-8**。以前の Shift_JIS 記述は古い）：2,535事業所/URLあり1,870、約550サイト
+  - 障害福祉（WAM `sfkopendata_{最新年月}_*.zip` 29本、UTF-8 BOM）：1,881/1,086（事業所URLが空なら法人URL）、約365サイト
+  - 3ソースの重複を除いて **約1,300サイト**（実数は collect の出力が正）。医療・福祉に偏るので、一般事業者は次段で gBizINFO（法人基本情報の一括DL、無料だがアクセストークン登録が要る＝本人作業）と OSM（Overpass は User-Agent 無しだと 406）を足す
+- 1サイト＝1ホスト（www除去）。診断URLはトップ。SNS・Googleマップ・官公庁/市町村ドメインは除外。`sites.google.com` だけはパス単位で別サイト扱い
+- **判定は beak-seo-aeo-checker の lib/checks/seo.ts・aeo.ts と同一**（SEO15＋AI10、pass=1/warn=0.5/fail=0、総合＝SEOとAIの平均）。2026-10-21 に元のTSと6本のHTMLで25項目×6件の判定・スコアが完全一致することを確認済み。**意図的な差分は3つ**：①sitemap.xml は `<urlset>/<sitemapindex>` を含む時だけ「あり」（robots.txt の Sitemap: 宣言も「あり」）②robots.txt・llms.txt は HTML が返るソフト404を「なし」③文字コードを判定して復号（元ツールは常にUTF-8）
+- **DB は非公開**：`~/iwate-web-survey/survey.db`（SQLite。sites＝事業所名・URL入り / audits＝調査回ごとの結果）。リポジトリに入れない。公開するのは `raw/web_survey.csv`（業種×市町村の集計、事業者名なし）と `raw/web_survey_meta.json`（時点・件数）だけ
+- 実行環境：政府サイトに届く環境が要る（コンテナ・Cowork VM は不可）。初回（2026-10-21）は `ssh conoha` の /root/iwate-websurvey-src で実行し、DBとCSVを PC-1 の `C:\Users\ad\work\products\iwate-site-survey\` に scp する
+- 未了：集計CSVを `build_data.py` に取り込み（件数 assert 付き）→ `/web/`（県・業種・市町村別のSEO/AI対応度）ページ追加 → beak-promo.jp 診断ページの「79サイト」表記を実数に差し替え
+
 ### LLM向けテキスト索引（llms.txt / llms-full.txt、2026-09-24 追加）
 
 狙い: ChatGPT等にこのサイトを「岩手の数字の出典」として引用させ、サイトの権威（被リンク・指名）を上げる。
