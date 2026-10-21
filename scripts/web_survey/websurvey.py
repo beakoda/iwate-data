@@ -443,11 +443,10 @@ def audit_one(url):
         txt = decode_html(b, h)
         if not txt.strip():
             return None
-        ct = h.get("content-type", "").lower()
         if kind == "sitemap":
             return txt if re.search(r"<(urlset|sitemapindex)\b", txt[:5000]) else None
-        if "text/html" in ct or looks_html(txt):
-            return None  # ソフト404（HTMLが返る）は「なし」とみなす
+        if looks_html(txt):
+            return None  # ソフト404（HTMLページが返る）は「なし」とみなす。Content-Type は誤設定が多いので見ない
         return txt
 
     robots = small("/robots.txt", "robots")
@@ -651,6 +650,9 @@ def cmd_collect(args):
 def cmd_audit(args):
     con = db()
     run = args.run or datetime.now(timezone.utc).strftime("%Y-%m")
+    if args.redo:
+        con.execute("DELETE FROM audits WHERE run=?", (run,))
+        con.commit()
     todo = con.execute(
         "SELECT key,url FROM sites WHERE key NOT IN (SELECT key FROM audits WHERE run=?) ORDER BY key", (run,)).fetchall()
     if args.limit:
@@ -659,13 +661,11 @@ def cmd_audit(args):
 
     def work(item):
         key, url = item
-        rec = audit_one(url)
-        if rec.get("error") and url.startswith("http://"):
-            alt = audit_one("https://" + url[len("http://"):])  # httpで落ちるサイトは https も試す
-            if not alt.get("error"):
-                rec = alt
-        elif rec.get("error") and url.startswith("https://"):
-            alt = audit_one("http://" + url[len("https://"):])
+        # 診断ツールにドメインだけ入れた時と同じく https を先に試し、取れなければ http
+        rest = re.sub(r"^https?://", "", url)
+        rec = audit_one("https://" + rest)
+        if rec.get("error"):
+            alt = audit_one("http://" + rest)
             if not alt.get("error"):
                 rec = alt
         return key, rec
@@ -758,6 +758,7 @@ def main():
     a.add_argument("--run")
     a.add_argument("--workers", type=int, default=12)
     a.add_argument("--limit", type=int, default=0)
+    a.add_argument("--redo", action="store_true", help="この調査回の結果を消して全件やり直す")
     e = sub.add_parser("export")
     e.add_argument("--run")
     sub.add_parser("stats")
