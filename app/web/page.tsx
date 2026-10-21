@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { fmt, rank, SITE } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
 import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
-import { WEB_CATS, WEB_META, WEB_CHECKS, WEB_ASOF_LABEL, CHECK_LABEL, webPref, passRate, share, webMunis } from '@/lib/web';
+import { WEB_CATS, WEB_META, WEB_CHECKS, WEB_ASOF_LABEL, CHECK_LABEL, WEB_ALL, webAt, webPref, passRate, share, webMunis } from '@/lib/web';
 
 const P = webPref();
 const GAP = share(P.seo_high_aeo_low, P.audited);
 const TITLE = `岩手県内${fmt(P.audited)}サイトのSEO・AI検索対応度（${WEB_ASOF_LABEL}実測）`;
 const MIN_N = 10; // 平均点を出す最低件数（これ未満の市町村は件数だけ示す）
-const sentence = `岩手県内の医療・介護・障害福祉の事業所が公表している${fmt(P.audited)}サイトを実測したところ、平均点はSEO（従来の検索）が${fmt(P.avg_seo)}点、AI検索への対応が${fmt(P.avg_aeo)}点だった。SEOが60点以上なのにAI検索対応が60点未満のサイトが${fmt(GAP)}%を占め、FAQの構造化データを持つサイトは${fmt(passRate(P, 'faq'))}%、llms.txt を置いているサイトは${fmt(passRate(P, 'llms-txt'))}%にとどまる（いわてデータ調べ、${WEB_ASOF_LABEL}）。`;
+const sentence = `公的オープンデータとGoogleマップに登録された岩手県内の事業所のWebサイト${fmt(P.audited)}件を実測したところ、平均点はSEO（従来の検索）が${fmt(P.avg_seo)}点、AI検索への対応が${fmt(P.avg_aeo)}点だった。SEOが60点以上なのにAI検索対応が60点未満のサイトが${fmt(GAP)}%を占め、FAQの構造化データを持つサイトは${fmt(passRate(P, 'faq'))}%、llms.txt を置いているサイトは${fmt(passRate(P, 'llms-txt'))}%にとどまる（いわてデータ調べ、${WEB_ASOF_LABEL}）。`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -29,7 +29,7 @@ export default function Page() {
   return (
     <>
       <Breadcrumb items={[{ name: 'Webサイト調査' }]} />
-      <DatasetJsonLd name={TITLE} description={sentence} path="/web/" keywords={['岩手県', 'SEO', 'AI検索', 'LLMO', 'GEO', 'ホームページ', '医療機関', '介護事業所', '市町村別']} temporal={WEB_META.collected} sourceKeys={['websurvey', 'iryou', 'kaigo', 'shofuku']} />
+      <DatasetJsonLd name={TITLE} description={sentence} path="/web/" keywords={['岩手県', 'SEO', 'AI検索', 'LLMO', 'GEO', 'ホームページ', '医療機関', '介護事業所', '飲食店', '工務店', '市町村別']} temporal={WEB_META.collected} sourceKeys={['websurvey', 'iryou', 'kaigo', 'shofuku']} />
       <h1>{TITLE}</h1>
       <p className="key-fact">{sentence.replace(/（いわてデータ調べ.*）。$/, '。')}</p>
       <p>Googleの検索結果で上位に出るための対策（SEO）と、ChatGPTやGoogleのAIによる概要などAIの回答に引用されるための対策（AI検索対応、LLMO・GEOとも呼ばれる）は、見られる項目が違います。岩手県内で実際に公開されているサイトが、それぞれにどこまで対応しているかを、同じ物差しで一斉に測りました。</p>
@@ -61,7 +61,7 @@ export default function Page() {
       <p>robots.txt でAI関連のクローラ（GPTBot・ClaudeBot・Google-Extended など）を1つ以上拒否していたサイトは{fmt(P.ai_bots_blocked)}サイト。WordPress で作られていたサイトは{fmt(P.wordpress)}サイト（{fmt(share(P.wordpress, P.audited))}%）でした。</p>
 
       <h2>市町村別の結果</h2>
-      <p>サイトの所在地は、そのURLを公表している事業所の所在地です。取得できたサイトが{MIN_N}件未満の市町村は、件数だけを示し平均点は出していません。</p>
+      <p>サイトの所在地は、そのURLを公表している事業所の所在地です。取得できたサイトが{MIN_N}件未満の市町村は、件数だけを示し平均点は出していません。登録住所から市町村を判定できなかった{fmt(webAt(WEB_ALL, '00000')?.sites ?? 0)}サイトは、市町村別の表に含めていません（県全体の集計には含む）。</p>
       <BarChart title={`市町村別の平均点（総合、取得${MIN_N}サイト以上の市町村）`} items={byAvg.map(x => ({ label: x.m.name, value: x.c.avg_overall }))} unit="点" />
       <div className="table-wrap">
         <table>
@@ -83,18 +83,18 @@ export default function Page() {
 
       <h2>調べ方</h2>
       <ul>
-        <li>対象：医療情報ネット（病院・診療所・歯科診療所・薬局・助産所）、介護サービス情報公表システム、障害福祉サービス等情報公表システムの各オープンデータに、岩手県内の事業所として登録されているWebサイトのURL。同じサイト（同じドメイン）を公表している事業所が複数ある場合は1サイトとして数えた。SNS・地図サービス・官公庁や市町村のサイトは除いた</li>
+        <li>対象：医療情報ネット（病院・診療所・歯科診療所・薬局・助産所）、介護サービス情報公表システム、障害福祉サービス等情報公表システム、gBizINFO（法人基本情報）の各オープンデータと、Googleマップの事業者情報（DataForSEO経由で取得）に、岩手県内の事業所として登録されているWebサイトのURL。同じサイト（同じドメイン）を登録している事業所が複数ある場合は1サイトとして数えた。SNS・地図サービス・官公庁や市町村のサイトと、Googleマップで同じURLを10か所以上が登録しているもの（全国チェーンなど）は除いた</li>
         <li>件数：対象{fmt(P.sites)}サイトのうち、{fmt(P.audited)}サイトのトップページを取得できた。残る{fmt(failed)}サイトは、サーバーが応答しない・ページが存在しない・証明書の不備などで取得できなかった</li>
         <li>判定：トップページのHTMLと robots.txt・sitemap.xml・llms.txt を取得し、SEO15項目・AI検索対応10項目を判定した。各項目は「満たす1点・一部満たす0.5点・満たさない0点」を重みづけして100点満点にし、総合はSEOとAI検索対応の平均。検索順位やアクセス数、AIに実際に引用されたかどうかは見ていない</li>
         <li>評価：総合90点以上をS、75点以上をA、60点以上をB、40点以上をC、それ未満をDとした</li>
-        <li>時点：URLの原データは医療情報ネット {WEB_META.sources.find(s => s.startsWith('iryou'))?.split('=')[1]}、介護 {WEB_META.sources.find(s => s.startsWith('kaigo'))?.split('=')[1]}、障害福祉 {WEB_META.sources.find(s => s.startsWith('shofuku'))?.split('=')[1]} 版。サイトの取得は{WEB_META.collected}</li>
+        <li>時点：URLの原データは {WEB_META.sources.map(x => x.replace('iryou=', '医療情報ネット ').replace('kaigo=', '介護 ').replace('shofuku=', '障害福祉 ').replace('gbiz=', 'gBizINFO ').replace('gmap=', 'Googleマップ ')).join('、')} 時点。サイトの取得は{WEB_META.collected}</li>
         <li>個別のサイト名・事業者名は公表しない。判定の仕組みは公開している（<a href="https://github.com/beakoda/iwate-data/tree/main/scripts/web_survey" rel="noopener">判定スクリプト</a>）</li>
       </ul>
 
       <CiteBox title={TITLE} path="/web/" sentence={sentence} />
       <Cta topic="Webサイトの対応状況" />
       <SourceBox keys={['websurvey', 'iryou', 'kaigo', 'shofuku']} extra={[
-        '医療・介護・障害福祉の事業所が公的な情報公表制度に登録したURLを母集団にしているため、岩手県内のサイト全体の平均ではない。飲食・小売・建設などの事業者は含まれていない。',
+        'Webサイトを公的データかGoogleマップに登録している事業所が母集団のため、サイトを持たない事業所や、どちらにもURLを載せていない事業所は含まれない。県内のサイト全体の無作為標本ではない。業種は母集団ごとの分類（医療・介護の届出種別、法人の業種、Googleマップのカテゴリ）をおおまかにまとめたもので、どれにも当てはまらないものは「その他の事業所・団体」とした。',
         '市町村別・業種別の件数は、そのサイトを公表している事業所のうち最初に見つかったものの所在地・種別で数えている。法人の本部サイトを複数市町村の事業所が公表している場合も、1つの市町村に計上される。',
       ]} />
       <p><small>関連：<Link href="/iryou/">病院・薬局の数とHP公表率</Link>／<Link href="/kaigo/">介護事業所</Link>／<Link href="/shofuku/">障害福祉事業所</Link>／<Link href="/ai/">AI推薦調査</Link></small></p>

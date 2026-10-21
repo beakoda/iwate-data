@@ -4,7 +4,9 @@
  "sources": [
   "iryou=20251201",
   "kaigo=20260709",
-  "shofuku=202603"
+  "shofuku=202603",
+  "gbiz=20261021",
+  "gmap=20261021"
  ],
  "rows": {
   "iryou": [
@@ -18,8 +20,16 @@
   "shofuku": [
    1881,
    1505
+  ],
+  "gbiz": [
+   315,
+   315
+  ],
+  "gmap": [
+   10388,
+   10388
   ]
  },
- "sites": 1385,
- "audited": 1173
+ "sites": 8397,
+ "audited": 7396
 }

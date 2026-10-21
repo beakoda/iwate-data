@@ -43,7 +43,7 @@ export default function Home() {
       </div>
       <div className="cards">
         <div className="card"><h2>AIは岩手の事業者をどう推薦しているか</h2><p>ChatGPTに「盛岡市でおすすめの◯◯」を8業種で、歯科を8市で実際に質問し、AIが何を根拠に事業者を選んでいるかを集計した独自調査。自社サイトが1件も読まれていない業種もありました。</p><Link className="more" href="/ai/">調査結果を見る →</Link></div>
-        <div className="card"><h2>岩手県内{fmt(webPref().audited)}サイトのSEO・AI検索対応度</h2><p>医療・介護・障害福祉の事業所が公表しているWebサイトを{WEB_ASOF_LABEL}に一斉に実測。SEOの平均{fmt(webPref().avg_seo)}点に対し、AI検索への対応は平均{fmt(webPref().avg_aeo)}点。業種別・市町村別・項目別に集計。</p><Link className="more" href="/web/">調査結果を見る →</Link></div>
+        <div className="card"><h2>岩手県内{fmt(webPref().audited)}サイトのSEO・AI検索対応度</h2><p>県内の事業所のWebサイトを{WEB_ASOF_LABEL}に一斉に実測。SEOの平均{fmt(webPref().avg_seo)}点に対し、AI検索への対応は平均{fmt(webPref().avg_aeo)}点。業種別・市町村別・項目別に集計。</p><Link className="more" href="/web/">調査結果を見る →</Link></div>
         <div className="card"><h2>歯科診療所数の推移</h2><p>医療施設調査（厚労省）から、市町村別の歯科診療所数・一般診療所数を2009〜{LATEST_DENTAL}年で。人口10万人当たりと県内順位つき。</p><Link className="more" href="/dental/">県全体と市町村ランキングを見る →</Link></div>
         <div className="card"><h2>人口・世帯・自然増減・社会増減</h2><p>住民基本台帳（総務省）から、各市町村の人口・世帯数、出生・死亡、転入・転出を2013〜{LATEST_POP}年で。</p><Link className="more" href="/population/">市町村別の人口動態を見る →</Link></div>
         <div className="card"><h2>産業別の事業所数・従業者数・売上</h2><p>経済センサス（2016年・2021年）から、産業大分類×市町村の事業所数・従業者数・売上（収入）金額。</p><Link className="more" href="/industry/">業種別ランキングを見る →</Link></div>

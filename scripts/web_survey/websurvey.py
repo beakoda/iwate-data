@@ -816,6 +816,26 @@ CHECK_IDS = ["https", "title", "description", "h1", "heading-structure", "viewpo
              "semantic-html", "nap"]
 
 
+# 公開用の業種グループ（母集団ごとに分類体系が違うため、集計はこの粒度にそろえる）
+GROUPS = [
+    ("医療", ["病院", "診療所", "歯科診療所", "薬局", "助産所", "医療・歯科", "医療・福祉（法人）"]),
+    ("介護・福祉", ["介護", "障害福祉", "介護・福祉"]),
+    ("建設・住宅・不動産", ["建設・住宅", "建設業", "不動産"]),
+    ("小売・卸売", ["小売", "卸売・小売業"]),
+    ("飲食・宿泊・観光", ["飲食", "宿泊・観光", "宿泊・飲食サービス業"]),
+    ("自動車", ["自動車"]),
+    ("美容・生活サービス", ["美容・理容", "生活関連サービス業"]),
+    ("教育", ["教育", "教育・学習支援業"]),
+    ("専門サービス・IT・金融", ["士業・専門サービス", "専門・技術サービス業", "情報通信業", "金融・保険業"]),
+    ("製造業", ["製造業"]),
+]
+GROUP_OF = dict((c, g) for g, cs in GROUPS for c in cs)
+
+
+def group_of(cat):
+    return GROUP_OF.get(cat, "その他の事業所・団体")
+
+
 def cmd_export(args):
     con = db()
     run = args.run or con.execute("SELECT max(run) FROM audits").fetchone()[0]
@@ -824,6 +844,7 @@ def cmd_export(args):
         "FROM audits a JOIN sites s ON s.key=a.key WHERE a.run=?", (run,)).fetchall()
     groups = {}
     for cat, muni, err, seo, aeo, ov, gr, https, cms, checks, aib in rows:
+        cat = group_of(cat)
         for g in ((cat, muni or "00000"), (cat, "03000"), ("全業種", muni or "00000"), ("全業種", "03000")):
             groups.setdefault(g, []).append((err, seo, aeo, ov, gr, https, cms, json.loads(checks or "{}"), aib))
     out = os.path.join(REPO, "raw", "web_survey.csv")
