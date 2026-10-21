@@ -505,7 +505,7 @@ def build():
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
     # Webサイト調査: 県計が meta と一致し、業種計・市町村計が「全業種／県計」と一致するか
     web, wm = ds['web'], ds['webMeta']
-    WEB_TOTAL = (8397, 7396)  # (対象サイト, 取得できたサイト)。再調査したら更新する
+    WEB_TOTAL = (8403, 7402)  # (対象サイト, 取得できたサイト)。再調査したら更新する
     tot = web['全業種']['03000']
     assert (tot['sites'], tot['audited']) == WEB_TOTAL == (wm['sites'], wm['audited']), ('web total', tot['sites'], tot['audited'], wm)
     for key in ('sites', 'audited', 'grade_S', 'grade_A', 'grade_B', 'grade_C', 'grade_D', 'pass_https', 'pass_jsonld'):

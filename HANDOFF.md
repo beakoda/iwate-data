@@ -264,11 +264,12 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 - **判定は beak-seo-aeo-checker の lib/checks/seo.ts・aeo.ts と同一**（SEO15＋AI10、pass=1/warn=0.5/fail=0、総合＝SEOとAIの平均）。2026-10-21 に元のTSと6本のHTMLで25項目×6件の判定・スコアが完全一致することを確認済み。**意図的な差分は3つ**：①sitemap.xml は `<urlset>/<sitemapindex>` を含む時だけ「あり」（robots.txt の Sitemap: 宣言も「あり」）②robots.txt・llms.txt は HTML が返るソフト404を「なし」③文字コードを判定して復号（元ツールは常にUTF-8）
 - **DB は非公開**：`~/iwate-web-survey/survey.db`（SQLite。sites＝事業所名・URL入り / audits＝調査回ごとの結果）。リポジトリに入れない。公開するのは `raw/web_survey.csv`（業種×市町村の集計、事業者名なし）と `raw/web_survey_meta.json`（時点・件数）だけ
 - 実行環境：政府サイトに届く環境が要る（コンテナ・Cowork VM は不可）。初回（2026-10-21）は `ssh conoha` の /root/iwate-websurvey-src で実行し、DBとCSVを PC-1 の `C:\Users\ad\work\products\iwate-site-survey\` に scp する
-- 2026-10-21 拡張後（これが正）：母集団8,397サイト・取得7,396（医療891・介護福祉761・建設住宅不動産915・小売卸775・飲食宿泊646・教育361・専門サービス349・自動車235・美容生活110・製造55・その他3,299）。平均 総合61.9・SEO76.4・AI47.4。市町村不明128（`00000`）
+- 2026-10-21 拡張後（これが正）：母集団8,403サイト・取得7,402（医療891・介護福祉761・建設住宅不動産915・小売卸775・飲食宿泊646・教育361・専門サービス349・自動車235・美容生活110・製造55・その他3,299）。平均 総合61.9・SEO76.4・AI47.4。市町村不明128（`00000`）
   - 追加した母集団：gBizINFO 法人基本情報の「WebサイトURL」（岩手の現存法人29,570社中315社。一括DLはトークン必須＝oda@beak-promo.jp で取得済み。ブラウザで抽出した一覧を `~/iwate-web-survey/extra_gbiz.txt` に置く）、Googleマップの事業者（DataForSEO Business Listings、`~/.dataforseo.env` の認証で取得、region=Iwate かつ domain あり。offset 上限で10,388件まで、費用は約4ドル。`cache/gmap.jsonl` に保存し再課金しない）。同じホストを10件以上が登録するもの（チェーン・官公庁）は除外
+  - 取り切り確認（2026-10-21）：郵便番号で区切った全件取得（$6.24）でも新規は6サイトだけ。DataForSEO の岩手×Webサイトあり（チェーン除外後）は約1万件・7,444ホストで頭打ち。郵便番号なしの登録はバス停・閉業などが中心。DataForSEO 累計は約10ドル
   - 業種は `export` で `GROUPS` の11グループにまとめて公開。Googleマップのカテゴリ振り分け（`GMAP_BUCKET`）が粗く「その他」が多い。精度を上げるなら `cache/gmap.jsonl` の生カテゴリを見て正規表現を足す
   - ConoHa 実行は `bash scripts/web_survey/run_all.sh`（nohup、ログ /root/websurvey.log、最後に ALLDONE）。サーバーのクローンは `git fetch && git reset --hard origin/main` で更新（export が raw/ を書き換えるため pull は衝突する）
-- 公開：`/web/`（`app/web/page.tsx`・`lib/web.ts`）、`build_data.py` の `load_websurvey()` と assert（`WEB_TOTAL=(8397,7396)`、市町村コード `00000`＝判定不能を許容）。**再調査したら** ConoHa で `audit --run YYYY-MM` → `export` → raw の2ファイルを差し替え → `WEB_TOTAL` を meta の (sites, audited) に更新 → `npm run data` → build
+- 公開：`/web/`（`app/web/page.tsx`・`lib/web.ts`）、`build_data.py` の `load_websurvey()` と assert（`WEB_TOTAL=(8403,7402)`、市町村コード `00000`＝判定不能を許容）。**再調査したら** ConoHa で `audit --run YYYY-MM` → `export` → raw の2ファイルを差し替え → `WEB_TOTAL` を meta の (sites, audited) に更新 → `npm run data` → build
 - 平均点は取得10サイト以上の市町村だけ出す（`MIN_N`）。事業者名は出さない
 - 残り：beak-promo.jp 診断ページの「79サイト」表記を実数に差し替え（テーマ直書き。WPのテーマファイルエディタで本人作業）
 
