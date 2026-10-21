@@ -629,7 +629,102 @@ def src_gbiz():
     yield {"_asof": "gbiz=" + datetime.fromtimestamp(os.path.getmtime(path), timezone.utc).strftime("%Y%m%d")}
 
 
-SOURCES = {"iryou": src_iryou, "kaigo": src_kaigo, "shofuku": src_shofuku, "gbiz": src_gbiz}
+# ---------------------------------------------------------------- Googleマップの事業者（DataForSEO Business Listings、有料）
+ROMAJI = {"morioka": "03201", "miyako": "03202", "ofunato": "03203", "hanamaki": "03205", "kitakami": "03206",
+          "kuji": "03207", "tono": "03208", "ichinoseki": "03209", "rikuzentakata": "03210", "kamaishi": "03211",
+          "ninohe": "03213", "hachimantai": "03214", "oshu": "03215", "takizawa": "03216", "shizukuishi": "03301",
+          "kuzumaki": "03302", "iwate": "03303", "shiwa": "03321", "yahaba": "03322", "nishiwaga": "03366",
+          "kanegasaki": "03381", "hiraizumi": "03402", "sumita": "03441", "otsuchi": "03461", "yamada": "03482",
+          "iwaizumi": "03483", "tanohata": "03484", "fudai": "03485", "karumai": "03501", "noda": "03503",
+          "kunohe": "03506", "hirono": "03507", "ichinohe": "03524"}
+GMAP_BUCKET = [  # Googleマップのカテゴリ（英語）→ 調査の業種。上から順に最初に当たったもの
+    ("飲食", r"restaurant|cafe|coffee|bar\b|izakaya|ramen|soba|udon|sushi|bakery|confectioner|food|meal|pub|diner|yakiniku|steak"),
+    ("宿泊・観光", r"hotel|inn|ryokan|lodging|hostel|guest house|onsen|hot spring|campground|tourist|resort|museum"),
+    ("美容・理容", r"beauty|hair|barber|nail|eyelash|esthetic|spa\b|massage|salon"),
+    ("医療・歯科", r"dentist|dental|doctor|clinic|hospital|medical|physician|orthodont|pediatric|dermatolog|ophthalm|surgeon|pharmacy|drugstore|osteopath|chiropract|acupunct|bonesetter"),
+    ("介護・福祉", r"nursing|elder|senior|care|welfare|social services|disability|day care"),
+    ("建設・住宅", r"construction|contractor|builder|home builder|architect|carpenter|plumb|electrician|roofing|painting|interior|remodel|housing"),
+    ("不動産", r"real estate|apartment|property|condominium"),
+    ("自動車", r"car |car$|auto|motor|tire|vehicle|gas station|used car"),
+    ("小売", r"store|shop|market|mall|boutique|florist|bookstore|supermarket|outlet"),
+    ("教育", r"school|academy|tutor|cram|kindergarten|preschool|nursery|driving school|university|college"),
+    ("士業・専門サービス", r"lawyer|attorney|accountant|tax|notary|scrivener|consult|insurance|agency|design|advertising|printing|software|web"),
+]
+
+
+def gmap_bucket(cat):
+    c = (cat or "").lower()
+    for label, pat in GMAP_BUCKET:
+        if re.search(pat, c):
+            return label
+    return "その他（Googleマップ）"
+
+
+def src_gmap():
+    """Googleマップの事業者（DataForSEO Business Listings Search）。岩手県内でWebサイトを登録している事業者。
+    有料（1件 $0.00036＋1リクエスト $0.012）。取得結果は cache/gmap.jsonl に保存し、2回目以降は再取得しない。
+    同じホストを10か所以上の事業者が登録しているもの（全国チェーン・官公庁など）は除く。"""
+    path = os.path.join(CACHE, "gmap.jsonl")
+    if not os.path.exists(path):
+        env = {}
+        with open(os.path.expanduser("~/.dataforseo.env")) as f:
+            for line in f:
+                if "=" in line:
+                    k, v = line.strip().split("=", 1)
+                    env[k] = v
+        import base64
+        auth = base64.b64encode(("%s:%s" % (env["DATAFORSEO_LOGIN"], env["DATAFORSEO_PASSWORD"])).encode()).decode()
+        max_cost = float(os.environ.get("GMAP_MAX_COST", "15"))
+        cost, offset, rows = 0.0, 0, []
+        while True:
+            body = json.dumps([{"location_coordinate": "39.5933,141.3624,160", "is_claimed": False,
+                                "filters": [["address_info.region", "=", "Iwate"], "and", ["domain", "like", "%.%"]],
+                                "order_by": ["rating.votes_count,desc"], "limit": 1000, "offset": offset}]).encode()
+            req = urllib.request.Request("https://api.dataforseo.com/v3/business_data/business_listings/search/live",
+                                         data=body, headers={"Authorization": "Basic " + auth, "Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=180, context=_ctx) as r:
+                res = json.loads(r.read().decode("utf-8"))
+            cost += float(res.get("cost") or 0)
+            task = (res.get("tasks") or [{}])[0]
+            if task.get("status_code") != 20000:
+                raise SystemExit("DataForSEO error: %s %s" % (task.get("status_code"), task.get("status_message")))
+            result = (task.get("result") or [{}])[0] or {}
+            items = result.get("items") or []
+            for it in items:
+                ai = it.get("address_info") or {}
+                rows.append({"url": it.get("url") or "", "domain": it.get("domain") or "", "category": it.get("category") or "",
+                             "city": ai.get("city") or "", "title": it.get("title") or ""})
+            total = result.get("total_count") or 0
+            offset += len(items)
+            print("  gmap %d/%d 取得（累計 $%.2f）" % (offset, total, cost), flush=True)
+            if not items or offset >= total:
+                break
+            if cost >= max_cost:
+                print("  上限 $%.2f に達したので打ち切り" % max_cost, flush=True)
+                break
+        os.makedirs(CACHE, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            for r_ in rows:
+                f.write(json.dumps(r_, ensure_ascii=False) + "\n")
+        with open(os.path.join(HOME, "gmap_cost.txt"), "w") as f:
+            f.write("%.4f\n" % cost)
+    rows = [json.loads(l) for l in open(path, encoding="utf-8")]
+    count = {}
+    for r_ in rows:
+        k = site_key(r_["url"])
+        if k:
+            count[k[0]] = count.get(k[0], 0) + 1
+    for r_ in rows:
+        k = site_key(r_["url"])
+        if not k or count[k[0]] >= 10:
+            continue
+        city = re.sub(r"[^a-z]", "", (r_["city"] or "").lower().replace("-shi", "").replace("-cho", "").replace("-machi", "").replace("-mura", "").replace("-son", ""))
+        yield {"source": "gmap", "category": gmap_bucket(r_["category"]), "url": r_["url"],
+               "muni": ROMAJI.get(city, muni_code(r_["city"])), "name": r_["title"]}
+    yield {"_asof": "gmap=" + datetime.fromtimestamp(os.path.getmtime(path), timezone.utc).strftime("%Y%m%d")}
+
+
+SOURCES = {"iryou": src_iryou, "kaigo": src_kaigo, "shofuku": src_shofuku, "gbiz": src_gbiz, "gmap": src_gmap}
 
 
 def cmd_collect(args):
@@ -775,7 +870,7 @@ def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd")
     c = sub.add_parser("collect")
-    c.add_argument("--sources", default="iryou,kaigo,shofuku,gbiz")
+    c.add_argument("--sources", default="iryou,kaigo,shofuku,gbiz,gmap")
     a = sub.add_parser("audit")
     a.add_argument("--run")
     a.add_argument("--workers", type=int, default=12)
