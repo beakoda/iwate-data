@@ -264,8 +264,8 @@ SSDS 由来の10系列は **`raw/ssds/{family}.csv`** に統一した（2026-09-
 - **判定は beak-seo-aeo-checker の lib/checks/seo.ts・aeo.ts と同一**（SEO15＋AI10、pass=1/warn=0.5/fail=0、総合＝SEOとAIの平均）。2026-10-21 に元のTSと6本のHTMLで25項目×6件の判定・スコアが完全一致することを確認済み。**意図的な差分は3つ**：①sitemap.xml は `<urlset>/<sitemapindex>` を含む時だけ「あり」（robots.txt の Sitemap: 宣言も「あり」）②robots.txt・llms.txt は HTML が返るソフト404を「なし」③文字コードを判定して復号（元ツールは常にUTF-8）
 - **DB は非公開**：`~/iwate-web-survey/survey.db`（SQLite。sites＝事業所名・URL入り / audits＝調査回ごとの結果）。リポジトリに入れない。公開するのは `raw/web_survey.csv`（業種×市町村の集計、事業者名なし）と `raw/web_survey_meta.json`（時点・件数）だけ
 - 実行環境：政府サイトに届く環境が要る（コンテナ・Cowork VM は不可）。初回（2026-10-21）は `ssh conoha` の /root/iwate-websurvey-src で実行し、DBとCSVを PC-1 の `C:\Users\ad\work\products\iwate-site-survey\` に scp する
-- 2026-10-21 初回実行：母集団1,385サイト（介護453・診療所316・障害福祉236・歯科193・薬局113・病院69・助産所5）、取得1,173。本番ツールと7サイト照合し、差分（http優先・robots の Content-Type 判定）を直して再実行待ち（`audit --redo`）
-- `/web/` ページ・`lib/web.ts`・`build_data.py` の `load_websurvey()`／assert（`WEB_TOTAL`）は **ブランチ `web-survey`** にある。再実行後の `raw/web_survey.csv`・`raw/web_survey_meta.json` に差し替え、`WEB_TOTAL` を meta の (sites, audited) に更新 → `npm run data` → build → main へマージ
+- 2026-10-21 実行（再実行後が正）：母集団1,385サイト（介護453・診療所316・障害福祉236・歯科193・薬局113・病院69・助産所5）、取得1,173。平均 総合63.4・SEO78.0・AI48.8。本番ツールと7サイト照合済み（残る差は応答速度の揺れと、本番ツールがソフト404の robots/llms を「あり」とする点）
+- 公開：`/web/`（`app/web/page.tsx`・`lib/web.ts`）、`build_data.py` の `load_websurvey()` と assert（`WEB_TOTAL=(1385,1173)`）。**再調査したら** ConoHa で `audit --run YYYY-MM` → `export` → raw の2ファイルを差し替え → `WEB_TOTAL` を meta の (sites, audited) に更新 → `npm run data` → build
 - 平均点は取得10サイト以上の市町村だけ出す（`MIN_N`）。事業者名は出さない
 - 残り：beak-promo.jp 診断ページの「79サイト」表記を実数に差し替え（テーマ直書き。WPのテーマファイルエディタで本人作業）
 
