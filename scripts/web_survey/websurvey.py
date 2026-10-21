@@ -660,55 +660,102 @@ def gmap_bucket(cat):
     return "その他（Googleマップ）"
 
 
-def src_gmap():
-    """Googleマップの事業者（DataForSEO Business Listings Search）。岩手県内でWebサイトを登録している事業者。
-    有料（1件 $0.00036＋1リクエスト $0.012）。取得結果は cache/gmap.jsonl に保存し、2回目以降は再取得しない。
-    同じホストを10か所以上の事業者が登録しているもの（全国チェーン・官公庁など）は除く。"""
-    path = os.path.join(CACHE, "gmap.jsonl")
-    if not os.path.exists(path):
-        env = {}
-        with open(os.path.expanduser("~/.dataforseo.env")) as f:
-            for line in f:
-                if "=" in line:
-                    k, v = line.strip().split("=", 1)
-                    env[k] = v
-        import base64
-        auth = base64.b64encode(("%s:%s" % (env["DATAFORSEO_LOGIN"], env["DATAFORSEO_PASSWORD"])).encode()).decode()
-        max_cost = float(os.environ.get("GMAP_MAX_COST", "15"))
-        cost, offset, rows = 0.0, 0, []
+def _dfs_auth():
+    env = {}
+    with open(os.path.expanduser("~/.dataforseo.env")) as f:
+        for line in f:
+            if "=" in line:
+                k, v = line.strip().split("=", 1)
+                env[k] = v
+    import base64
+    return base64.b64encode(("%s:%s" % (env["DATAFORSEO_LOGIN"], env["DATAFORSEO_PASSWORD"])).encode()).decode()
+
+
+def _dfs_listings(auth, extra_filter, offset, order="rating.votes_count,desc"):
+    flt = [["address_info.region", "=", "Iwate"], "and", ["domain", "like", "%.%"]]
+    if extra_filter:
+        flt = [flt[0], "and", ["domain", "like", "%.%"], "and", extra_filter]
+    body = json.dumps([{"location_coordinate": "39.5933,141.3624,160", "is_claimed": False, "filters": flt,
+                        "order_by": [order], "limit": 1000, "offset": offset}]).encode()
+    req = urllib.request.Request("https://api.dataforseo.com/v3/business_data/business_listings/search/live",
+                                 data=body, headers={"Authorization": "Basic " + auth, "Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=180, context=_ctx) as r:
+        res = json.loads(r.read().decode("utf-8"))
+    task = (res.get("tasks") or [{}])[0]
+    if task.get("status_code") != 20000:
+        raise SystemExit("DataForSEO error: %s %s" % (task.get("status_code"), task.get("status_message")))
+    result = (task.get("result") or [{}])[0] or {}
+    rows = []
+    for it in result.get("items") or []:
+        ai = it.get("address_info") or {}
+        rows.append({"cid": it.get("cid") or "", "url": it.get("url") or "", "domain": it.get("domain") or "",
+                     "category": it.get("category") or "", "city": ai.get("city") or "", "zip": ai.get("zip") or "",
+                     "title": it.get("title") or ""})
+    return rows, int(result.get("total_count") or 0), float(res.get("cost") or 0)
+
+
+def fetch_gmap_by_zip(max_cost):
+    """1回の検索は offset 1万件までしか取れないため、郵便番号の頭（020〜029、多ければ 0200- まで細分）で
+    区切って全件を取る。結果は cache/gmap_zip.jsonl（cid で重複除去）。"""
+    auth = _dfs_auth()
+    path = os.path.join(CACHE, "gmap_zip.jsonl")
+    seen, cost = set(), 0.0
+    out = open(path, "w", encoding="utf-8")
+    queue = ["0%d%d" % (a, b) for a in (2,) for b in range(10)]  # 020〜029
+    while queue:
+        pref = queue.pop(0)
+        zf = ["address_info.zip", "like", pref + "%"]
+        offset, total = 0, None
         while True:
-            body = json.dumps([{"location_coordinate": "39.5933,141.3624,160", "is_claimed": False,
-                                "filters": [["address_info.region", "=", "Iwate"], "and", ["domain", "like", "%.%"]],
-                                "order_by": ["rating.votes_count,desc"], "limit": 1000, "offset": offset}]).encode()
-            req = urllib.request.Request("https://api.dataforseo.com/v3/business_data/business_listings/search/live",
-                                         data=body, headers={"Authorization": "Basic " + auth, "Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=180, context=_ctx) as r:
-                res = json.loads(r.read().decode("utf-8"))
-            cost += float(res.get("cost") or 0)
-            task = (res.get("tasks") or [{}])[0]
-            if task.get("status_code") != 20000:
-                raise SystemExit("DataForSEO error: %s %s" % (task.get("status_code"), task.get("status_message")))
-            result = (task.get("result") or [{}])[0] or {}
-            items = result.get("items") or []
-            for it in items:
-                ai = it.get("address_info") or {}
-                rows.append({"url": it.get("url") or "", "domain": it.get("domain") or "", "category": it.get("category") or "",
-                             "city": ai.get("city") or "", "title": it.get("title") or ""})
-            total = result.get("total_count") or 0
-            offset += len(items)
-            print("  gmap %d/%d 取得（累計 $%.2f）" % (offset, total, cost), flush=True)
-            if not items or offset >= total:
+            rows, total, c = _dfs_listings(auth, zf, offset)
+            cost += c
+            if offset == 0 and total > 9500 and len(pref) < 5:
+                # 1万件を超える区画はさらに細分（このページの結果も保存する）
+                nxt = pref + "-" if len(pref) == 3 else pref
+                queue[0:0] = [nxt + str(d) for d in range(10)]
+                for r_ in rows:
+                    if r_["cid"] not in seen:
+                        seen.add(r_["cid"]); out.write(json.dumps(r_, ensure_ascii=False) + "\n")
+                print("  gmap 〒%s %d件 → 細分（累計 $%.2f）" % (pref, total, cost), flush=True)
+                break
+            for r_ in rows:
+                if r_["cid"] not in seen:
+                    seen.add(r_["cid"]); out.write(json.dumps(r_, ensure_ascii=False) + "\n")
+            offset += len(rows)
+            if not rows or offset >= total:
                 break
             if cost >= max_cost:
-                print("  上限 $%.2f に達したので打ち切り" % max_cost, flush=True)
                 break
-        os.makedirs(CACHE, exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            for r_ in rows:
-                f.write(json.dumps(r_, ensure_ascii=False) + "\n")
-        with open(os.path.join(HOME, "gmap_cost.txt"), "w") as f:
-            f.write("%.4f\n" % cost)
-    rows = [json.loads(l) for l in open(path, encoding="utf-8")]
+        print("  gmap 〒%s %d件（取得済み計 %d・累計 $%.2f）" % (pref, total or 0, len(seen), cost), flush=True)
+        if cost >= max_cost:
+            print("  上限 $%.2f に達したので打ち切り" % max_cost, flush=True)
+            break
+    out.close()
+    with open(os.path.join(HOME, "gmap_cost.txt"), "a") as f:
+        f.write("zip %.4f\n" % cost)
+
+
+def src_gmap():
+    """Googleマップの事業者（DataForSEO Business Listings Search）。岩手県内でWebサイトを登録している事業者。
+    有料（1件 $0.00036＋1リクエスト $0.012）。取得結果は cache/ に保存し、2回目以降は再取得しない。
+    同じホストを10か所以上の事業者が登録しているもの（全国チェーン・官公庁など）は除く。"""
+    zpath = os.path.join(CACHE, "gmap_zip.jsonl")
+    if not os.path.exists(zpath) and os.environ.get("GMAP_FETCH") == "1":
+        fetch_gmap_by_zip(float(os.environ.get("GMAP_MAX_COST", "15")))
+    rows, seen = [], set()
+    for name in ("gmap_zip.jsonl", "gmap.jsonl"):
+        p_ = os.path.join(CACHE, name)
+        if not os.path.exists(p_):
+            continue
+        for l in open(p_, encoding="utf-8"):
+            r_ = json.loads(l)
+            k = r_.get("cid") or (r_["title"], r_["url"])
+            if k in seen or (r_["title"], r_["url"]) in seen:
+                continue
+            seen.add(k); seen.add((r_["title"], r_["url"]))
+            rows.append(r_)
+    path = zpath if os.path.exists(zpath) else os.path.join(CACHE, "gmap.jsonl")
+
     count = {}
     for r_ in rows:
         k = site_key(r_["url"])
