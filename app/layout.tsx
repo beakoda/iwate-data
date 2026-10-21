@@ -47,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/data/">データ集</Link>
               <Link href="/mcp/">MCP</Link>
               <Link href="/ai/">AI推薦調査</Link>
+              <Link href="/web/">Webサイト調査</Link>
             </nav>
           </div>
         </header>

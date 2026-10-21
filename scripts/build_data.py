@@ -73,6 +73,7 @@ SOURCES = {
     'schoolcode': {'name':'文部科学省「学校コード」一覧（現存校・廃止校）', 'url':'https://www.mext.go.jp/b_menu/toukei/mext_01087.html', 'note':'学校1校ごとに付番された学校コードの一覧（2026年5月20日更新）から、岩手県分を市町村×学校種で集計したもの。市町村は学校所在地の住所文字列から判定している。廃止校は学校コード制度が始まった2020年12月以降に廃止年月日が入った学校で、2021年以降の廃止分に限られる（それ以前の廃校は含まれない）。学校数は「学校基本調査」（本サイトの「学校」ページ）とは対象範囲も時点も異なるため一致しない。'},
     'iryou': {'name':'厚生労働省「医療情報ネット（ナビイ）」全国データ（医療機能情報提供制度・薬局機能情報提供制度）', 'url':'https://data.e-gov.go.jp/data/dataset/iryou_teikyouseido_mhlw', 'note':'各都道府県が集約した医療機関・薬局1施設ごとの届出情報（2025年12月1日版）から、岩手県分を市町村×施設種別で集計したもの。「HP公表」は施設が案内用ホームページアドレス（薬局は薬局のホームページアドレス）を届け出ている施設数。この制度に届出のある施設が対象で、厚労省「医療施設調査」の施設数とは定義も時点も異なるため一致しない。'},
     'kaigo': {'name':'厚生労働省「介護サービス情報公表システム」オープンデータ（事業所一覧）', 'url':'https://www.mhlw.go.jp/stf/kaigo-kouhyou_opendata.html', 'note':'全国の介護サービス事業所1件ごとの公表データ（事業所名・所在地・定員など）から、岩手県分を市町村×サービス種別で集計したもの。2024年12月末時点と2026年6月末時点の2時点。「定員」は公表されている事業所の合計で、定員の概念がないサービス（訪問系・居宅介護支援など）や未記入の事業所は0として扱っているため、定員は施設系サービスでのみ意味を持つ。'},
+    'websurvey': {'name':'いわてデータ「岩手県内Webサイト調査」（SEO・AI検索対応度の実測）', 'url':'https://iwate-data.com/web/', 'note':'医療情報ネット（医療機関・薬局）、介護サービス情報公表システム、障害福祉サービス等情報公表システムの各オープンデータで、岩手県内の事業所が公表しているWebサイトのURLを集め、同じサイトを重複除去したうえで、各サイトのトップページを本サイトが実際に取得して判定したもの（独自調査）。判定はSEO15項目・AI検索対応10項目で、公開HTML・robots.txt・sitemap.xml・llms.txt だけを見ており、検索順位やアクセス数は見ていない。市町村と業種は、そのURLを公表している事業所のうち最初に見つかったものの所在地と種別。'},
     'crime': {'name':'岩手県警察「オープンデータ（街頭犯罪等の発生状況）」', 'url':'https://www.pref.iwate.jp/kenkei/koho/opendata/3000711.html', 'note':'岩手県警が公開する事件1件ごとの発生記録（発生地の市区町村コード・町丁目、発生年月日、発生場所、被害者属性）を、本サイトが市町村×年×手口で集計したもの。対象は自転車盗・車上ねらい・部品ねらい・自動販売機ねらい・自動車盗・オートバイ盗・ひったくりの7手口。年は発生年月日（始期）の年。刑法犯認知件数の全体ではなく、この7手口に限った件数である点に注意。／利用条件は岩手県警のウェブサイト利用規約により公共データ利用規約（第1.0版・PDL1.0）。出典表記は「犯罪オープンデータ」（岩手県警察）https://www.pref.iwate.jp/kenkei/koho/opendata/3000711.html を加工して作成。加工したのは本サイトであり、岩手県警察が作成したものではない。'},
     'census': {'name':'総務省統計局「国勢調査」都道府県・市区町村別の主な結果（第１面事項・第２面事項）', 'url':'https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001049104&tclass1=000001049105', 'note':'各回10月1日現在。2015年（平成27年）・2020年（令和2年）。2020年の年齢・就業関係の数値は不詳補完結果。「-」は該当者なし。'},
 }
@@ -322,6 +323,30 @@ def load_schoolcode():
     return act, closed
 
 
+
+WEB_CHECKS = ['https', 'title', 'description', 'h1', 'heading-structure', 'viewport', 'lang', 'canonical', 'ogp',
+              'img-alt', 'internal-links', 'content-volume', 'sitemap', 'robots', 'ttfb',
+              'jsonld', 'ai-bots', 'faq', 'eeat', 'llms-txt', 'answer-first', 'structured-content', 'freshness',
+              'semantic-html', 'nap']
+
+
+def load_websurvey():
+    """岩手県内Webサイト調査（独自調査。scripts/web_survey/websurvey.py export の出力）。
+    業種×市町村（03000＝県計）ごとの件数・平均点・項目別の合格数。事業者名は含まない。"""
+    out, cats = {}, []
+    ints = ['sites', 'audited', 'grade_S', 'grade_A', 'grade_B', 'grade_C', 'grade_D', 'seo_high_aeo_low', 'wordpress',
+            'ai_bots_blocked'] + ['pass_' + c for c in WEB_CHECKS]
+    for r in load_csvs('web_survey.csv'):
+        d = {k: int(r[k]) for k in ints}
+        for k in ('avg_overall', 'avg_seo', 'avg_aeo'):
+            d[k] = float(r[k]) if r[k] != '' else None
+        out.setdefault(r['category'], {})[r['code']] = d
+        if r['category'] not in cats:
+            cats.append(r['category'])
+    with open(os.path.join(RAW, 'web_survey_meta.json'), encoding='utf-8') as f:
+        meta = json.load(f)
+    return out, cats, meta
+
 def load_iryou():
     """医療情報ネットの施設個票を市町村×施設種別で集計したもの。e-Stat 由来ではない。"""
     out = {}
@@ -428,6 +453,7 @@ def build():
     _sc_act, _sc_closed = load_schoolcode()
     _sf, _sf_svc = load_shofuku()
     _hj, _hjn, _hjc = load_houjin()
+    _web, _web_cats, _web_meta = load_websurvey()
     ssds = {f: load_ssds(f) for f in SSDS}   # family → (muni, pref, years)
     YEARS_KEY = {'vital':'vitalYears','household':'houseYears','medical':'medYears','welfare':'welYears','env':'envYears',
                  'economy':'econYears','school':'schoolYears','jobless':'joblessYears','education':'eduYears','farm':'farmYears'}
@@ -452,6 +478,7 @@ def build():
         'schoolActive': _sc_act, 'schoolClosed': _sc_closed, 'schoolKinds': list(SCHOOL_KINDS),
         'schoolAsOf': SCHOOL_ASOF, 'closedYears': CLOSED_YEARS,
         'iryou': load_iryou(), 'iryouTypes': list(IRYOU_TYPES), 'iryouAsOf': IRYOU_ASOF,
+        'web': _web, 'webCats': _web_cats, 'webMeta': _web_meta, 'webChecks': WEB_CHECKS,
         'kaigo': _kaigo, 'kaigoSnaps': list(KAIGO_SNAPS), 'kaigoServices': _kaigo_svc,
         'crime': load_crime(),
         'crimeYears': CRIME_YEARS,
@@ -476,6 +503,18 @@ def build():
                 r = cen[str(y)][m['code']]
                 tot = sum(r[k] or 0 for k, _c, _n in CENSUS_IND)  # A〜T の合計＝就業者数
                 assert tot == r['workers'], (y, m['code'], tot, r['workers'])
+    # Webサイト調査: 県計が meta と一致し、業種計・市町村計が「全業種／県計」と一致するか
+    web, wm = ds['web'], ds['webMeta']
+    WEB_TOTAL = (1385, 1173)  # (対象サイト, 取得できたサイト)。再調査したら更新する
+    tot = web['全業種']['03000']
+    assert (tot['sites'], tot['audited']) == WEB_TOTAL == (wm['sites'], wm['audited']), ('web total', tot['sites'], tot['audited'], wm)
+    for key in ('sites', 'audited', 'grade_S', 'grade_A', 'grade_B', 'grade_C', 'grade_D', 'pass_https', 'pass_jsonld'):
+        s_cat = sum(web[c]['03000'][key] for c in ds['webCats'] if c != '全業種')
+        s_mun = sum(v[key] for code, v in web['全業種'].items() if code != '03000')
+        assert s_cat == tot[key] == s_mun, ('web sum', key, s_cat, s_mun, tot[key])
+    assert sum(tot['grade_' + g] for g in 'SABCD') == tot['audited'], 'web grades'
+    assert set(c for c in web['全業種'] if c != '03000') <= {m['code'] for m in munis}, 'web unknown muni'
+
     # 保育所等: 33市町村が揃い、県計が原データと一致するか
     hk = ds['hoiku']
     assert set(hk) == {m['code'] for m in munis}, ('hoiku munis', len(hk))
