@@ -1,5 +1,18 @@
 {
   "version": 1,
-  "include": ["/*"],
-  "exclude": ["/_next/*", "/csv/*", "/embed/*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/sitemap.xml", "/favicon.ico"]
+  "include": [
+    "/*"
+  ],
+  "exclude": [
+    "/_next/*",
+    "/csv/*",
+    "/embed/*",
+    "/robots.txt",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/sitemap.xml",
+    "/favicon.ico",
+    "/icon.png",
+    "/opengraph-image.png"
+  ]
 }

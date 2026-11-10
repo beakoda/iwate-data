@@ -444,3 +444,9 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - クエリ文字列付きのURLをそのまま print すると `[BLOCKED: Cookie/query string data]` で潰される。IDなど数値だけを出力すること
 - 経済センサス2021に産業大分類 A/B が別掲されず、`AB`（農林漁業）1本に統合してある。中分類展開時に再検討
 - 住基人口は2013年からしかないため、人口10万対の指標は2012年以降しか出せない
+
+
+## 2026-11-10 SEO/LLMO土台（Claude）
+- `app/opengraph-image.png`（1200×630）と `app/icon.png`（512×512）を追加＝全ページに og:image・favicon が出る（以前は両方なし）。`twitter:card` を summary_large_image に
+- `public/_routes.json` の exclude に `/icon.png` `/opengraph-image.png` を追加（Functions を通さない）
+- 画像は Pillow で生成（Noto Sans CJK JP）。差し替えるときは同じファイル名で上書きするだけ

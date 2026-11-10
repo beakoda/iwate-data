@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: { default: `${SITE.name} — 岩手県 市町村×業種の統計データ`, template: `%s | ${SITE.name}` },
   description: SITE.description,
   openGraph: { siteName: SITE.name, locale: 'ja_JP', type: 'website' },
+  twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
 };
 
