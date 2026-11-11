@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, dentalSeries, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, popAt } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, RelatedMedia, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県の歯科診療所数の推移（2009〜${LATEST_DENTAL}年）と市町村別ランキング`;
@@ -54,6 +54,7 @@ export default function Page() {
       <h2>市町村別の推移ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => <li key={m.code}><Link href={`/dental/${m.slug}/`}>{m.name}の歯科診療所数<small>{fmt(dentalAt(m.code, LATEST_DENTAL)!.dent)}施設（{LATEST_DENTAL}年）</small></Link></li>)}</ul>
       <Cta topic="歯科診療所数" />
+      <RelatedMedia keys={['machishika']} lead="歯科医院の数ではなく、矯正やインプラントの費用を調べたい方へ。" />
       <CiteBox title={TITLE} path="/dental/" sentence={`岩手県の歯科診療所数は${LATEST_DENTAL}年時点で${fmt(latest.dent)}施設、${peak.year}年のピーク（${fmt(peak.dent)}施設）から${fmt(peak.dent - latest.dent)}施設減少している（厚生労働省「医療施設調査」）。`} />
       <SourceBox keys={['dental', 'population']} extra={['人口10万人当たりは、医療施設調査（各年10月1日）の施設数を、翌年1月1日の住民基本台帳人口で除して算出。', '合併・市制施行前の旧自治体（滝沢村、藤沢町、川井村）は現行の市に合算。']} />
     </>

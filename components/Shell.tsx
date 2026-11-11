@@ -71,6 +71,27 @@ export function CiteBox({ title, path, sentence }: { title: string; path: string
   );
 }
 
+// 同じ運営会社（ビークプロモーション）の地域メディアへの案内。統計の先にある「実際の手続き・費用」を探す人向け。
+const MEDIA = {
+  machishika: { name: 'MACHISHIKA（マチシカ）岩手版', url: 'https://machi-shika.com/iwate/', desc: '岩手県内の歯科医院が公式サイトで公表している歯列矯正・インプラントの料金を、出典と調査日つきで整理しています。' },
+  okuri: { name: 'おくりの段取り帖', url: 'https://okuri-dandori.com/iwate/iwate-okuyami-madoguchi/', desc: '岩手県の市町村別に、亡くなったあとの手続き窓口・火葬場・葬祭費を、公的機関の情報をもとに確認日つきでまとめています。' },
+  kazai: { name: '実家じまいガイド 岩手版', url: 'https://kazai-seiri.com/iwate/', desc: '実家じまい・遺品整理の順番と、自治体の公開資料で一般廃棄物収集運搬の許可を確認できた業者を掲載しています。' },
+  gaiheki: { name: '塗装の相場帳', url: 'https://gaiheki-tosou.net/', desc: '外壁塗装の相場・助成金・見積書の見方を、自治体公式を一次ソースに、調査日つきで掲載しています（岩手県33市町村）。' },
+  homyhome: { name: 'HomyHome.jp', url: 'https://homyhome.jp/', desc: '外構・エクステリア・お庭づくりの費用相場と助成金を、地域版ごとにレンジと出典つきで整理しています。' },
+} as const;
+export function RelatedMedia({ keys, lead }: { keys: (keyof typeof MEDIA)[]; lead: string }) {
+  return (
+    <section className="sources" aria-label="関連メディア">
+      <h2>関連メディア</h2>
+      <p>{lead}</p>
+      <ul>
+        {keys.map(k => <li key={k}><a href={MEDIA[k].url} rel="noopener">{MEDIA[k].name}</a> — {MEDIA[k].desc}</li>)}
+      </ul>
+      <p><small>いずれも本サイトと同じビークプロモーション株式会社が運営しています。</small></p>
+    </section>
+  );
+}
+
 export function DatasetJsonLd({ name, description, path, keywords, temporal, sourceKeys }:
   { name: string; description: string; path: string; keywords: string[]; temporal: string; sourceKeys: string[] }) {
   const json = {

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, muniBySlug, dentalSeries, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, popAt } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, RelatedMedia, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -56,6 +56,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, i) => <span key={x.code}>{i ? '・' : ''}<Link href={`/dental/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口動態</Link>・<Link href="/industry/medical/">医療，福祉の事業所数ランキング</Link></p>
       <Cta muni={m.name} topic="歯科診療所数" />
+      <RelatedMedia keys={['machishika']} lead="歯科医院の数ではなく、矯正やインプラントの費用を調べたい方へ。" />
       <CiteBox title={title} path={`/dental/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['dental', 'population']} extra={[`人口10万人当たりは、各年10月1日の施設数を翌年1月1日の住民基本台帳人口で除して算出（住基人口は2013年以降のため、10万対は2012年以降）。`, ...(merged.length ? [`${merged.join('・')}（合併・市制施行前）の数値は${m.name}に合算。`] : [])]} />
     </>

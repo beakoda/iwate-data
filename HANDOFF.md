@@ -450,3 +450,9 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - `app/opengraph-image.png`（1200×630）と `app/icon.png`（512×512）を追加＝全ページに og:image・favicon が出る（以前は両方なし）。`twitter:card` を summary_large_image に
 - `public/_routes.json` の exclude に `/icon.png` `/opengraph-image.png` を追加（Functions を通さない）
 - 画像は Pillow で生成（Noto Sans CJK JP）。差し替えるときは同じファイル名で上書きするだけ
+
+## 2026-11-11 関連メディアへの参照リンク・/vital/ のタイトル（Claude）
+- `components/Shell.tsx` に `RelatedMedia` を追加（同じ運営会社のメディアへの案内。運営が同じことを明記）。§1の目的2「権威を参照リンクで配給」の実装
+  - /dental/ と /dental/[slug]/ → MACHISHIKA 岩手版、/vital/ → おくりの段取り帖（岩手の手続き窓口一覧）、/household/ → 実家じまいガイド 岩手版、/building/ → 塗装の相場帳・HomyHome.jp
+  - リンク先・説明文は `MEDIA` 定数に集約。追加するときはリンク先が200であることを確かめる
+- /vital/ の TITLE を「岩手県の出生数・死亡数・婚姻・離婚（33市町村別、…）」に変更。根拠：Search Console 直近28日で「岩手県 出生数」表示53・平均6.4位・クリック1（タイトルに「出生数」が無かった）

@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, vitalAt, vitalPrefAt, popAt, naturalChange, fmt, fmtSigned, pct, rank, VITAL_YEARS, LATEST_VITAL, FIRST_VITAL, FIRST_MIGR_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, RelatedMedia, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 import { IwateMap } from '@/components/Map';
 
-const TITLE = `岩手県33市町村の出生・死亡・婚姻・離婚（${FIRST_VITAL}〜${LATEST_VITAL}年）`;
+const TITLE = `岩手県の出生数・死亡数・婚姻・離婚（33市町村別、${FIRST_VITAL}〜${LATEST_VITAL}年）`;
 const pNow = vitalPrefAt(LATEST_VITAL);
 const pPrev = vitalPrefAt(LATEST_VITAL - 1);
 const pFirst = vitalPrefAt(FIRST_VITAL);
@@ -67,6 +67,7 @@ export default function Page() {
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const v = vitalAt(m.code, LATEST_VITAL)!; return <li key={m.code}><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡<small>{LATEST_VITAL}年 出生{fmt(v.births)}人・死亡{fmt(v.deaths)}人</small></Link></li>; })}</ul>
       <Cta topic="出生数" />
+      <RelatedMedia keys={['okuri']} lead="統計ではなく、ご家族が亡くなったあとの手続きを調べたい方へ。" />
       <CiteBox title={TITLE} path="/vital/" sentence={sentence} />
       <SourceBox keys={['vital']} extra={[
         '出生数・死亡数・婚姻件数・離婚件数は人口動態調査（各年1〜12月）。住民基本台帳の出生・死亡（/population/）とは定義も集計期間も異なるため、直接比較しない。',

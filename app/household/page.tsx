@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, houseAt, housePrefAt, hhShare, fmt, fmtSigned, pct, rank, HOUSE_YEARS, LATEST_HOUSE, PREV_HOUSE, FIRST_HOUSE, FIRST_POP75_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, RelatedMedia, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
 import { IwateMap } from '@/components/Map';
 
 const TITLE = `岩手県33市町村の世帯・高齢世帯・単独世帯（${FIRST_HOUSE}〜${LATEST_HOUSE}年）`;
@@ -64,6 +64,7 @@ export default function Page() {
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const h = houseAt(m.code, LATEST_HOUSE)!; return <li key={m.code}><Link href={`/household/${m.slug}/`}>{m.name}の世帯<small>{LATEST_HOUSE}年 一般世帯{fmt(h.general_hh)}・65歳以上単独{fmt(h.eld_single_hh)}</small></Link></li>; })}</ul>
       <Cta topic="世帯構成" />
+      <RelatedMedia keys={['kazai']} lead="空き家になった実家の片づけや、遺品整理の進め方を調べたい方へ。" />
       <CiteBox title={TITLE} path="/household/" sentence={sentence} />
       <SourceBox keys={['household']} extra={[
         '「一般世帯」は施設等の世帯を除く世帯。割合の分母は一般世帯数。',
