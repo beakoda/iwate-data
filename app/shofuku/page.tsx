@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, shofukuAt, shofukuPref, shofukuServicesOf, shofukuUrlRate, shofukuPer10k, fmt, rank, SHOFUKU_SERVICES, SHOFUKU_ASOF_LABEL, LATEST_POP } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県33市町村の障害福祉サービス事業所数（${SHOFUKU_ASOF_LABEL}時点）`;
 const P = shofukuPref();
@@ -63,6 +63,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = shofukuAt(m.code)!; return <li key={m.code}><Link href={`/shofuku/${m.slug}/`}>{m.name}の障害福祉サービス事業所<small>{fmt(r.offices)}事業所・{shofukuServicesOf(m.code).length}種別</small></Link></li>; })}</ul>
+      <Cta campaign="shofuku-hub" topic="事業所数" />
       <CiteBox title={TITLE} path="/shofuku/" sentence={sentence} />
       <SourceBox keys={['shofuku']} extra={[
         '各自治体が障害福祉サービス等情報公表システムに登録した事業所が対象。登録が反映されていない事業所は含まれない場合がある。',

@@ -58,7 +58,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => <li key={m.code}><Link href={`/houjin/${m.slug}/`}>{m.name}の法人数<small>{fmt(houjinAt(m.code))}社・株式会社{fmt(houjinAt(m.code, '株式会社'))}</small></Link></li>)}</ul>
-      <Cta topic="法人数" />
+      <Cta campaign="houjin-hub" topic="法人数" />
       <CiteBox title={TITLE} path="/houjin/" sentence={sentence} />
       <SourceBox keys={['houjin']} extra={[
         '登記されている法人の数であり、事業所の数でも「営業している会社」の数でもない。休眠会社や本店だけを置く法人も含まれる。事業所ベースの数字は「産業・事業所」（経済センサス）のページを参照。',

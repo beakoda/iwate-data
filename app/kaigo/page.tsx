@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, kaigoAt, kaigoPrefAt, kaigoServicesOf, officesPerElderly, fmt, fmtSigned, pct, rank, KAIGO_SNAPS, KAIGO_SERVICES, LATEST_KAIGO, FIRST_KAIGO, kaigoLabel, LATEST_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県33市町村の介護サービス事業所数（${kaigoLabel(LATEST_KAIGO)}時点・サービス種別ごと）`;
 const pNow = kaigoPrefAt(LATEST_KAIGO);
@@ -67,6 +67,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = kaigoAt(m.code, LATEST_KAIGO)!; return <li key={m.code}><Link href={`/kaigo/${m.slug}/`}>{m.name}の介護サービス事業所<small>{kaigoLabel(LATEST_KAIGO)} {fmt(r.offices)}事業所・{kaigoServicesOf(m.code, LATEST_KAIGO).length}種別</small></Link></li>; })}</ul>
+      <Cta campaign="kaigo-hub" topic="事業所数" />
       <CiteBox title={TITLE} path="/kaigo/" sentence={sentence} />
       <SourceBox keys={['kaigo']} extra={[
         '公表システムに登録されている事業所を数えたもので、休止中・新規指定直後などで公表が反映されていない事業所は含まれない場合がある。指定事業所数の公式集計（介護サービス施設・事業所調査）とは一致しない。',

@@ -68,7 +68,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = joblessAt(m.code, LATEST_JOBLESS)!; return <li key={m.code}><Link href={`/jobless/${m.slug}/`}>{m.name}の完全失業率<small>{LATEST_JOBLESS}年 {fmt(joblessRate(r))}%・就業者{fmt(r.workers)}人</small></Link></li>; })}</ul>
-      <Cta topic="完全失業率" />
+      <Cta campaign="jobless-hub" topic="完全失業率" />
       <CiteBox title={TITLE} path="/jobless/" sentence={sentence} />
       <SourceBox keys={['jobless']} extra={[
         '完全失業者＝仕事がなく、仕事を探していて、すぐ就ける状態にあった人（調査週間中）。ハローワークの求職者数とは別の概念。',

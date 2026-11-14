@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, hoikuAt, hoikuPref, hoikuFillRate, hoikuSlack, hoikuHidden, fmt, rank, HOIKU_ASOF_LABEL } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県33市町村の保育所等の定員・申込者・待機児童（${HOIKU_ASOF_LABEL}時点）`;
 const P = hoikuPref();
@@ -53,6 +53,7 @@ export default function Page() {
       <p>国の定義では、育児休業中の人、特定の園だけを希望している人、求職活動を休止している人は「待機児童」に数えない。岩手県ではこれに当たる子どもが<strong>{fmt(hidden)}人</strong>（特定の園だけを希望{fmt(P.specific_only)}人、求職活動を休止{fmt(P.job_paused)}人、育児休業中{fmt(P.on_leave)}人）いる。待機児童0人でも、希望する園に入れていない家庭はある。</p>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = hoikuAt(m.code)!; return <li key={m.code}><Link href={`/hoiku/${m.slug}/`}>{m.name}の保育所等<small>定員{fmt(r.capacity)}人・申込{fmt(r.applicants)}人・充足率{fmt(hoikuFillRate(r))}%</small></Link></li>; })}</ul>
+      <Cta campaign="hoiku-hub" topic="定員" />
       <CiteBox title={TITLE} path="/hoiku/" sentence={sentence} />
       <SourceBox keys={['hoiku']} extra={[
         '利用定員は保育所・幼保連携型認定こども園・幼稚園型認定こども園等・地域型保育事業・特例保育等・企業主導型保育事業・地方単独事業の合計。幼稚園（1号認定のみ）は含まれない。',

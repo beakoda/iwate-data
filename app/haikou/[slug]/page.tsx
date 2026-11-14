@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, schoolCodeAt, schoolCodePref, closedAt, closedPref, closedShare, popAt, fmt, fmtSigned, pct, rank, SCHOOL_KINDS, CLOSED_YEARS, FIRST_CLOSED, LATEST_CLOSED, LATEST_POP } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Nearby, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -82,6 +82,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/aging/${m.slug}/`}>{m.name}の高齢化率</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Nearby code={m.code} label="廃校" href={x => `/haikou/${x.slug}/`} />
+      <Cta campaign="haikou" slug={m.slug} muni={m.name} topic="学校数" />
       <CiteBox title={title} path={`/haikou/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['schoolcode']} extra={[
         `学校コード制度は2020年12月に始まったため、記録されているのは${FIRST_CLOSED}年以降の廃校に限られる。それ以前の廃校は含まれない。`,

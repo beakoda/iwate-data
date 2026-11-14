@@ -57,7 +57,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const b = buildAt(m.code, LATEST_BUILD)!; return <li key={m.code}><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工<small>{LATEST_BUILD}年 {fmt(b.bldg_house)}棟・{fmt(b.floor_house)}m²</small></Link></li>; })}</ul>
-      <Cta topic="住宅着工" />
+      <Cta campaign="building-hub" topic="住宅着工" />
       <RelatedMedia keys={['gaiheki', 'homyhome']} lead="住宅の統計ではなく、外壁塗装や外構の費用を調べたい方へ。" />
       <CiteBox title={TITLE} path="/building/" sentence={sentence} />
       <SourceBox keys={['building']} extra={[

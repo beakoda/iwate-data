@@ -33,7 +33,7 @@ export default function Page() {
       </div>
       <h2>業種別の市町村ランキング</h2>
       <ul className="grid-links">{inds.map(i => <li key={i.code}><Link href={`/industry/${i.slug}/`}>{i.code} {i.name}<small>{fmt(econAt(PREF.code, i.code)!['2021'].estab)}事業所・{fmt(econAt(PREF.code, i.code)!['2021'].workers)}人</small></Link></li>)}</ul>
-      <Cta topic="事業所数" />
+      <Cta campaign="industry-hub" topic="事業所数" />
       <CiteBox title={TITLE} path="/industry/" sentence={`岩手県の民営事業所数は2021年6月1日時点で${fmt(all['2021'].estab)}事業所（2016年比${fmtSigned(pct(all['2021'].estab, all['2016']!.estab), '%')}）、従業者数は${fmt(all['2021'].workers)}人（総務省・経済産業省「経済センサス‐活動調査」）。`} />
       <SourceBox keys={['econ2021', 'econ2016']} extra={['2016年と2021年で産業分類の一部（G1/G2等の細区分）は表記が異なるが、大分類の比較には影響しない。', '売上（収入）金額は「必要な事項の数値が得られた事業所」の集計で、事業所数・従業者数とは集計対象が異なる場合がある。']} />
     </>

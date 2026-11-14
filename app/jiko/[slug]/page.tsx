@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, trafficAt, trafficSeries, trafficPrefAt, accPer10k, fatalRate, popAt, fmt, fmtSigned, pct, rank, TRAFFIC_YEARS, LATEST_TRAFFIC, FIRST_TRAFFIC, LATEST_POP } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Nearby, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -73,6 +73,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼夜間人口</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Nearby code={m.code} label="交通事故" href={x => `/jiko/${x.slug}/`} />
+      <Cta campaign="jiko" slug={m.slug} muni={m.name} topic="事故件数" />
       <CiteBox title={title} path={`/jiko/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['traffic']} extra={[
         '人身事故（人が死傷した事故）のみ。物損事故は含まれない。',

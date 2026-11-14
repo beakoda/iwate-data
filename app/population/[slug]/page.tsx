@@ -2,13 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, muniBySlug, popSeries, popAt, fmt, fmtSigned, pct, rank, LATEST_POP } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params; const m = muniBySlug(slug)!; const p = popAt(m.code, LATEST_POP)!, p0 = popAt(m.code, 2013)!;
-  const title = `${m.name}の人口・世帯数の推移（2013〜${LATEST_POP}年）`;
+  // 検索語「◯◯市 人口」に合わせ、最新の人口（住基 1月1日）を title に出す。数値は dataset.json の値そのまま
+  const title = `${m.name}の人口は${fmt(p.total)}人（${LATEST_POP}年1月1日）｜世帯数・人口推移`;
   return { title, description: `${m.name}（岩手県）の人口は${LATEST_POP}年1月1日に${fmt(p.total)}人（2013年${fmt(p0.total)}人、${fmtSigned(pct(p.total, p0.total), '%')}）。世帯数、出生・死亡、転入・転出の推移と県内順位を住民基本台帳から集計。`, alternates: { canonical: `/population/${m.slug}/` } };
 }
 
@@ -51,7 +52,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <BarChart title="転入−転出（人）" items={bySocial} unit="人" highlight={m.name} />
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, i) => <span key={x.code}>{i ? '・' : ''}<Link href={`/population/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/dental/${m.slug}/`}>{m.name}の歯科診療所数</Link></p>
-      <Cta muni={m.name} topic="人口" />
+      <Nearby code={m.code} label="人口" href={x => `/population/${x.slug}/`} />
+      <Cta campaign="population" slug={m.slug} muni={m.name} topic="人口" />
       <CiteBox title={title} path={`/population/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['population']} extra={['出生・死亡・転入・転出は各年の前年1月1日〜12月31日の1年間。転入・転出は国内・国外の合計。', ...(m.code === '03216' ? ['2013年は滝沢村（2014年1月に市制施行）の数値。'] : [])]} />
     </>

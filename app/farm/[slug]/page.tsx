@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, farmAt, farmSeries, farmPrefAt, totalFarms, fmt, fmtSigned, pct, rank, LATEST_FARM, FIRST_FARM, LAST_ABANDONED_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -68,7 +68,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/industry/agriculture-fishery/`}>岩手県の農林漁業の事業所</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="農家数" />
+      <Nearby code={m.code} label="農家数" href={x => `/farm/${x.slug}/`} />
+      <Cta campaign="farm" slug={m.slug} muni={m.name} topic="農家数" />
       <CiteBox title={title} path={`/farm/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['farm']} extra={[
         '販売農家＝経営耕地30a以上、または農産物販売金額50万円以上の農家。自給的農家はそれ未満。総農家数＝販売農家＋自給的農家（本サイトの計算値）。',

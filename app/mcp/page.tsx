@@ -80,7 +80,7 @@ export default function Page() {
         <li><Link href="/city/">市町村別のまとめ<small>33市町村それぞれの主要指標</small></Link></li>
       </ul>
       <p><small>収録データの版: {GENERATED}。対象は岩手県{MUNIS.length}市町村。</small></p>
-      <Cta muni="岩手県" topic="データ活用" />
+      <Cta campaign="mcp" muni="岩手県" topic="データ活用" />
     </>
   );
 }

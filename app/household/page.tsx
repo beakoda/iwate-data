@@ -63,7 +63,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const h = houseAt(m.code, LATEST_HOUSE)!; return <li key={m.code}><Link href={`/household/${m.slug}/`}>{m.name}の世帯<small>{LATEST_HOUSE}年 一般世帯{fmt(h.general_hh)}・65歳以上単独{fmt(h.eld_single_hh)}</small></Link></li>; })}</ul>
-      <Cta topic="世帯構成" />
+      <Cta campaign="household-hub" topic="世帯構成" />
       <RelatedMedia keys={['kazai']} lead="空き家になった実家の片づけや、遺品整理の進め方を調べたい方へ。" />
       <CiteBox title={TITLE} path="/household/" sentence={sentence} />
       <SourceBox keys={['household']} extra={[

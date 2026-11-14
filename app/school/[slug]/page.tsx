@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, schoolAt, schoolSeries, schoolPrefAt, pupilsPerSchool, censusAt, fmt, fmtSigned, pct, rank, SCHOOL_YEARS, LATEST_SCHOOL, FIRST_SCHOOL } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -78,7 +78,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="児童生徒数" />
+      <Nearby code={m.code} label="学校数・児童生徒数" href={x => `/school/${x.slug}/`} />
+      <Cta campaign="school" slug={m.slug} muni={m.name} topic="児童生徒数" />
       <CiteBox title={title} path={`/school/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['school']} extra={[
         '学校の所在地でカウントしており、その市町村に住む子どもの数ではない。高校は県立・私立を含み、通学区域は市町村をまたぐ。',

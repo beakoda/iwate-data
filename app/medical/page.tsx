@@ -62,7 +62,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = medAt(m.code, LATEST_MED)!; return <li key={m.code}><Link href={`/medical/${m.slug}/`}>{m.name}の病院・医師<small>{LATEST_MED}年 病院{fmt(r.hospitals)}・病床{fmt(r.hosp_beds)}</small></Link></li>; })}</ul>
-      <Cta topic="医師数・病床数" />
+      <Cta campaign="medical-hub" topic="医師数・病床数" />
       <CiteBox title={TITLE} path="/medical/" sentence={sentence} />
       <SourceBox keys={['medical']} extra={[
         '病院は病床20床以上、一般診療所は19床以下（無床を含む）。病床数は所在地の市町村に計上され、その市町村の住民が使う病床数ではない。',

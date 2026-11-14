@@ -59,7 +59,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = envAt(m.code, LATEST_ENV)!; return <li key={m.code}><Link href={`/garbage/${m.slug}/`}>{m.name}のごみ<small>{LATEST_ENV}年度 {fmt(r.gomi_total)}t・1人1日{fmt(r.gomi_per_day)}g</small></Link></li>; })}</ul>
-      <Cta topic="ごみ排出量" />
+      <Cta campaign="garbage-hub" topic="ごみ排出量" />
       <CiteBox title={TITLE} path="/garbage/" sentence={sentence} />
       <SourceBox keys={['env']} extra={[
         '「ごみ総排出量」は計画収集量＋直接搬入量＋自家処理量＋集団回収量。年度の値。',

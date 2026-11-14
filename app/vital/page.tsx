@@ -66,7 +66,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const v = vitalAt(m.code, LATEST_VITAL)!; return <li key={m.code}><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡<small>{LATEST_VITAL}年 出生{fmt(v.births)}人・死亡{fmt(v.deaths)}人</small></Link></li>; })}</ul>
-      <Cta topic="出生数" />
+      <Cta campaign="vital-hub" topic="出生数" />
       <RelatedMedia keys={['okuri']} lead="統計ではなく、ご家族が亡くなったあとの手続きを調べたい方へ。" />
       <CiteBox title={TITLE} path="/vital/" sentence={sentence} />
       <SourceBox keys={['vital']} extra={[

@@ -1,4 +1,5 @@
 import ds from '@/data/dataset.json';
+import nb from '@/data/neighbors.json';
 
 export type Muni = { code: string; name: string; slug: string; kind: string; gun: string };
 export type Industry = { code: string; name: string; slug: string };
@@ -33,6 +34,8 @@ export const LATEST_POP = 2026;
 export function muniBySlug(slug: string) { return MUNIS.find(m => m.slug === slug); }
 export function muniByCode(code: string) { return MUNIS.find(m => m.code === code); }
 export function industryBySlug(slug: string) { return INDUSTRIES.find(i => i.slug === slug); }
+/** 境界を接している市町村（境界の長い順）。data/neighbors.json は scripts/build_neighbors.py が地図から作る。 */
+export function neighborsOf(code: string): Muni[] { return ((nb as Record<string, string[]>)[code] ?? []).map(c => muniByCode(c)!).filter(Boolean); }
 
 export function dentalSeries(code: string) {
   return DENTAL_YEARS.map(y => ({ year: y, ...(dental[code]?.[String(y)] as DentalRec) }));

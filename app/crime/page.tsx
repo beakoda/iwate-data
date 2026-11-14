@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, crimeAt, crimePrefAt, crimePerKpop, fmt, fmtSigned, pct, rank, CRIME_YEARS, CRIME_TYPES, LATEST_CRIME, CRIME_FULL_FROM } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県33市町村の街頭犯罪発生件数（${CRIME_FULL_FROM}〜${LATEST_CRIME}年・自転車盗／車上ねらいほか7手口）`;
 const pNow = crimePrefAt(LATEST_CRIME);
@@ -53,6 +53,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = crimeAt(m.code, LATEST_CRIME)!; return <li key={m.code}><Link href={`/crime/${m.slug}/`}>{m.name}の街頭犯罪<small>{LATEST_CRIME}年 {fmt(r.total)}件</small></Link></li>; })}</ul>
+      <Cta campaign="crime-hub" topic="街頭犯罪件数" />
       <CiteBox title={TITLE} path="/crime/" sentence={sentence} />
       <SourceBox keys={['crime']} extra={[
         '対象は岩手県警がオープンデータとして公開している7手口（自転車盗・車上ねらい・部品ねらい・自動販売機ねらい・自動車盗・オートバイ盗・ひったくり）のみ。刑法犯認知件数の全体ではないため、「治安の良し悪し」を直接示す数字ではない。',

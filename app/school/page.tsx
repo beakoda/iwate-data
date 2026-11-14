@@ -65,7 +65,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = schoolAt(m.code, LATEST_SCHOOL)!; return <li key={m.code}><Link href={`/school/${m.slug}/`}>{m.name}の学校<small>{LATEST_SCHOOL}年 小{fmt(r.es)}校{fmt(r.es_pupils)}人・中{fmt(r.jhs)}校{fmt(r.jhs_students)}人</small></Link></li>; })}</ul>
-      <Cta topic="児童生徒数" />
+      <Cta campaign="school-hub" topic="児童生徒数" />
       <CiteBox title={TITLE} path="/school/" sentence={sentence} />
       <SourceBox keys={['school']} extra={[
         '学校の所在地でカウントしており、その市町村に住む子どもの数ではない。高校は県立・私立を含み、通学区域は市町村をまたぐ。',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, econAt2, econSeries, econPrefAt, incomePerTaxpayer, popAt, fmt, fmtSigned, pct, rank, ECON_YEARS, LATEST_ECON, LATEST_MFG, FIRST_ECON, MFG_GAP_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -76,7 +76,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="所得" />
+      <Nearby code={m.code} label="所得・製造業" href={x => `/economy/${x.slug}/`} />
+      <Cta campaign="economy" slug={m.slug} muni={m.name} topic="所得" />
       <CiteBox title={title} path={`/economy/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['economy']} extra={[
         '「課税対象所得」は市町村民税の所得割の課税対象となった前年の所得の合計（千円）で、住民の平均年収ではない。「1人当たり」は課税対象所得÷納税義務者数（所得割）で本サイトの計算値。所得のない人・課税されない人は分母に入らない。',

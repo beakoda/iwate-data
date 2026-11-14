@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { SITE, SOURCES, GENERATED, MUNIS } from '@/lib/data';
+import { SITE, SOURCES, GENERATED, MUNIS, neighborsOf, type Muni } from '@/lib/data';
+import { FAMILIES } from '@/lib/csv';
 
 export function Breadcrumb({ items }: { items: { name: string; href?: string }[] }) {
   const all = [{ name: 'ホーム', href: '/' }, ...items];
@@ -92,15 +93,26 @@ export function RelatedMedia({ keys, lead }: { keys: (keyof typeof MEDIA)[]; lea
   );
 }
 
+/** /{family}/{slug}/ → /csv/{family}/{slug}.csv、/{family}/ → /csv/{family}/all.csv（CSVが生成されている分野だけ）。 */
+function csvFor(path: string): string | null {
+  const mm = path.match(/^\/([a-z]+)\/(?:([a-z0-9-]+)\/)?$/);
+  if (!mm || !FAMILIES[mm[1]]) return null;
+  const slug = mm[2] ?? 'all';
+  if (slug !== 'all' && !MUNIS.some(m => m.slug === slug)) return null;
+  return `/csv/${mm[1]}/${slug}.csv`;
+}
+
 export function DatasetJsonLd({ name, description, path, keywords, temporal, sourceKeys }:
   { name: string; description: string; path: string; keywords: string[]; temporal: string; sourceKeys: string[] }) {
+  const csv = csvFor(path);
   const json = {
     '@context': 'https://schema.org', '@type': 'Dataset', name, description, url: SITE.url + path,
     keywords, temporalCoverage: temporal, spatialCoverage: { '@type': 'Place', name: '岩手県' },
     license: 'https://creativecommons.org/licenses/by/4.0/', inLanguage: 'ja',
     creator: { '@type': 'Organization', name: SITE.publisher, url: SITE.publisherUrl },
     isBasedOn: sourceKeys.map(k => ({ '@type': 'Dataset', name: SOURCES[k].name, url: SOURCES[k].url })),
-    dateModified: GENERATED,
+    dateModified: GENERATED, isAccessibleForFree: true,
+    ...(csv ? { distribution: [{ '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: SITE.url + csv }] } : {}),
   };
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
 }
@@ -127,19 +139,37 @@ export function Tools({ family, slug, label }: { family: string; slug: string; l
   );
 }
 
-/** 運営会社への相談導線。muni を渡すと文言が市町村名入りになる。 */
-export function Cta({ muni, topic }: { muni?: string; topic?: string }) {
+/** 送客用のUTM付きURL。utm_campaign はページ種別（例: population / population-hub / industry-muni）、utm_content は市町村スラッグ。 */
+export function utm(url: string, campaign: string, content?: string) {
+  const q = new URLSearchParams({ utm_source: 'iwate-data', utm_medium: 'referral', utm_campaign: campaign });
+  if (content) q.set('utm_content', content);
+  return `${url}?${q.toString()}`;
+}
+const CHECKER_URL = 'https://beak-promo.jp/seo-aeo-checker';
+const CONTACT_URL = 'https://beak-promo.jp/contact';
+
+/** 地域で集客したい事業者向けの控えめな案内。muni を渡すと見出しが市町村名入りになる。
+ *  campaign＝ページ種別（UTM の utm_campaign）、slug＝市町村スラッグ（utm_content）。 */
+export function Cta({ muni, topic, campaign, slug }: { muni?: string; topic?: string; campaign: string; slug?: string }) {
   const where = muni ? `${muni}で` : '岩手県内で';
   return (
-    <section className="cta" aria-label="お問い合わせ">
-      <h2>{where}集客・開業・出店を考えている事業者の方へ</h2>
-      <p>このページの{topic ? topic + 'などの' : ''}数字をもとに、商圏の見立てからWeb集客（ホームページ・広告・MEO・AI検索対策）までを、盛岡のビークプロモーションが引き受けます。初回の相談とデータの読み解きは無料です。</p>
-      <p><small>ChatGPTが岩手の事業者を何を根拠に推薦しているかを調べた<Link href="/ai/">AI推薦調査</Link>も公開しています。</small></p>
+    <aside className="cta" aria-label="事業者の方へ">
+      <h2>{where}集客を考えている事業者の方へ</h2>
+      <p>自社のホームページが検索結果やAIの回答でどう扱われているかは、URLを入れるだけの無料診断で確かめられます（登録不要・約60秒）。{topic ? `このページの${topic}などの数字を使った商圏の見立てや、` : '商圏の見立てや、'}ホームページ・広告のご相談は、本サイトを運営する盛岡市のビークプロモーションが承ります。</p>
       <div className="tools">
-        <a className="btn primary" href={`${SITE.publisherUrl}contact/?ref=iwate-data`} rel="noopener">データをもとに相談する（無料）</a>
-        <a className="btn" href={SITE.publisherUrl} rel="noopener">ビークプロモーションについて</a>
+        <a className="btn primary" href={utm(CHECKER_URL, campaign, slug)}>無料でSEO・AI検索診断をする</a>
+        <a className="btn" href={utm(CONTACT_URL, campaign, slug)}>相談する</a>
       </div>
-    </section>
+    </aside>
+  );
+}
+
+/** 隣接する市町村の同じ統計へのリンク。exists で「ページがある市町村だけ」に絞れる（産業クロスページ用）。 */
+export function Nearby({ code, label, href, exists }: { code: string; label: string; href: (m: Muni) => string; exists?: (m: Muni) => boolean }) {
+  const list = neighborsOf(code).filter(m => !exists || exists(m));
+  if (!list.length) return null;
+  return (
+    <p className="nearby">隣接する市町村の{label}：{list.map((m, k) => <span key={m.code}>{k ? '・' : ''}<Link href={href(m)}>{m.name}</Link></span>)}</p>
   );
 }
 

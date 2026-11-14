@@ -70,7 +70,7 @@ export default function Page() {
       <p>統計の公表に合わせて年1回程度更新します。購入した版の再ダウンロードは無期限、更新版は再購入です。</p>
       <p><small>版: {GENERATED}。お問い合わせは<a href={`${SITE.publisherUrl}contact/`} rel="noopener">運営会社の問い合わせフォーム</a>へ。</small></p>
 
-      <Cta topic="複数分野の" />
+      <Cta campaign="data" topic="複数分野の" />
     </>
   );
 }

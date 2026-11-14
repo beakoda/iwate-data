@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, welAt, welSeries, welPrefAt, capPerElderly, censusAt, popAt, fmt, fmtSigned, pct, rank, WEL_YEARS, LATEST_WEL, FIRST_WEL, WEL_SWITCH_YEAR, LATEST_CENSUS } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -78,7 +78,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/medical/${m.slug}/`}>{m.name}の病院・医師</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="介護施設" />
+      <Nearby code={m.code} label="介護施設" href={x => `/welfare/${x.slug}/`} />
+      <Cta campaign="welfare" slug={m.slug} muni={m.name} topic="介護施設" />
       <CiteBox title={title} path={`/welfare/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['welfare']} extra={[
         `施設数・定員は${WEL_SWITCH_YEAR - 1}年までが詳細票、${WEL_SWITCH_YEAR}年以降が基本票。${WEL_SWITCH_YEAR}年の前後をまたぐ変化には票の切替分が含まれる。`,

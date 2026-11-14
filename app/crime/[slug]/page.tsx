@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, crimeAt, crimeSeries, crimePrefAt, crimePerKpop, crimePrefPerKpop, popAt, fmt, fmtSigned, pct, rank, CRIME_YEARS, CRIME_TYPES, LATEST_CRIME, FIRST_CRIME, CRIME_FULL_FROM, LATEST_POP } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Nearby, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -71,6 +71,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼間人口</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Nearby code={m.code} label="街頭犯罪" href={x => `/crime/${x.slug}/`} />
+      <Cta campaign="crime" slug={m.slug} muni={m.name} topic="街頭犯罪件数" />
       <CiteBox title={title} path={`/crime/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['crime']} extra={[
         '対象は岩手県警がオープンデータとして公開している7手口のみで、刑法犯認知件数の全体ではない。',

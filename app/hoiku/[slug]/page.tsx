@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, hoikuAt, hoikuPref, hoikuFillRate, hoikuSlack, hoikuHidden, popAt, fmt, rank, HOIKU_ASOF_LABEL, LATEST_POP } from '@/lib/data';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Nearby, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -68,6 +68,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Nearby code={m.code} label="保育所等" href={x => `/hoiku/${x.slug}/`} />
+      <Cta campaign="hoiku" slug={m.slug} muni={m.name} topic="定員" />
       <CiteBox title={title} path={`/hoiku/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['hoiku']} extra={[
         '利用定員は保育所・幼保連携型認定こども園・幼稚園型認定こども園等・地域型保育事業・特例保育等・企業主導型保育事業・地方単独事業の合計。幼稚園（1号認定のみ）は含まれない。',

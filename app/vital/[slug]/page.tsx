@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, vitalAt, vitalSeries, vitalPrefAt, popAt, naturalChange, socialChange, fmt, fmtSigned, pct, rank, VITAL_YEARS, LATEST_VITAL, FIRST_VITAL, FIRST_MIGR_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -86,7 +86,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/household/${m.slug}/`}>{m.name}の世帯・高齢世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="出生数" />
+      <Nearby code={m.code} label="出生数・死亡数" href={x => `/vital/${x.slug}/`} />
+      <Cta campaign="vital" slug={m.slug} muni={m.name} topic="出生数" />
       <CiteBox title={title} path={`/vital/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['vital']} extra={[
         '出生数・死亡数・婚姻件数・離婚件数は人口動態調査（各年1〜12月）。住民基本台帳の出生・死亡（/population/）とは定義も集計期間も異なるため、直接比較しない。',

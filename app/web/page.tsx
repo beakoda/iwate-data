@@ -92,7 +92,7 @@ export default function Page() {
       </ul>
 
       <CiteBox title={TITLE} path="/web/" sentence={sentence} />
-      <Cta topic="Webサイトの対応状況" />
+      <Cta campaign="web" topic="Webサイトの対応状況" />
       <SourceBox keys={['websurvey', 'iryou', 'kaigo', 'shofuku']} extra={[
         'Webサイトを公的データかGoogleマップに登録している事業所が母集団のため、サイトを持たない事業所や、どちらにもURLを載せていない事業所は含まれない。県内のサイト全体の無作為標本ではない。業種は母集団ごとの分類（医療・介護の届出種別、法人の業種、Googleマップのカテゴリ）をおおまかにまとめたもので、どれにも当てはまらないものは「その他の事業所・団体」とした。',
         '市町村別・業種別の件数は、そのサイトを公表している事業所のうち最初に見つかったものの所在地・種別で数えている。法人の本部サイトを複数市町村の事業所が公表している場合も、1つの市町村に計上される。',

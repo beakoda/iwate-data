@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, iryouAt, iryouPref, urlRate, facPer10k, popAt, fmt, rank, IRYOU_TYPES, IRYOU_ASOF, IRYOU_ASOF_LABEL, LATEST_POP } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Nearby, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -74,6 +74,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/kaigo/${m.slug}/`}>{m.name}の介護サービス事業所</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Nearby code={m.code} label="病院・診療所・薬局の数" href={x => `/iryou/${x.slug}/`} />
+      <Cta campaign="iryou" slug={m.slug} muni={m.name} topic="施設数" />
       <CiteBox title={title} path={`/iryou/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['iryou']} extra={[
         '医療機能情報提供制度・薬局機能情報提供制度に届出のある施設が対象。休止中や届出前の施設は含まれない。「医療施設調査」を出典とする本サイトの他ページとは定義も時点も異なるため一致しない。',

@@ -63,7 +63,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = econAt2(m.code, LATEST_ECON)!; return <li key={m.code}><Link href={`/economy/${m.slug}/`}>{m.name}の所得・製造業<small>{LATEST_ECON}年 1人当たり{fmt(incomePerTaxpayer(r))}円</small></Link></li>; })}</ul>
-      <Cta topic="所得" />
+      <Cta campaign="economy-hub" topic="所得" />
       <CiteBox title={TITLE} path="/economy/" sentence={sentence} />
       <SourceBox keys={['economy']} extra={[
         '「課税対象所得」は市町村民税の所得割の課税対象となった前年の所得の合計（千円）。住民の平均年収ではない。「1人当たり」は課税対象所得÷納税義務者数（所得割）で、本サイトの計算値。',

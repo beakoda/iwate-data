@@ -46,7 +46,7 @@ export default function Page() {
       </div>
       <h2>市町村別の推移ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => <li key={m.code}><Link href={`/population/${m.slug}/`}>{m.name}の人口動態<small>{fmt(popAt(m.code, LATEST_POP)!.total)}人（{LATEST_POP}年）</small></Link></li>)}</ul>
-      <Cta topic="人口" />
+      <Cta campaign="population-hub" topic="人口" />
       <CiteBox title={TITLE} path="/population/" sentence={`岩手県の人口は${LATEST_POP}年1月1日時点で${fmt(latest.total)}人、2013年比${fmtSigned(pct(latest.total, first.total), '%')}（総務省「住民基本台帳に基づく人口、人口動態及び世帯数調査」）。`} />
       <SourceBox keys={['population']} extra={['出生・死亡・転入・転出は各年の前年1月1日〜12月31日の1年間。転入・転出は国内・国外の合計。', '滝沢村（2013年）は滝沢市に含めて表示。']} />
     </>

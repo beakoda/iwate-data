@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { INDUSTRIES, MUNIS, PREF, industryBySlug, muniBySlug, econAt, popAt, fmt, fmtSigned, pct, rank, censusWorkers, LATEST_CENSUS, PREV_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta, Nearby } from '@/components/Shell';
 
 /** 2021年の事業所数が公表されている「産業×市町村」の組み合わせだけページ化する（空ページを作らない）。 */
 function pairs() {
@@ -34,7 +34,8 @@ function load(indSlug: string, muniSlug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ ind: string; muni: string }> }): Promise<Metadata> {
   const { ind, muni } = await params; const d = load(ind, muni);
   return {
-    title: `${d.m.name}の${d.i.name}｜事業所数・従業者数（2021年経済センサス）`,
+    // 検索語「◯◯市 ◯◯業 事業所数」に合わせて実数を title に出す。従業者数が秘匿等で無いときは事業所数だけ
+    title: `${d.m.name}の${d.i.name}｜事業所数${fmt(d.e21.estab)}${d.e21.workers != null ? `・従業者数${fmt(d.e21.workers)}人` : ''}（2021年経済センサス）`,
     description: `${d.m.name}（岩手県）の${d.i.name}は${fmt(d.e21.estab)}事業所・従業者${fmt(d.e21.workers)}人（2021年6月1日）。2016年比、岩手県内33市町村の順位、人口千人当たり、特化係数を政府統計から集計。`,
     alternates: { canonical: `/industry/${d.i.slug}/${d.m.slug}/` },
   };
@@ -127,7 +128,8 @@ export default async function Page({ params }: { params: Promise<{ ind: string; 
       <p>他の市町村の{i.name}：{rows.filter(r => r.estab != null && r.m.code !== m.code).map((r, k) => <span key={r.m.code}>{k ? '・' : ''}<Link href={`/industry/${i.slug}/${r.m.slug}/`}>{r.m.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口動態</Link>・<Link href={`/industry/${i.slug}/`}>岩手県の{i.name}ランキング</Link></p>
 
-      <Cta muni={m.name} topic="事業所数" />
+      <Nearby code={m.code} label={`${i.name}`} href={x => `/industry/${i.slug}/${x.slug}/`} exists={x => econAt(x.code, i.code)?.['2021']?.estab != null} />
+      <Cta campaign="industry-muni" slug={m.slug} muni={m.name} topic="事業所数" />
       <CiteBox title={title} path={`/industry/${i.slug}/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['econ2021', 'econ2016', 'census']} extra={[
         '「従業者数」（経済センサス）はその市町村に所在する事業所で働く人の数、「就業者数」（国勢調査）はその市町村に住んでいてその産業で働く人の数。集計の立場が違うため一致しない。',

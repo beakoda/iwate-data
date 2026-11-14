@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, envAt, envSeries, envPrefAt, envPrefPerDay, fmt, fmtSigned, pct, rank, ENV_YEARS, LATEST_ENV, FIRST_ENV } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -74,7 +74,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/building/${m.slug}/`}>{m.name}の住宅着工</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="ごみ排出量" />
+      <Nearby code={m.code} label="ごみ排出量" href={x => `/garbage/${x.slug}/`} />
+      <Cta campaign="garbage" slug={m.slug} muni={m.name} topic="ごみ排出量" />
       <CiteBox title={title} path={`/garbage/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['env']} extra={[
         '「ごみ総排出量」は計画収集量＋直接搬入量＋自家処理量＋集団回収量。年度の値。',

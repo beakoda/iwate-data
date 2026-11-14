@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, medAt, medSeries, medPrefAt, per100kMed, popAt, dentalAt, fmt, fmtSigned, pct, rank, MED_YEARS, LATEST_MED, FIRST_MED, LATEST_DOC_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -84,7 +84,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/vital/${m.slug}/`}>{m.name}の出生・死亡</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="医師数・病床数" />
+      <Nearby code={m.code} label="病院数・医師数" href={x => `/medical/${x.slug}/`} />
+      <Cta campaign="medical" slug={m.slug} muni={m.name} topic="医師数・病床数" />
       <CiteBox title={title} path={`/medical/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['medical']} extra={[
         '病院は病床20床以上、一般診療所は19床以下（無床を含む）。病床は所在地の市町村に計上され、その市町村の住民が使う病床数ではない。',

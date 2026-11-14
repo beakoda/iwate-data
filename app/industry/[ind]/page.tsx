@@ -48,7 +48,7 @@ export default async function Page({ params }: { params: Promise<{ ind: string }
         </table>
       </div>
       <p>他の産業：{INDUSTRIES.filter(x => x.code !== 'AR' && x.code !== i.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/industry/${x.slug}/`}>{x.name}</Link></span>)}</p>
-      <Cta topic="事業所数" />
+      <Cta campaign="industry-ind" topic="事業所数" />
       <CiteBox title={title} path={`/industry/${i.slug}/`} sentence={sentence} />
       <SourceBox keys={['econ2021', 'econ2016']} extra={['人口千人当たりは2021年1月1日の住民基本台帳人口で算出。', '「秘匿」は事業所数が少なく個別の値が特定されるため公表されていない項目、「非公表」は当該表で集計されていない項目。']} />
     </>

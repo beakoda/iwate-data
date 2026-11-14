@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { INDUSTRIES, MUNIS, PREF, muniBySlug, econAt, popAt, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, LATEST_POP, censusAt, agingRate, LATEST_CENSUS, FIRST_BUILD, LATEST_BUILD, FIRST_MED, LATEST_MED, FIRST_WEL, LATEST_WEL, FIRST_SCHOOL, LATEST_SCHOOL, FIRST_JOBLESS, LATEST_JOBLESS, EDU_YEARS, FIRST_FARM, LATEST_FARM, FIRST_ECON, LATEST_ECON, FIRST_ENV, LATEST_ENV, FIRST_VITAL, LATEST_VITAL, CRIME_FULL_FROM, LATEST_CRIME, kaigoLabel, LATEST_KAIGO, IRYOU_ASOF_LABEL, FIRST_CLOSED, SHOFUKU_ASOF_LABEL, FIRST_TRAFFIC, LATEST_TRAFFIC, HOUJIN_ASOF_LABEL, HOIKU_ASOF_LABEL } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Cta, EmbedBox } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Cta, EmbedBox, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -82,7 +82,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/household/${m.slug}/`}>{m.name}の世帯・高齢世帯<small>一般世帯・単独世帯・65歳以上の単独世帯 国勢調査</small></Link></li>
       </ul>
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/city/${x.slug}/`}>{x.name}</Link></span>)}</p>
-      <Cta muni={m.name} />
+      <Nearby code={m.code} label="統計まとめ" href={x => `/city/${x.slug}/`} />
+      <Cta campaign="city" slug={m.slug} muni={m.name} />
       <EmbedBox slug={m.slug} name={m.name} />
       <CiteBox title={title} path={`/city/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['population', 'econ2021', 'econ2016', 'dental', 'census']} extra={['特化係数＝当該市町村の産業別事業所構成比 ÷ 岩手県の産業別事業所構成比（事業所5以上の産業のみ表示）。']} />

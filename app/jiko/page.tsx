@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, trafficAt, trafficPrefAt, accPer10k, fatalRate, fmt, fmtSigned, pct, rank, TRAFFIC_YEARS, LATEST_TRAFFIC, FIRST_TRAFFIC } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県33市町村の交通事故件数・死者数（${FIRST_TRAFFIC}〜${LATEST_TRAFFIC}年）`;
 const P = trafficPrefAt(LATEST_TRAFFIC);
@@ -57,6 +57,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = trafficAt(m.code, LATEST_TRAFFIC)!; return <li key={m.code}><Link href={`/jiko/${m.slug}/`}>{m.name}の交通事故<small>{LATEST_TRAFFIC}年 {fmt(r.accidents)}件・死者{fmt(r.deaths)}人</small></Link></li>; })}</ul>
+      <Cta campaign="jiko-hub" topic="事故件数" />
       <CiteBox title={TITLE} path="/jiko/" sentence={sentence} />
       <SourceBox keys={['traffic']} extra={[
         '人身事故（人が死傷した事故）のみ。物損事故は含まれない。',

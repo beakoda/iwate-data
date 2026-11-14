@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, shofukuAt, shofukuPref, shofukuServicesOf, shofukuUrlRate, shofukuPer10k, popAt, fmt, rank, SHOFUKU_ASOF_LABEL, LATEST_POP } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Nearby, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -73,6 +73,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/population/${m.slug}/`}>{m.name}の人口</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Nearby code={m.code} label="障害福祉サービス事業所" href={x => `/shofuku/${x.slug}/`} />
+      <Cta campaign="shofuku" slug={m.slug} muni={m.name} topic="事業所数" />
       <CiteBox title={title} path={`/shofuku/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['shofuku']} extra={[
         '各自治体が障害福祉サービス等情報公表システムに登録した事業所が対象。登録が反映されていない事業所は含まれない場合がある。',

@@ -53,7 +53,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const c = censusAt(m.code, LATEST_CENSUS)!; return <li key={m.code}><Link href={`/aging/${m.slug}/`}>{m.name}の高齢化率<small>{fmt(agingRate(c))}%・平均年齢{fmt(c.avg_age != null ? Math.round(c.avg_age * 10) / 10 : null)}歳</small></Link></li>; })}</ul>
-      <Cta topic="高齢化率" />
+      <Cta campaign="aging-hub" topic="高齢化率" />
       <CiteBox title={TITLE} path="/aging/" sentence={sentence} />
       <SourceBox keys={['census']} extra={['高齢化率・年少人口割合・生産年齢人口割合は年齢3区分の合計を分母として算出。総人口には年齢「不詳」が含まれる。', `${FIRST_CENSUS}年は合併前の旧自治体を現行の市町村に合算（藤沢町→一関市、滝沢村→滝沢市）。`]} />
     </>

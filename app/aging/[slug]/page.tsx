@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, muniBySlug, censusAt, agingRate, youthRate, workingRate, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS, FIRST_CENSUS, CENSUS_YEARS } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -100,7 +100,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       </div>
 
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯の推移（住民基本台帳）</Link>・<Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼夜間人口</Link></p>
-      <Cta muni={m.name} topic="高齢化率" />
+      <Nearby code={m.code} label="高齢化率" href={x => `/aging/${x.slug}/`} />
+      <Cta campaign="aging" slug={m.slug} muni={m.name} topic="高齢化率" />
       <CiteBox title={title} path={`/aging/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['census']} extra={[
         '高齢化率・年少人口割合・生産年齢人口割合は、年齢3区分（15歳未満／15〜64歳／65歳以上）の合計を分母として算出。総人口には年齢「不詳」が含まれるため、総人口を分母にした値とは一致しない。',

@@ -65,7 +65,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = farmAt(m.code, LATEST_FARM)!; return <li key={m.code}><Link href={`/farm/${m.slug}/`}>{m.name}の農家数<small>{LATEST_FARM}年 販売農家{fmt(r.sales_farms)}戸・総農家{fmt(totalFarms(r))}戸</small></Link></li>; })}</ul>
-      <Cta topic="農家数" />
+      <Cta campaign="farm-hub" topic="農家数" />
       <CiteBox title={TITLE} path="/farm/" sentence={sentence} />
       <SourceBox keys={['farm']} extra={[
         '販売農家＝経営耕地30a以上、または農産物販売金額50万円以上の農家。自給的農家はそれ未満。総農家数＝販売農家＋自給的農家（本サイトの計算値）。',

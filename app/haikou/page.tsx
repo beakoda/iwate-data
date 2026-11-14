@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniByCode, schoolCodeAt, schoolCodePref, closedAt, closedPref, closedShare, fmt, rank, SCHOOL_KINDS, CLOSED_YEARS, FIRST_CLOSED, LATEST_CLOSED } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県で廃校になった学校の一覧（${FIRST_CLOSED}〜${LATEST_CLOSED}年・128校）`;
 const ALL = closedPref();
@@ -60,6 +60,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => <li key={m.code}><Link href={`/haikou/${m.slug}/`}>{m.name}の廃校<small>{closedAt(m.code).length}校（{FIRST_CLOSED}年以降）・現存 {fmt(schoolCodeAt(m.code))}校</small></Link></li>)}</ul>
+      <Cta campaign="haikou-hub" topic="学校数" />
       <CiteBox title={TITLE} path="/haikou/" sentence={sentence} />
       <SourceBox keys={['schoolcode']} extra={[
         `学校コード制度は2020年12月に始まったため、廃止年月日が記録されているのは${FIRST_CLOSED}年以降の廃校に限られる。それ以前の廃校はこの一覧に含まれない。「岩手県の廃校のすべて」ではない点に注意。`,

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, eduAt, eduSeries, eduPrefAt, eduShare, fmt, fmtSigned, pct, rank, LATEST_EDU, FIRST_EDU } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -74,7 +74,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/work/${m.slug}/`}>{m.name}の産業別就業者</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="大卒率" />
+      <Nearby code={m.code} label="最終学歴" href={x => `/education/${x.slug}/`} />
+      <Cta campaign="education" slug={m.slug} muni={m.name} topic="大卒率" />
       <CiteBox title={title} path={`/education/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['education']} extra={[
         '「卒業者総数」は15歳以上人口から在学者・未就学者・学歴不詳を除いた数。分母が異なるため、15歳以上人口に対する比率とは一致しない。',

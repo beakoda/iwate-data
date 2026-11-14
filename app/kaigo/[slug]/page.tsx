@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, kaigoAt, kaigoPrefAt, kaigoServicesOf, officesPerElderly, censusAt, fmt, fmtSigned, pct, rank, LATEST_KAIGO, FIRST_KAIGO, kaigoLabel, LATEST_CENSUS } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Nearby, Cta } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -80,6 +80,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/household/${m.slug}/`}>{m.name}の高齢者単身世帯</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
+      <Nearby code={m.code} label="介護サービス事業所" href={x => `/kaigo/${x.slug}/`} />
+      <Cta campaign="kaigo" slug={m.slug} muni={m.name} topic="事業所数" />
       <CiteBox title={title} path={`/kaigo/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['kaigo']} extra={[
         '公表システムに登録されている事業所を数えたもので、休止中・新規指定直後などで公表が反映されていない事業所は含まれない場合がある。',

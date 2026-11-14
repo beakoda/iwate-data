@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, buildAt, buildSeries, buildPrefAt, popAt, fmt, fmtSigned, pct, rank, BUILD_YEARS, LATEST_BUILD, FIRST_BUILD, LAST_COST_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -86,7 +86,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <BarChart title="人口千人当たりの住宅着工棟数（市町村別）" items={[...rows].filter(r => r.perK != null).sort((a, b2) => b2.perK! - a.perK!).map(r => ({ label: r.m.name, value: r.perK }))} highlight={m.name} />
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/building/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/industry/construction/${m.slug}/`}>{m.name}の建設業（事業所・従業者）</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯の推移</Link></p>
-      <Cta muni={m.name} topic="住宅着工" />
+      <Nearby code={m.code} label="住宅着工" href={x => `/building/${x.slug}/`} />
+      <Cta campaign="building" slug={m.slug} muni={m.name} topic="住宅着工" />
       <CiteBox title={title} path={`/building/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['building']} extra={[
         '「居住専用住宅」は用途大分類Ａ。店舗兼住宅などは「居住産業併用建築物」（用途大分類Ｃ）として別に集計される。',

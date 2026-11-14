@@ -111,8 +111,9 @@ td.wrap { white-space: normal; text-align: left; min-width: 22em; max-width: 34e
 .btn.primary:hover { background: var(--blue-1000); }
 
 /* 問い合わせCTA */
-.cta { margin: var(--sp-6) 0 0; padding: var(--sp-3); border: 2px solid var(--blue-900); border-radius: 8px; background: #fff; }
-.cta h2 { border: 0; padding: 0; margin: 0 0 var(--sp-1); font-size: 20px; }
+.cta { margin: var(--sp-6) 0 0; padding: var(--sp-3); border: 1px solid #D8D8DB; border-radius: 8px; background: #F8F8FB; }
+.cta h2 { border: 0; padding: 0; margin: 0 0 var(--sp-1); font-size: 18px; }
+.nearby { margin: var(--sp-2) 0; }
 .cta p { margin-bottom: var(--sp-2); }
 /* CTAのボタンは .tools（flex + gap）で並べる。ここだけ主要導線なので少し大きめ・スマホでは横幅いっぱい */
 .cta .btn { padding: 12px 20px; font-size: 15px; }

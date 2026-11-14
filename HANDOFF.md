@@ -456,3 +456,13 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
   - /dental/ と /dental/[slug]/ → MACHISHIKA 岩手版、/vital/ → おくりの段取り帖（岩手の手続き窓口一覧）、/household/ → 実家じまいガイド 岩手版、/building/ → 塗装の相場帳・HomyHome.jp
   - リンク先・説明文は `MEDIA` 定数に集約。追加するときはリンク先が200であることを確かめる
 - /vital/ の TITLE を「岩手県の出生数・死亡数・婚姻・離婚（33市町村別、…）」に変更。根拠：Search Console 直近28日で「岩手県 出生数」表示53・平均6.4位・クリック1（タイトルに「出生数」が無かった）
+
+## 2026-11-14 収益導線・内部リンク・title（Claude、ブランチ `renewal-202611`。main 未マージ）
+- **送客ボックス `Cta` を作り直し**（`components/Shell.tsx`）。全ハブ・全市町村ページ・産業×市町村クロス522本に出す（以前は crime/kaigo/iryou/haikou/shofuku/jiko/hoiku に無かったので追加）。導線は2本だけ：無料SEO・AI検索診断 `https://beak-promo.jp/seo-aeo-checker` と相談 `https://beak-promo.jp/contact`
+  - UTM: `utm_source=iwate-data&utm_medium=referral&utm_campaign=<ページ種別>&utm_content=<市町村スラッグ>`。ページ種別は `population`（市町村ページ）/`population-hub`（ハブ）/`industry-muni`（クロス）/`industry-ind`/`industry-hub`/`data`/`web`/`mcp`。**`Cta` は `campaign` 必須**。旧 `?ref=iwate-data` は廃止（GA4 は UTM で見る）
+  - 見た目は控えめに（1px グレー枠・薄い背景・見出し18px）。文言は事実だけ（登録不要・約60秒は診断ページの表記どおり）
+- **隣接市町村リンク `Nearby`**: `scripts/build_neighbors.py` が `raw/iwate_map.geojson` の境界共有から `data/neighbors.json` を作る（33市町村・75組、対称性を assert）。`npm run data` に追加。**月次 cron（update.sh）は触らない**ので cron と衝突しない。全 `[slug]` ページと産業クロス（同業種でページがある隣接市町村だけ）に出る
+- **Dataset JSON-LD** に `distribution`（CSV の DataDownload）と `isAccessibleForFree` を追加。`/{family}/{slug}/` → `/csv/{family}/{slug}.csv` を `lib/csv.ts` の FAMILIES から自動判定
+- **title**: `/population/[slug]/` を「◯◯市の人口は△人（年1月1日）｜世帯数・人口推移」に、産業クロスを「◯◯市の△△業｜事業所数N・従業者数N人（2021年経済センサス）」に（実数は dataset.json の値そのまま。従業者数が無いときは省く）
+- **`scripts/update.sh` の構文エラーを修正**: 2026-09-07 の「node任意化」で `PAGES=skipped` と `if` 行が二重になり、`bash -n` が `unexpected end of file` で落ちていた。**e-Stat に差分があった月は build 段で失敗していたはず**（差分なしの月は手前の exit 0 で抜けるので気づかない）。VPS の `~/iwate-update.log` を確認すること。main にマージされるまで VPS 側は直らない
+- 検証: `npm run build` 成功（2183 静的ページ）、`npm run links` リンク切れ0・sitemap 1361件すべて実体あり、全 JSON-LD 2717個が JSON として妥当

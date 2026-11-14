@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, PREF, muniBySlug, censusAt, CENSUS_IND, CENSUS_IND_TO_SLUG, fmt, fmtSigned, pct, rank, LATEST_CENSUS, PREV_CENSUS, industryBySlug, econAt } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -93,7 +93,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <BarChart title={`市町村別 昼夜間人口比率（${LATEST_CENSUS}年）`} items={[...rows].sort((a, b) => (b.dn ?? -1) - (a.dn ?? -1)).map(x => ({ label: x.m.name, value: x.dn != null ? Math.round(x.dn * 10) / 10 : null }))} highlight={m.name} />
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/work/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/aging/${m.slug}/`}>{m.name}の高齢化率</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯の推移</Link></p>
-      <Cta muni={m.name} topic="就業者数・昼夜間人口" />
+      <Nearby code={m.code} label="就業者数・昼夜間人口" href={x => `/work/${x.slug}/`} />
+      <Cta campaign="work" slug={m.slug} muni={m.name} topic="就業者数・昼夜間人口" />
       <CiteBox title={title} path={`/work/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['census']} extra={[
         '就業者数は15歳以上の就業者。産業大分類は日本標準産業分類による。',

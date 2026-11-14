@@ -62,7 +62,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = welAt(m.code, LATEST_WEL)!; return <li key={m.code}><Link href={`/welfare/${m.slug}/`}>{m.name}の介護施設<small>{LATEST_WEL}年 特養{fmt(r.tokuyo)}施設・定員{fmt(r.tokuyo_cap)}人</small></Link></li>; })}</ul>
-      <Cta topic="介護施設" />
+      <Cta campaign="welfare-hub" topic="介護施設" />
       <CiteBox title={TITLE} path="/welfare/" sentence={sentence} />
       <SourceBox keys={['welfare']} extra={[
         `施設数・定員は${WEL_SWITCH_YEAR - 1}年までが詳細票、${WEL_SWITCH_YEAR}年以降が基本票。市区町村別はこの切替でしか全期間つながらない。両票は定員がわずかに異なるため、${WEL_SWITCH_YEAR}年の前後をまたぐ変化には切替分が含まれる。`,

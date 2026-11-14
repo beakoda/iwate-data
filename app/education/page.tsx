@@ -62,7 +62,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = eduAt(m.code, LATEST_EDU)!; return <li key={m.code}><Link href={`/education/${m.slug}/`}>{m.name}の最終学歴<small>{LATEST_EDU}年 大卒率{fmt(eduShare(r.grad_univ, r.grad_total))}%・{fmt(r.grad_univ)}人</small></Link></li>; })}</ul>
-      <Cta topic="大卒率" />
+      <Cta campaign="education-hub" topic="大卒率" />
       <CiteBox title={TITLE} path="/education/" sentence={sentence} />
       <SourceBox keys={['education']} extra={[
         '「卒業者総数」は15歳以上人口から在学者・未就学者・学歴不詳を除いた数。分母が異なるため、15歳以上人口に対する比率とは一致しない。',

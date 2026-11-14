@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, joblessAt, joblessSeries, joblessPrefAt, joblessRate, elderWorkerShare, fmt, fmtSigned, pct, rank, LATEST_JOBLESS, FIRST_JOBLESS } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -72,7 +72,8 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href="/industry/">産業大分類別の市町村ランキング</Link></li>
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
-      <Cta muni={m.name} topic="完全失業率" />
+      <Nearby code={m.code} label="完全失業率" href={x => `/jobless/${x.slug}/`} />
+      <Cta campaign="jobless" slug={m.slug} muni={m.name} topic="完全失業率" />
       <CiteBox title={title} path={`/jobless/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['jobless']} extra={[
         '完全失業者＝仕事がなく、仕事を探していて、すぐ就ける状態にあった人（調査週間中）。ハローワークの求職者数とは別の概念。',

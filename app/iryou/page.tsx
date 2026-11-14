@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, iryouAt, iryouPref, urlRate, facPer10k, fmt, rank, IRYOU_TYPES, IRYOU_ASOF_LABEL } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, Cta } from '@/components/Shell';
 
 const TITLE = `岩手県33市町村の病院・診療所・歯科・薬局の数とホームページ公表率（${IRYOU_ASOF_LABEL}時点）`;
 const pAll = iryouPref();
@@ -65,6 +65,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const r = iryouAt(m.code)!; return <li key={m.code}><Link href={`/iryou/${m.slug}/`}>{m.name}の病院・歯科・薬局<small>{fmt(r.facilities)}施設・HP公表 {fmt(urlRate(r))}%</small></Link></li>; })}</ul>
+      <Cta campaign="iryou-hub" topic="施設数" />
       <CiteBox title={TITLE} path="/iryou/" sentence={sentence} />
       <SourceBox keys={['iryou']} extra={[
         '医療機能情報提供制度・薬局機能情報提供制度に届出のある施設が対象。休止中や届出前の施設は含まれない。厚生労働省「医療施設調査」の施設数（本サイトの「病院・医師」「歯科診療所」ページ）とは定義も時点も異なるため一致しない。',

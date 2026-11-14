@@ -66,7 +66,7 @@ export default function Page() {
       </div>
       <h2>市町村別ページ</h2>
       <ul className="grid-links">{MUNIS.map(m => { const c = censusAt(m.code, LATEST_CENSUS)!; return <li key={m.code}><Link href={`/work/${m.slug}/`}>{m.name}の就業者・昼夜間人口<small>就業者{fmt(c.workers)}人・昼夜間{fmt(c.dn_ratio != null ? Math.round(c.dn_ratio * 10) / 10 : null)}</small></Link></li>; })}</ul>
-      <Cta topic="就業者数・昼夜間人口" />
+      <Cta campaign="work-hub" topic="就業者数・昼夜間人口" />
       <CiteBox title={TITLE} path="/work/" sentence={sentence} />
       <SourceBox keys={['census']} extra={['就業者数は15歳以上の就業者。昼夜間人口比率＝昼間人口÷常住人口×100。', `${LATEST_CENSUS}年は不詳補完結果のため「分類不能の産業」が計上されない。`]} />
     </>
