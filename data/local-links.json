@@ -5,18 +5,22 @@
   "okuri": "https://okuri-dandori.com/iwate/morioka-kasouba/"
  },
  "miyako": {
-  "kazai": "https://kazai-seiri.com/iwate/miyako/"
+  "kazai": "https://kazai-seiri.com/iwate/miyako/",
+  "okuri": "https://okuri-dandori.com/iwate/miyako-kasouba/"
  },
  "ofunato": {
-  "kazai": "https://kazai-seiri.com/iwate/ofunato/"
+  "kazai": "https://kazai-seiri.com/iwate/ofunato/",
+  "okuri": "https://okuri-dandori.com/iwate/ofunato-kasouba/"
  },
  "hanamaki": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/hanamaki-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/hanamaki/"
+  "kazai": "https://kazai-seiri.com/iwate/hanamaki/",
+  "okuri": "https://okuri-dandori.com/iwate/hanamaki-kasouba/"
  },
  "kitakami": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/kitakami-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/kitakami/"
+  "kazai": "https://kazai-seiri.com/iwate/kitakami/",
+  "okuri": "https://okuri-dandori.com/iwate/kitakami-kasouba/"
  },
  "kuji": {
   "kazai": "https://kazai-seiri.com/iwate/kuji/"
@@ -26,13 +30,15 @@
  },
  "ichinoseki": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/ichinoseki-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/ichinoseki/"
+  "kazai": "https://kazai-seiri.com/iwate/ichinoseki/",
+  "okuri": "https://okuri-dandori.com/iwate/ichinoseki-kasouba/"
  },
  "rikuzentakata": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/rikuzentakata-josei/"
  },
  "kamaishi": {
-  "kazai": "https://kazai-seiri.com/iwate/kamaishi/"
+  "kazai": "https://kazai-seiri.com/iwate/kamaishi/",
+  "okuri": "https://okuri-dandori.com/iwate/kamaishi-kasouba/"
  },
  "ninohe": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/ninohe-josei/",
@@ -44,7 +50,8 @@
   "okuri": "https://okuri-dandori.com/iwate/hachimantai-kasouba/"
  },
  "oshu": {
-  "kazai": "https://kazai-seiri.com/iwate/oshu/"
+  "kazai": "https://kazai-seiri.com/iwate/oshu/",
+  "okuri": "https://okuri-dandori.com/iwate/oshu-kasouba/"
  },
  "takizawa": {
   "kazai": "https://kazai-seiri.com/iwate/takizawa/",
