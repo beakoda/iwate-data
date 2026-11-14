@@ -23,7 +23,8 @@
   "okuri": "https://okuri-dandori.com/iwate/kitakami-kasouba/"
  },
  "kuji": {
-  "kazai": "https://kazai-seiri.com/iwate/kuji/"
+  "kazai": "https://kazai-seiri.com/iwate/kuji/",
+  "okuri": "https://okuri-dandori.com/iwate/kuji-kasouba/"
  },
  "tono": {
   "kazai": "https://kazai-seiri.com/iwate/tono/"
@@ -34,7 +35,8 @@
   "okuri": "https://okuri-dandori.com/iwate/ichinoseki-kasouba/"
  },
  "rikuzentakata": {
-  "gaiheki": "https://gaiheki-tosou.net/iwate/rikuzentakata-josei/"
+  "gaiheki": "https://gaiheki-tosou.net/iwate/rikuzentakata-josei/",
+  "okuri": "https://okuri-dandori.com/iwate/rikuzentakata-kasouba/"
  },
  "kamaishi": {
   "kazai": "https://kazai-seiri.com/iwate/kamaishi/",
@@ -42,7 +44,8 @@
  },
  "ninohe": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/ninohe-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/ninohe/"
+  "kazai": "https://kazai-seiri.com/iwate/ninohe/",
+  "okuri": "https://okuri-dandori.com/iwate/ninohe-kasouba/"
  },
  "hachimantai": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/hachimantai-josei/",
@@ -79,39 +82,46 @@
  },
  "kanegasaki": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/kanegasaki-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/kanegasaki/"
+  "kazai": "https://kazai-seiri.com/iwate/kanegasaki/",
+  "okuri": "https://okuri-dandori.com/iwate/oshu-kasouba/"
  },
  "hiraizumi": {
-  "gaiheki": "https://gaiheki-tosou.net/iwate/hiraizumi-josei/"
+  "gaiheki": "https://gaiheki-tosou.net/iwate/hiraizumi-josei/",
+  "okuri": "https://okuri-dandori.com/iwate/ichinoseki-kasouba/"
  },
  "sumita": {
   "kazai": "https://kazai-seiri.com/iwate/sumita/"
  },
  "otsuchi": {
-  "gaiheki": "https://gaiheki-tosou.net/iwate/otsuchi-josei/"
+  "gaiheki": "https://gaiheki-tosou.net/iwate/otsuchi-josei/",
+  "okuri": "https://okuri-dandori.com/iwate/otsuchi-kasouba/"
  },
  "yamada": {
-  "gaiheki": "https://gaiheki-tosou.net/iwate/yamada-josei/"
+  "gaiheki": "https://gaiheki-tosou.net/iwate/yamada-josei/",
+  "okuri": "https://okuri-dandori.com/iwate/yamada-kasouba/"
  },
  "iwaizumi": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/iwaizumi-josei/"
  },
  "fudai": {
-  "kazai": "https://kazai-seiri.com/iwate/fudai/"
+  "kazai": "https://kazai-seiri.com/iwate/fudai/",
+  "okuri": "https://okuri-dandori.com/iwate/kuji-kasouba/"
  },
  "karumai": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/karumai-josei/"
  },
  "noda": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/noda-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/noda/"
+  "kazai": "https://kazai-seiri.com/iwate/noda/",
+  "okuri": "https://okuri-dandori.com/iwate/kuji-kasouba/"
  },
  "kunohe": {
   "kazai": "https://kazai-seiri.com/iwate/kunohe/"
  },
  "hirono": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/hirono-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/hirono/"
+  "kazai": "https://kazai-seiri.com/iwate/hirono/",
+  "okuri": "https://okuri-dandori.com/iwate/kuji-kasouba/"
  },
  "ichinohe": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/ichinohe-josei/",
