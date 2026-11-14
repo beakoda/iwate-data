@@ -27,7 +27,8 @@
   "okuri": "https://okuri-dandori.com/iwate/kuji-kasouba/"
  },
  "tono": {
-  "kazai": "https://kazai-seiri.com/iwate/tono/"
+  "kazai": "https://kazai-seiri.com/iwate/tono/",
+  "okuri": "https://okuri-dandori.com/iwate/tono-kasouba/"
  },
  "ichinoseki": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/ichinoseki-josei/",
@@ -101,7 +102,8 @@
   "okuri": "https://okuri-dandori.com/iwate/yamada-kasouba/"
  },
  "iwaizumi": {
-  "gaiheki": "https://gaiheki-tosou.net/iwate/iwaizumi-josei/"
+  "gaiheki": "https://gaiheki-tosou.net/iwate/iwaizumi-josei/",
+  "okuri": "https://okuri-dandori.com/iwate/iwaizumi-kasouba/"
  },
  "fudai": {
   "kazai": "https://kazai-seiri.com/iwate/fudai/",
@@ -116,7 +118,8 @@
   "okuri": "https://okuri-dandori.com/iwate/kuji-kasouba/"
  },
  "kunohe": {
-  "kazai": "https://kazai-seiri.com/iwate/kunohe/"
+  "kazai": "https://kazai-seiri.com/iwate/kunohe/",
+  "okuri": "https://okuri-dandori.com/iwate/kunohe-kasouba/"
  },
  "hirono": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/hirono-josei/",
@@ -125,6 +128,10 @@
  },
  "ichinohe": {
   "gaiheki": "https://gaiheki-tosou.net/iwate/ichinohe-josei/",
-  "kazai": "https://kazai-seiri.com/iwate/ichinohe/"
+  "kazai": "https://kazai-seiri.com/iwate/ichinohe/",
+  "okuri": "https://okuri-dandori.com/iwate/ichinohe-kasouba/"
+ },
+ "nishiwaga": {
+  "okuri": "https://okuri-dandori.com/iwate/nishiwaga-kasouba/"
  }
 }
