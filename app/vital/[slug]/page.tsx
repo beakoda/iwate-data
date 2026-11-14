@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, vitalAt, vitalSeries, vitalPrefAt, popAt, naturalChange, socialChange, fmt, fmtSigned, pct, rank, VITAL_YEARS, LATEST_VITAL, FIRST_VITAL, FIRST_MIGR_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, LocalMedia, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -87,6 +87,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
       <Nearby code={m.code} label="出生数・死亡数" href={x => `/vital/${x.slug}/`} />
+      <LocalMedia slug={m.slug} name={m.name} keys={['okuri']} lead="統計ではなく、ご家族が亡くなったあとの手続きを調べたい方へ。" />
       <Cta campaign="vital" slug={m.slug} muni={m.name} topic="出生数" />
       <CiteBox title={title} path={`/vital/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['vital']} extra={[

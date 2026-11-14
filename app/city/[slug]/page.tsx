@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { INDUSTRIES, MUNIS, PREF, muniBySlug, econAt, popAt, dentalAt, per100k, fmt, fmtSigned, pct, rank, LATEST_DENTAL, LATEST_POP, censusAt, agingRate, LATEST_CENSUS, FIRST_BUILD, LATEST_BUILD, FIRST_MED, LATEST_MED, FIRST_WEL, LATEST_WEL, FIRST_SCHOOL, LATEST_SCHOOL, FIRST_JOBLESS, LATEST_JOBLESS, EDU_YEARS, FIRST_FARM, LATEST_FARM, FIRST_ECON, LATEST_ECON, FIRST_ENV, LATEST_ENV, FIRST_VITAL, LATEST_VITAL, CRIME_FULL_FROM, LATEST_CRIME, kaigoLabel, LATEST_KAIGO, IRYOU_ASOF_LABEL, FIRST_CLOSED, SHOFUKU_ASOF_LABEL, FIRST_TRAFFIC, LATEST_TRAFFIC, HOUJIN_ASOF_LABEL, HOIKU_ASOF_LABEL } from '@/lib/data';
 import { BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Cta, EmbedBox, Nearby } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Cta, LocalMedia, EmbedBox, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -83,6 +83,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       </ul>
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/city/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <Nearby code={m.code} label="統計まとめ" href={x => `/city/${x.slug}/`} />
+      <LocalMedia slug={m.slug} name={m.name} keys={['gaiheki', 'kazai', 'okuri']} />
       <Cta campaign="city" slug={m.slug} muni={m.name} />
       <EmbedBox slug={m.slug} name={m.name} />
       <CiteBox title={title} path={`/city/${m.slug}/`} sentence={sentence} />

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, buildAt, buildSeries, buildPrefAt, popAt, fmt, fmtSigned, pct, rank, BUILD_YEARS, LATEST_BUILD, FIRST_BUILD, LAST_COST_YEAR } from '@/lib/data';
 import { LineChart, BarChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, LocalMedia, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -87,6 +87,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
       <p>他の市町村：{MUNIS.filter(x => x.code !== m.code).map((x, k) => <span key={x.code}>{k ? '・' : ''}<Link href={`/building/${x.slug}/`}>{x.name}</Link></span>)}</p>
       <p>関連：<Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link>・<Link href={`/industry/construction/${m.slug}/`}>{m.name}の建設業（事業所・従業者）</Link>・<Link href={`/population/${m.slug}/`}>{m.name}の人口・世帯の推移</Link></p>
       <Nearby code={m.code} label="住宅着工" href={x => `/building/${x.slug}/`} />
+      <LocalMedia slug={m.slug} name={m.name} keys={['gaiheki']} lead="住宅の統計ではなく、この市町村で外壁塗装の助成金を調べたい方へ。" />
       <Cta campaign="building" slug={m.slug} muni={m.name} topic="住宅着工" />
       <CiteBox title={title} path={`/building/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['building']} extra={[

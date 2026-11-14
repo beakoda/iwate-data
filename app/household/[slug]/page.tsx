@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MUNIS, muniBySlug, houseAt, housePrefAt, censusAt, hhShare, fmt, fmtSigned, pct, rank, HOUSE_YEARS, LATEST_HOUSE, PREV_HOUSE, FIRST_HOUSE, FIRST_POP75_YEAR } from '@/lib/data';
 import { LineChart } from '@/components/Chart';
-import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, Nearby } from '@/components/Shell';
+import { Breadcrumb, SourceBox, CiteBox, DatasetJsonLd, MuniStrip, Tools, Cta, LocalMedia, Nearby } from '@/components/Shell';
 
 export function generateStaticParams() { return MUNIS.map(m => ({ slug: m.slug })); }
 
@@ -88,6 +88,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <li><Link href={`/city/${m.slug}/`}>{m.name}の統計まとめ</Link></li>
       </ul>
       <Nearby code={m.code} label="世帯数" href={x => `/household/${x.slug}/`} />
+      <LocalMedia slug={m.slug} name={m.name} keys={['kazai']} lead="空き家になった実家の片付けや、遺品整理を頼める業者を調べたい方へ。" />
       <Cta campaign="household" slug={m.slug} muni={m.name} topic="世帯構成" />
       <CiteBox title={title} path={`/household/${m.slug}/`} sentence={sentence} />
       <SourceBox keys={['household']} extra={[

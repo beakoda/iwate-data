@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SITE, SOURCES, GENERATED, MUNIS, neighborsOf, type Muni } from '@/lib/data';
 import { FAMILIES } from '@/lib/csv';
+import localLinks from '@/data/local-links.json';
 
 export function Breadcrumb({ items }: { items: { name: string; href?: string }[] }) {
   const all = [{ name: 'ホーム', href: '/' }, ...items];
@@ -80,6 +81,28 @@ const MEDIA = {
   gaiheki: { name: '塗装の相場帳', url: 'https://gaiheki-tosou.net/', desc: '外壁塗装の相場・助成金・見積書の見方を、自治体公式を一次ソースに、調査日つきで掲載しています（岩手県33市町村）。' },
   homyhome: { name: 'HomyHome.jp', url: 'https://homyhome.jp/', desc: '外構・エクステリア・お庭づくりの費用相場と助成金を、地域版ごとにレンジと出典つきで整理しています。' },
 } as const;
+// 同じ市町村の、姉妹メディアのページ（data/local-links.json。検索に出しているページだけを載せる）
+const LOCAL_LABEL = {
+  gaiheki: (n: string) => ({ site: '塗装の相場帳', text: `${n}の外壁塗装に使える助成金・補助金`, note: '制度名・補助率・上限額・申請のタイミングを、市町村の公式情報で確認日つきで整理' }),
+  kazai: (n: string) => ({ site: '実家じまいガイド', text: `${n}の遺品整理・不用品回収の許可業者`, note: '一般廃棄物収集運搬の許可を、自治体の公開一覧で1社ずつ確認したリスト' }),
+  okuri: (n: string) => ({ site: 'おくりの段取り帖', text: `${n}の火葬場・死亡届・葬祭費`, note: '亡くなったあとの手続きの窓口・料金・期限' }),
+} as const;
+export function LocalMedia({ slug, name, keys, lead }: { slug: string; name: string; keys: (keyof typeof LOCAL_LABEL)[]; lead?: string }) {
+  const e = (localLinks as Record<string, Partial<Record<keyof typeof LOCAL_LABEL, string>>>)[slug] ?? {};
+  const items = keys.filter(k => e[k]).map(k => ({ k, url: e[k]!, ...LOCAL_LABEL[k](name) }));
+  if (!items.length) return null;
+  return (
+    <section className="sources" aria-label={`${name}の暮らしの手続き`}>
+      <h2>{name}の暮らしの手続き・業者を調べる</h2>
+      {lead && <p>{lead}</p>}
+      <ul>
+        {items.map(x => <li key={x.k}><a href={x.url} rel="noopener">{x.text}</a>（{x.site}）— {x.note}</li>)}
+      </ul>
+      <p><small>いずれも本サイトと同じビークプロモーション株式会社が運営しています。</small></p>
+    </section>
+  );
+}
+
 export function RelatedMedia({ keys, lead }: { keys: (keyof typeof MEDIA)[]; lead: string }) {
   return (
     <section className="sources" aria-label="関連メディア">
