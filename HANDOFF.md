@@ -466,3 +466,5 @@ e-Stat の国勢調査「都道府県・市区町村別の主な結果」statInf
 - **title**: `/population/[slug]/` を「◯◯市の人口は△人（年1月1日）｜世帯数・人口推移」に、産業クロスを「◯◯市の△△業｜事業所数N・従業者数N人（2021年経済センサス）」に（実数は dataset.json の値そのまま。従業者数が無いときは省く）
 - **`scripts/update.sh` の構文エラーを修正**: 2026-09-07 の「node任意化」で `PAGES=skipped` と `if` 行が二重になり、`bash -n` が `unexpected end of file` で落ちていた。**e-Stat に差分があった月は build 段で失敗していたはず**（差分なしの月は手前の exit 0 で抜けるので気づかない）。VPS の `~/iwate-update.log` を確認すること。main にマージされるまで VPS 側は直らない
 - 検証: `npm run build` 成功（2183 静的ページ）、`npm run links` リンク切れ0・sitemap 1361件すべて実体あり、全 JSON-LD 2717個が JSON として妥当
+- **`functions/_middleware.js`**: ブランチのプレビュー（`*.iwate-data.pages.dev`）は本番へ301せず中身を返し、`X-Robots-Tag: noindex, nofollow` を付けるように変更。`iwate-data.pages.dev`（本番の既定サブドメイン）は従来どおり iwate-data.com へ301
+- 未解決: Workers Builds の「Deploy non-production branches」トリガー（iwate-data-mcp）の deploy コマンドが `npx wrangler versions upload` で `cd mcp &&` が無く、ブランチ push のたびに MCP ビルドが失敗表示になる（main の本番デプロイは別トリガーで正常）。直すならダッシュボードで deploy コマンドを `cd mcp && npx wrangler versions upload` に
